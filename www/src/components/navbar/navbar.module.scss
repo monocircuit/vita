@@ -1,0 +1,5 @@
+@import "../../assets/styles/lib.scss";
+
+.navbar {
+    @include createGridOverlay();
+}
