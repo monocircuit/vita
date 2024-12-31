@@ -28,8 +28,10 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable} `}>
-                <Navbar></Navbar>
-                <div className="h-screen w-screen">{children}</div>
+                <div className="h-screen w-screen">
+                    <Navbar></Navbar>
+                    <div>{children}</div>
+                </div>
             </body>
         </html>
     )
