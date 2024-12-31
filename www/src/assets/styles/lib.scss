@@ -1,33 +1,35 @@
+/** @format */
+
 // SECTION: Define global SCSS variables here.
 
 // SECTION: Define global SCSS mixins/functions here.
 
 @mixin createGridOverlay() {
-  display: grid;
-  grid-template-columns: [col0] 100% [col1];
-  grid-template-rows: [row0] 100% [row1];
+    display: grid;
+    grid-template-columns: [col0] 100% [col1];
+    grid-template-rows: [row0] 100% [row1];
 }
 
 @mixin attachToGridOverlay($zIndex) {
-  grid-area: row0 / col0 / row1 / col1;
-  z-index: $zIndex;
+    grid-area: row0 / col0 / row1 / col1;
+    z-index: $zIndex;
 }
 
 @mixin centerSelf() {
-  justify-self: center;
-  align-self: center;
+    justify-self: center;
+    align-self: center;
 }
 
 @mixin createFontFace($font-family, $src) {
-  @font-face {
-    font-family: $font-family;
-    src: url($src);
-  }
+    @font-face {
+        font-family: $font-family;
+        src: url($src);
+    }
 }
 
 @mixin polishDom() {
-  * {
-    margin: 0;
-    padding: 0;
-  }
+    * {
+        margin: 0;
+        padding: 0;
+    }
 }
