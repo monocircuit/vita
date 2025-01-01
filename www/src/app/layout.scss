@@ -1,9 +1,7 @@
 /** @format */
 @use "../assets/styles/lib.scss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import ".tailwind.css";
 
 @include lib.polishDom();
 
