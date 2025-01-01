@@ -37,7 +37,7 @@
     }
 }
 
-@mixin centerSelf() {
+@mixin flexCenterContent() {
     justify-self: center;
     align-self: center;
 }

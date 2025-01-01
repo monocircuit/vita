@@ -27,7 +27,36 @@
         aspect-ratio: 1/1;
         border-radius: 100%;
         height: 100%;
-        background-color: blue;
         overflow: hidden;
+    }
+
+    .navbar__account__icon__image {
+        @include lib.size(100%);
+    }
+
+    .navbar__account__options {
+        @include lib.size(100%);
+        @include lib.centerContent("grid");
+
+        display: grid;
+        grid-template-rows: [col0] 1fr;
+        grid-template-columns: [row0] 1fr [row1] 1fr;
+        column-gap: 10px;
+    }
+
+    .navbar__account__options__login {
+        @include lib.size(100%, 50%);
+        @include lib.centerContent("grid");
+
+        display: grid;
+        background-color: red;
+    }
+
+    .navbar__account__options__signup {
+        @include lib.size(100%, 50%);
+        @include lib.centerContent("grid");
+
+        display: grid;
+        background-color: yellow;
     }
 }
