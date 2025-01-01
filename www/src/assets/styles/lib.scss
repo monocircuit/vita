@@ -1,6 +1,8 @@
 /** @format */
 
 // SECTION: Define global SCSS variables here.
+$primary-dark-color: #000000;
+$secondary-dark-color: lighten($primary-dark-color, 50%);
 
 // SECTION: Define global SCSS mixins/functions here.
 
@@ -26,20 +28,20 @@
 /**
  * Centers the content of a "grid" or "flex" type container
  */
-@mixin centerContent($containerType) {
-    @if $containerType == "grid" {
+@mixin center($type) {
+    @if $type == "grid" {
         align-items: center;
         justify-items: center;
     }
-    @if $containerType == "flex" {
+    @if $type == "flex" {
         align-content: center;
         justify-content: center;
     }
-}
-
-@mixin flexCenterContent() {
-    justify-self: center;
-    align-self: center;
+    @if $type == "self" {
+        display: flex;
+        align-self: center;
+        justify-self: center;
+    }
 }
 
 @mixin createFontFace($font-family, $src) {
@@ -55,4 +57,14 @@
         margin: 0;
         padding: 0;
     }
+}
+
+@mixin unselectable() {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Old versions of Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                        supported by Chrome, Edge, Opera and Firefox */
 }

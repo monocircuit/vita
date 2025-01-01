@@ -1,0 +1,33 @@
+@use "@/assets/styles/lib.scss";
+
+.button {
+    @include lib.size(100%);
+    @include lib.createGridOverlay();
+    @include lib.unselectable();
+
+    border: 2px solid lib.$primary-dark-color;
+    font-family: "Lemon Milk Pro Regular";
+
+    // Transitions
+    transition: border-color 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    &:hover {
+        border-color: lib.$secondary-dark-color;
+    }
+}
+
+.button__content {
+    @include lib.attachToGridOverlay(1);
+    @include lib.center("flex");
+
+    display: flex;
+    flex-grow: 0;
+}
+
+.button__content__text {
+    @include lib.center("self");
+}
+
+.button__background {
+    @include lib.attachToGridOverlay(0);
+}

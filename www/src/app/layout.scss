@@ -3,6 +3,12 @@
 
 @include lib.polishDom();
 
+/**
+ * SECTION: Creating FontFace
+ */
+@include lib.createFontFace("Lemon Milk Pro Bold", "../fonts/LEMON MILK PRO BOLD.OTF");
+@include lib.createFontFace("Lemon Milk Pro Regular", "../fonts/LEMON MILK PRO REGULAR.OTF");
+
 body {
     @include lib.size(100vw, 100vh);
 }
