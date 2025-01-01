@@ -5,8 +5,14 @@
 @media only screen and (min-width: 600px) {
     .navbar {
         @include lib.maxSize();
-        @include lib.createGridOverlay();
 
+        display: grid;
+        grid-template-columns: [col0] 2fr [col1] 2fr [col2] 1fr;
+        grid-template-rows: [row0] 100%;
+    }
+
+    .navbar__account {
+        grid-area: row0 / col2;
         background-color: red;
     }
 }
