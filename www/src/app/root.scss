@@ -1,0 +1,10 @@
+/** @format */
+
+@use "../assets/styles/lib.scss";
+
+@include lib.polishDom();
+
+body {
+    width: 100vw;
+    height: 100vh;
+}
