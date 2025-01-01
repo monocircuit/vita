@@ -1,6 +1,10 @@
 /** @format */
-
 @use "../assets/styles/lib.scss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 
 @include lib.polishDom();
 
