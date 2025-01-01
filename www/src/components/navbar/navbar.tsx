@@ -1,6 +1,8 @@
-/*
+/**
  * This will be the component for the homepage Navbar. Not to be confused by the
  * Toolbar that will be used in the timeline editor.
+ *
+ * @format
  */
 
 import styles from "./navbar.module.scss"
