@@ -7,8 +7,12 @@
 
 import styles from "./navbar.module.scss"
 import { FunctionComponent } from "react"
+import Image from "next/image"
+import profilePic from "../../assets/images/profilepic.jpg"
 
 const Navbar: FunctionComponent = () => {
+    const signedIn = true
+
     return (
         <div className={styles["navbar"]}>
             {/**
@@ -19,14 +23,19 @@ const Navbar: FunctionComponent = () => {
              * otherwise "navbar__account__options" is displayed.
              */}
             <div className={styles["navbar__account"]}>
-                {/**
-                 * Contains the profile icon
-                 */}
-                <div className={styles["navbar__account__profile"]}></div>
-                {/**
-                 * Contains the options to login, sign up
-                 */}
-                <div className={styles["navbar__account__options"]}></div>
+                {signedIn ? (
+                    /**
+                     * Contains the profile icon
+                     */
+                    <div className={styles["navbar__account__icon"]}>
+                        <Image src={profilePic} alt="profile picture"></Image>
+                    </div>
+                ) : (
+                    /**
+                     * Contains the options to login, sign up
+                     */
+                    <div className={styles["navbar__account__options"]}></div>
+                )}
             </div>
         </div>
     )

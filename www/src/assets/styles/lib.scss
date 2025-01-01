@@ -4,11 +4,14 @@
 
 // SECTION: Define global SCSS mixins/functions here.
 
-@mixin maxSize() {
-    width: 100%;
-    height: 100%;
+@mixin size($width, $height: $width) {
+    width: $width;
+    height: $height;
 }
 
+/**
+ * A basic grid that makes it easier to use divs as wrapping parents
+ */
 @mixin createGridOverlay() {
     display: grid;
     grid-template-columns: [col0] 100% [col1];
@@ -18,6 +21,20 @@
 @mixin attachToGridOverlay($zIndex) {
     grid-area: row0 / col0 / row1 / col1;
     z-index: $zIndex;
+}
+
+/**
+ * Centers the content of a "grid" or "flex" type container
+ */
+@mixin centerContent($containerType) {
+    @if $containerType == "grid" {
+        align-items: center;
+        justify-items: center;
+    }
+    @if $containerType == "flex" {
+        align-content: center;
+        justify-content: center;
+    }
 }
 
 @mixin centerSelf() {
