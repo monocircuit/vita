@@ -2,6 +2,9 @@
 
 @use "../../assets/styles/lib.scss";
 
+/**
+ * The navbar styles for a wide screen.
+ */
 @media only screen and (min-width: 600px) {
     .navbar {
         @include lib.maxSize();
