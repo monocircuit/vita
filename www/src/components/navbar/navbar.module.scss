@@ -12,6 +12,10 @@
         display: grid;
         grid-template-columns: [col0] 2fr [col1] 2fr [col2] 1fr;
         grid-template-rows: [row0] 100%;
+
+        border: 1px solid red;
+
+        overflow: hidden;
     }
 
     .navbar__account {
@@ -21,6 +25,8 @@
         grid-area: row0 / col2;
         align-items: center;
         justify-items: right;
+
+        border: 1px solid blue;
     }
 
     .navbar__account__icon {
@@ -42,6 +48,9 @@
         grid-template-rows: [col0] 1fr;
         grid-template-columns: [row0] 1fr [row1] 1fr;
         column-gap: 10px;
+
+        border: 1px solid green;
+        overflow: hidden;
     }
 
     .navbar__account__options__login {
@@ -49,6 +58,7 @@
         @include lib.center("grid");
 
         display: grid;
+        overflow: hidden;
     }
 
     .navbar__account__options__signup {
@@ -56,5 +66,14 @@
         @include lib.center("grid");
 
         display: grid;
+        overflow: hidden;
+    }
+
+    .navbar__account__options__signup__test {
+        border-radius: 100%;
+        aspect-ratio: 1/1;
+        height: 40px;
+
+        background-color: black;
     }
 }

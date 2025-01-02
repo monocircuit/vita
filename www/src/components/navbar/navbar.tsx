@@ -5,19 +5,19 @@
  * @format
  */
 
-"use client"
+"use client";
 
-import styles from "./navbar.module.scss"
-import { FunctionComponent } from "react"
-import Image from "next/image"
+import styles from "./navbar.module.scss";
+import { FunctionComponent } from "react";
+import Image from "next/image";
 
-import profilePic from "@/assets/images/profilepic.jpg"
-import cross from "@/assets/images/cross.png"
+import profilePic from "@/assets/images/profilepic.jpg";
+import cross from "@/assets/images/cross.png";
 
-import Button from "@/utils/button/button"
+import Button from "@/utils/button/button";
 
 const Navbar: FunctionComponent = () => {
-    const signedIn = false
+    const signedIn = false;
 
     return (
         <div className={styles["navbar"]}>
@@ -58,7 +58,7 @@ const Navbar: FunctionComponent = () => {
                 )}
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Navbar
+export default Navbar;
