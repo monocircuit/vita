@@ -4,55 +4,47 @@
 import Input from "@/utils/input/input.utils"
 import React, { useState } from "react"
 import PocketBase from "pocketbase"
+import LoginTemp from "./logintemp"
+import RegisTemp from "./registemp"
 
-const pb = new PocketBase('https://pbe.eichenzell.nausseite.de');
+const pb = new PocketBase("https://pbe.eichenzell.nausseite.de")
 
 interface loginData {
-    email: string
+    username: string
     password: string
 }
 
-
-//Testuser email: test@monocircuit password: test12345
-async function authFunction(email: string, password: string) {
+//Testuser username: test@monocircuit password: test12345
+async function authFunction(username: string, password: string) {
     const userData = await pb
         .collection("users")
-        .authWithPassword(email, password)
-
-    console.log(userData)
-    
+        .authWithPassword(username, password)
 }
 
 function LoginComp() {
-    const [input, setInput] = useState<loginData>({email: "", password: ""})
-    console.log(input)
+    const [input, setInput] = useState<loginData>({
+        username: "",
+        password: "",
+    })
+    const [needRegister, setNeedRegister] = useState<boolean>(false)
 
-    console.log(pb.authStore.isValid);
-    console.log(pb.authStore.token);
-    console.log(pb.authStore.record?.id);
+    console.log(pb.authStore.isValid)
+    console.log(pb.authStore.token)
+    console.log(pb.authStore.record?.id)
 
     return (
         <div className="flex h-full justify-center items-center">
             <div className="border-black border-2 rounded-lg w-[500px] h-[600px] m-2 flex justify-center items-center flex-col">
-                <div className="flex-1"></div>
-                <Input
-                    placeholder="Email"
-                    classNames="w-[300px]"
-                    onChange={(e) => {
-                        setInput({ email: e, password: input.password})
-                    }}
-                ></Input>
-                <div className="flex-1"></div>
-                <Input
-                    placeholder="Password"
-                    classNames="w-[300px]"
-                    onChange={(e) => {
-                        setInput({email: input.email, password: e })
-                    }}
-                ></Input>
-                <div className="flex-1"></div>
-                <button onClick={() => authFunction(input.email, input.password)}>Submit</button>
-                <div className="flex-1"></div>
+                {!needRegister ? (
+                    <LoginTemp
+                        rootRegistration={() => setNeedRegister(true)}
+                        authfunction={(e) =>
+                            authFunction(e.username, e.password)
+                        }
+                    />
+                ) : (
+                    <RegisTemp rootLogin={() => setNeedRegister(false)} regfunction={(e) => {}}/>   
+                )}
             </div>
         </div>
     )
