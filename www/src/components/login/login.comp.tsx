@@ -43,7 +43,7 @@ function LoginComp() {
                         }
                     />
                 ) : (
-                    <RegisTemp rootLogin={() => setNeedRegister(false)} regfunction={(e) => {}}/>   
+                    <div></div>
                 )}
             </div>
         </div>

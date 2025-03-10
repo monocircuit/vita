@@ -1,4 +1,5 @@
 /** @format */
+"use client"
 
 import {
     createContext,
@@ -12,10 +13,10 @@ import {
 import PocketBase, { RecordModel } from "pocketbase"
 import { useInterval } from "usehooks-ts"
 import {jwtDecode} from "jwt-decode"
-
+(email: string, password: string, passwordConfirm: string) => Promise<RecordModel>
 const BASE_URL: string = "https://pbe.eichenzell.nausseite.de"
 
-const PocketContext = createContext({})
+const PocketContext = createContext({ registerFunction: (email: string, password: string, passwordConfirm: string) => Promise.resolve({} as RecordModel), loginFunction: (username: string, password: string) => Promise.resolve(), logoutFunction: () => {}, user: {} as RecordModel | null, token: "", pb: new PocketBase(BASE_URL) })
 
 export const PocketProvider = ({ children }: { children: ReactNode }) => {
     const pb = useMemo(() => new PocketBase(BASE_URL), [])
@@ -79,4 +80,6 @@ export const PocketProvider = ({ children }: { children: ReactNode }) => {
 }
 
 
-export const usePocket = () => useContext(PocketContext);
+export const usePocket = () => {
+    return useContext(PocketContext)
+}
