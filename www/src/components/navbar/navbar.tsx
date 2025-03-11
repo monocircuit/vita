@@ -46,10 +46,7 @@ const Navbar: FunctionComponent = () => {
                      */
                     <div className={styles["navbar__account__options"]}>
                         <div className={styles["navbar__account__options__login"]}>
-                            <Button
-                                text="Log In"
-                                icon={<Image src={cross} alt="cross"></Image>}
-                            ></Button>
+                            <Button text="Log In"></Button>
                         </div>
                         <div className={styles["navbar__account__options__signup"]}>
                             <Button text="Sign Up"></Button>
