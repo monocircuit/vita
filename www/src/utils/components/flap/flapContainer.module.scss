@@ -1,0 +1,12 @@
+@use "@/assets/styles/lib.scss";
+
+.flap-container {
+    @include lib.createGridOverlay();
+
+    width: 100%;
+    height: 100%;
+
+    .flap-container__child {
+        grid-area: row0 / col0 / row1 / col1;
+    }
+}

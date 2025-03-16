@@ -1,11 +1,8 @@
-/** @format */
 @use "../assets/styles/lib.scss";
-
-@import ".tailwind.css";
+@use "../assets/styles/fontfaces.scss";
 
 @include lib.polishDom();
 
 body {
-    width: 100vw;
-    height: 100vh;
+    @include lib.size(100vw, 100vh);
 }

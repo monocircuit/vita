@@ -1,0 +1,13 @@
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    id="Home--Streamline-Sharp-Material"
+>
+    <desc>Home Streamline Icon: https://streamlinehq.com</desc>
+    <path
+        fill="#000000"
+        d="M5.5 19.5h3.75V13.25h5.5V19.5H18.5V9.75L12 4.875 5.5 9.75V19.5Zm-1.5 1.5V9L12 3l8 6v12H13.25V14.75h-2.5V21H4Z"
+        stroke-width="0.5"
+    ></path>
+</svg>

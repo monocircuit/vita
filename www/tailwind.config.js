@@ -1,4 +1,7 @@
-/** @type {import('tailwindcss').Config} */
+/**
+ * @format
+ * @type {import('tailwindcss').Config}
+ */
 
 export const content = [
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}", // Note the addition of the `app` directory.
@@ -7,10 +10,10 @@ export const content = [
 
     // Or if using `src` directory:
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
-]
+];
 
 export const theme = {
-    extend: {},
-}
+    extend: { colors: { logoblue: "#519ff7" } },
+};
 
-export const plugins = []
+export const plugins = [];
