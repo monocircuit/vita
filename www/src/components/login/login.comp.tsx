@@ -6,6 +6,7 @@ import React, { useState } from "react"
 import PocketBase from "pocketbase"
 import LoginTemp from "./logintemp"
 import RegisTemp from "./registemp"
+import { auth } from "@/utils/auth/auth"
 
 const pb = new PocketBase("https://pbe.eichenzell.nausseite.de")
 
@@ -14,7 +15,8 @@ interface loginData {
     password: string
 }
 
-//Testuser username: test@monocircuit password: test12345
+
+//Testuser username: test@monocircuit BingoBongo password: test1234
 async function authFunction(username: string, password: string) {
     const userData = await pb
         .collection("users")
@@ -28,10 +30,6 @@ function LoginComp() {
     })
     const [needRegister, setNeedRegister] = useState<boolean>(false)
 
-    console.log(pb.authStore.isValid)
-    console.log(pb.authStore.token)
-    console.log(pb.authStore.record?.id)
-
     return (
         <div className="flex h-full justify-center items-center">
             <div className="border-black border-2 rounded-lg w-[500px] h-[600px] m-2 flex justify-center items-center flex-col">
@@ -39,7 +37,7 @@ function LoginComp() {
                     <LoginTemp
                         rootRegistration={() => setNeedRegister(true)}
                         authfunction={(e) =>
-                            authFunction(e.username, e.password)
+                            auth.login(e.username, e.password)
                         }
                     />
                 ) : (

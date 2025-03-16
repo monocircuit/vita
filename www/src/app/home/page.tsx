@@ -1,13 +1,18 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect } from 'react'
+
+const HomePage = () => {
 
 
 
-function HomePage() {
+
   return (
-    <div>page</div>
+      <div>
+        hi
+      </div>
   )
 }
 
 export default HomePage
+
