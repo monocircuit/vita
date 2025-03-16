@@ -7,20 +7,28 @@
 
 "use client";
 
-import styles from "./navbar.module.scss";
 import { FunctionComponent } from "react";
 import Image from "next/image";
 
-import profilePic from "@/assets/images/profilepic.jpg";
-import cross from "@/assets/images/cross.png";
+import scss from "./navbar.module.scss";
 
-import Button from "@/utils/button/button";
+import profilePic from "@/assets/images/profilepic.jpg";
+import SignInGraphic from "@/assets/images/svg/login2.svg";
+import SignUpGraphic from "@/assets/images/svg/signup2.svg";
+import MonocircuitLogo from "@/assets/images/svg/monocircuit.svg";
+
+import Button from "@/utils/components/button/button";
 
 const Navbar: FunctionComponent = () => {
     const signedIn = false;
 
     return (
-        <div className={styles["navbar"]}>
+        <div className={scss["navbar"]}>
+            <div className={scss["navbar__logo"]}>
+                <MonocircuitLogo />
+                <div className={scss["navbar__divider"]}></div>
+            </div>
+            <div className={scss["navbar__title"]}></div>
             {/**
              * Part of the Navbar that is concerned with the users account,
              * it gives the option to login, sign up and shows the profile icon.
@@ -28,31 +36,36 @@ const Navbar: FunctionComponent = () => {
              * If the user is not logged in, "navbar__account__profile" is shown,
              * otherwise "navbar__account__options" is displayed.
              */}
-            <div className={styles["navbar__account"]}>
-                {signedIn ? (
-                    /**
-                     * Contains the profile icon
-                     */
-                    <div className={styles["navbar__account__icon"]}>
-                        <Image
-                            className={styles["navbar__account__icon__image"]}
-                            src={profilePic}
-                            alt="profile picture"
-                        ></Image>
-                    </div>
-                ) : (
-                    /**
-                     * Contains the options to login, sign up
-                     */
-                    <div className={styles["navbar__account__options"]}>
-                        <div className={styles["navbar__account__options__login"]}>
-                            <Button text="Log In"></Button>
+            <div className={scss["navbar__account"]}>
+                <div className={scss["navbar__account__text"]}>account</div>
+                <div className={scss["navbar__divider"]}></div>
+                <div className={scss["navbar__account__container"]}>
+                    {signedIn ? (
+                        <div className={scss["navbar__account__icon"]}>
+                            <Image
+                                className={scss["navbar__account__icon__image"]}
+                                src={profilePic}
+                                alt="profile picture"
+                            ></Image>
                         </div>
-                        <div className={styles["navbar__account__options__signup"]}>
-                            <Button text="Sign Up"></Button>
+                    ) : (
+                        <div className={scss["navbar__account__container__options"]}>
+                            <div className={scss["navbar__account__container__options__signin"]}>
+                                <Button type="primary" text="sign in" capslock>
+                                    <SignInGraphic />
+                                </Button>
+                            </div>
+                            <div
+                                className={scss["navbar__account__container__options__divider"]}
+                            ></div>
+                            <div className={scss["navbar__account__container__options__signup"]}>
+                                <Button type="secondary" text="sign up" capslock>
+                                    <SignUpGraphic />
+                                </Button>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );

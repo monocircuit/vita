@@ -1,6 +1,16 @@
-/** @format */
+@use "@/assets/styles/lib.scss";
 
 .page {
-    width: 100%;
-    height: 10%;
+    width: 100vw;
+    height: 100vh;
+
+    .page__infobar {
+        width: 100%;
+        height: 25px;
+    }
+
+    .page__navbar {
+        width: 100%;
+        height: 60px;
+    }
 }

@@ -1,0 +1,136 @@
+"use client";
+
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+
+import scss from "./flap.module.scss";
+import { RelativeMouseCoordinates } from "../passMouseCoordinates/passMouseCoordinates";
+import { produce } from "immer";
+import { Coordinates } from "@/utils/types/types";
+
+export interface Props {
+    isHovering?: boolean;
+    isPressing?: boolean;
+    color?: string;
+    mouseCoordinates?: boolean;
+}
+
+interface FlapObjectState {
+    coordinatesWithoutCircumference?: Coordinates;
+    style: React.CSSProperties;
+}
+
+const Flap: React.FunctionComponent<Props> = ({ isHovering, isPressing, color }) => {
+    /** ANCHOR: References */
+    const flap = useRef<HTMLDivElement>(null);
+    const flapObject = useRef<HTMLDivElement>(null);
+
+    /** ANCHOR: Context */
+    const relativeMouseCoordinates = useContext(RelativeMouseCoordinates);
+
+    /** ANCHOR: State */
+    const [flapObjectState, setFlapObjectState] = useState<FlapObjectState>({
+        /** Initial State */
+        style: {
+            visibility: "hidden",
+            height: "0px",
+            backgroundColor: color,
+        },
+    });
+
+    /** ANCHOR: Callback */
+    const setFlapObjectTranslation = useCallback((coordinates: Coordinates) => {
+        if (!flapObject.current) return;
+
+        const newCoordinates = {
+            x: coordinates.x - flapObject.current.clientHeight / 2,
+            y: coordinates.y - flapObject.current.clientHeight / 2,
+        };
+
+        setFlapObjectState((prevState) =>
+            produce(prevState, (draft) => {
+                draft.coordinatesWithoutCircumference = coordinates;
+                draft.style.transform = `translate3d(${newCoordinates.x}px, ${newCoordinates.y}px, 0px)`;
+            })
+        );
+    }, []);
+    const setFlapObjectVisibility = useCallback((visibility: "visible" | "hidden") => {
+        setFlapObjectState((prevState) =>
+            produce(prevState, (draft) => {
+                draft.style.visibility = visibility;
+            })
+        );
+    }, []);
+    const setFlapObjectSize = useCallback((sizeUp: boolean) => {
+        if (!flap.current) return;
+
+        if (sizeUp) {
+            /** calculating circumference such that ButtonBackground fully fills the button */
+            const newHeight =
+                (flap.current.clientHeight > flap.current.clientWidth
+                    ? flap.current.clientHeight
+                    : flap.current.clientWidth) * 3;
+
+            setFlapObjectState((prevState) =>
+                produce(prevState, (draft) => {
+                    draft.style.height = `${newHeight}px`;
+                })
+            );
+
+            return;
+        }
+
+        setFlapObjectState((prevState) =>
+            produce(prevState, (draft) => {
+                draft.style.height = "0px";
+            })
+        );
+    }, []);
+
+    /** ANCHOR: Effects */
+    useEffect(() => {
+        if (!flapObject.current) return;
+        const resizeObserver = new ResizeObserver(() => {
+            if (!flapObjectState.coordinatesWithoutCircumference) return;
+            setFlapObjectTranslation(flapObjectState.coordinatesWithoutCircumference);
+        });
+        resizeObserver.observe(flapObject.current);
+
+        /** Clean Up */
+        return () => resizeObserver.disconnect();
+    }, [flapObjectState.coordinatesWithoutCircumference, setFlapObjectTranslation]);
+
+    useEffect(() => {
+        if (isPressing) {
+            setFlapObjectState((prevState) =>
+                produce(prevState, (draft) => {
+                    draft.style.filter = `opacity(100%)`;
+                })
+            );
+        }
+
+        if (isHovering || isPressing) {
+            /** Translation of FlapObject to the current mouse coordinates */
+            setFlapObjectTranslation(relativeMouseCoordinates);
+            /** Making the FlapObject visible */
+            setFlapObjectVisibility("visible");
+            /** Sizing the FlapObject such that it fills the entire Flap */
+            setFlapObjectSize(true);
+
+            return;
+        }
+
+        /** Making the FlapObject invisible */
+        setFlapObjectVisibility("hidden");
+        /** Sizing the FlapObject down such that it can be sized up again at the next hover event */
+        setFlapObjectSize(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isHovering, isPressing]);
+
+    return (
+        <div className={scss["flap"]} ref={flap}>
+            <div className={scss["flap__object"]} style={flapObjectState.style} ref={flapObject} />
+        </div>
+    );
+};
+
+export default Flap;
