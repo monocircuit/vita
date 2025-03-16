@@ -1,18 +1,13 @@
-/** @format */
-"use client"
+"use client";
 
-import Input from "@/utils/components/input/input.utils"
-import React, { useState } from "react"
-import PocketBase from "pocketbase"
-import LoginTemp from "./logintemp"
-import RegisTemp from "./registemp"
-import { auth } from "@/utils/auth/auth"
-
-const pb = new PocketBase("https://pbe.eichenzell.nausseite.de")
+import React, { useState } from "react";
+import PocketBase from "pocketbase";
+import LoginTemp from "./logintemp";
+import { auth } from "@/utils/auth/auth";
 
 interface loginData {
-    username: string
-    password: string
+    username: string;
+    password: string;
 }
 
 //Testuser username: test@monocircuit BingoBongo password: test1234
@@ -21,8 +16,8 @@ function LoginComp() {
     const [input, setInput] = useState<loginData>({
         username: "",
         password: "",
-    })
-    const [needRegister, setNeedRegister] = useState<boolean>(false)
+    });
+    const [needRegister, setNeedRegister] = useState<boolean>(false);
 
     return (
         <div className="flex h-full justify-center items-center">
@@ -37,7 +32,7 @@ function LoginComp() {
                 )}
             </div>
         </div>
-    )
+    );
 }
 
-export default LoginComp
+export default LoginComp;

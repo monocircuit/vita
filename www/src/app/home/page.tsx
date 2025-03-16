@@ -1,12 +1,11 @@
 /** @format */
 
-"use client"
+"use client";
 
-import auth from "@/utils/auth/auth"
-import React from "react"
+import auth from "@/utils/auth/auth";
+import React from "react";
 
-console.log(auth.getUser())
-
+console.log(auth.getUser());
 
 const HomePage = () => {
     return (
@@ -16,13 +15,13 @@ const HomePage = () => {
             </div>
             <button
                 onClick={() => {
-                    auth.logout()
+                    auth.logout();
                 }}
             >
                 Fick die Dicken
             </button>
         </div>
-    )
-}
+    );
+};
 
-export default HomePage
+export default HomePage;

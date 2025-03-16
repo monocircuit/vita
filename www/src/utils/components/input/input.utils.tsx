@@ -3,8 +3,10 @@
 import React from "react";
 
 interface inputProps {
-    onChange: () => void;
+    onChange: (e: string) => void;
     classNames: string;
+    placeholder?: string;
+    type?: string;
 }
 
 const Input: React.FC<inputProps> = (inputProps) => {

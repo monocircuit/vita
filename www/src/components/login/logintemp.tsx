@@ -1,23 +1,23 @@
 /** @format */
 
-import Input from "@/utils/input/input.utils"
-import React, { useState } from "react"
+import Input from "@/utils/components/input/input.utils";
+import React, { useState } from "react";
 
 interface props {
-    authfunction: (obj: loginData) => {}
-    rootRegistration: () => void
+    authfunction: (obj: loginData) => object;
+    rootRegistration: () => void;
 }
 
 interface loginData {
-    username: string
-    password: string
+    username: string;
+    password: string;
 }
 
 const LoginTemp: React.FC<props> = (props) => {
     const [input, setInput] = useState<loginData>({
         username: "",
         password: "",
-    })
+    });
     return (
         <div className="flex flex-col ">
             <div className="flex-1"></div>
@@ -25,7 +25,7 @@ const LoginTemp: React.FC<props> = (props) => {
                 placeholder="Username"
                 classNames="w-[300px]"
                 onChange={(e) => {
-                    setInput({ username: e, password: input.password })
+                    setInput({ username: e, password: input.password });
                 }}
             ></Input>
             <div className="flex-1"></div>
@@ -33,7 +33,7 @@ const LoginTemp: React.FC<props> = (props) => {
                 placeholder="Password"
                 classNames="w-[300px]"
                 onChange={(e) => {
-                    setInput({ username: input.username, password: e })
+                    setInput({ username: input.username, password: e });
                 }}
             ></Input>
             <div className="flex-1"></div>
@@ -53,7 +53,7 @@ const LoginTemp: React.FC<props> = (props) => {
             </div>
             <div className="flex-1"></div>
         </div>
-    )
-}
+    );
+};
 
-export default LoginTemp
+export default LoginTemp;
