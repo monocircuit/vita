@@ -3,22 +3,38 @@
 
 import Input from "@/utils/components/input/input.utils"
 import React, { useState } from "react"
+import PocketBase from "pocketbase"
+import LoginTemp from "./logintemp"
+import RegisTemp from "./registemp"
+import { auth } from "@/utils/auth/auth"
+
+const pb = new PocketBase("https://pbe.eichenzell.nausseite.de")
 
 interface loginData {
-    username?: string
-    password?: string
+    username: string
+    password: string
 }
 
+//Testuser username: test@monocircuit BingoBongo password: test1234
+
 function LoginComp() {
-    const [input, setInput] = useState<loginData>({})
+    const [input, setInput] = useState<loginData>({
+        username: "",
+        password: "",
+    })
+    const [needRegister, setNeedRegister] = useState<boolean>(false)
+
     return (
         <div className="flex h-full justify-center items-center">
             <div className="border-black border-2 rounded-lg w-[500px] h-[600px] m-2 flex justify-center items-center flex-col">
-                <div className="flex-1"></div>
-                <Input classNames="w-[300px]" onChange={() => {}}></Input>
-                <div className="flex-1"></div>
-                <Input classNames="w-[300px]" onChange={() => {}}></Input>
-                <div className="flex-1"></div>
+                {!needRegister ? (
+                    <LoginTemp
+                        rootRegistration={() => setNeedRegister(true)}
+                        authfunction={(e) => auth.login(e.username, e.password)}
+                    />
+                ) : (
+                    <div></div>
+                )}
             </div>
         </div>
     )
