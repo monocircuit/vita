@@ -15,13 +15,7 @@ interface loginData {
     password: string
 }
 
-
 //Testuser username: test@monocircuit BingoBongo password: test1234
-async function authFunction(username: string, password: string) {
-    const userData = await pb
-        .collection("users")
-        .authWithPassword(username, password)
-}
 
 function LoginComp() {
     const [input, setInput] = useState<loginData>({
@@ -36,9 +30,7 @@ function LoginComp() {
                 {!needRegister ? (
                     <LoginTemp
                         rootRegistration={() => setNeedRegister(true)}
-                        authfunction={(e) =>
-                            auth.login(e.username, e.password)
-                        }
+                        authfunction={(e) => auth.login(e.username, e.password)}
                     />
                 ) : (
                     <div></div>

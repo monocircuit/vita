@@ -1,6 +1,8 @@
+import { redirect } from 'next/navigation'
+
 import PocketBase from "pocketbase";
 
-const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "https://pbe.eichenzell.nausseite.de";
+const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL;
 const pb = new PocketBase(PB_URL);
 
 export const auth = {
@@ -19,10 +21,10 @@ export const auth = {
     },
 
     login: async (username: string, password: string) => {
-        console.log("Try Login: " + username);
         try {
-            const authData = await pb.collection("users").authWithPassword(username, password);
-            return authData;
+            await pb.collection("users").authWithPassword(username, password);
+            document.cookie = `pb_auth=${pb.authStore.token}; path=/; Secure`;
+            redirect("/home")
         } catch (error) {
             console.error("Login failed", error);
             throw error;
@@ -30,19 +32,20 @@ export const auth = {
     },
 
     logout: () => {
+        console.log("big boobs")
         pb.authStore.clear();
+        document.cookie = `pb_auth=; path=/; Secure`;
+        redirect("/")
     },
 
     getUser: () => {
-        return pb.authStore.model;
+        return pb.authStore.record;
     },
 
     isAuthenticated: () => {
         return pb.authStore.isValid;
     }
-
-
 };
 
+export default auth;
 
-export default pb;
