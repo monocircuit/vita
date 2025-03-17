@@ -15,7 +15,6 @@ export interface Props {
 }
 
 interface FlapObjectState {
-    coordinatesWithoutCircumference?: Coordinates;
     style: React.CSSProperties;
 }
 
@@ -28,11 +27,13 @@ const Flap: React.FunctionComponent<Props> = ({ isHovering, isPressing, color })
     const relativeMouseCoordinates = useContext(RelativeMouseCoordinates);
 
     /** ANCHOR: State */
+    const [currentRelativeMouseCoordinates, setCurrentRelativeMouseCoordinates] =
+        useState<Coordinates>();
     const [flapObjectState, setFlapObjectState] = useState<FlapObjectState>({
         /** Initial State */
         style: {
             visibility: "hidden",
-            height: "0px",
+            height: "20px",
             backgroundColor: color,
         },
     });
@@ -48,7 +49,6 @@ const Flap: React.FunctionComponent<Props> = ({ isHovering, isPressing, color })
 
         setFlapObjectState((prevState) =>
             produce(prevState, (draft) => {
-                draft.coordinatesWithoutCircumference = coordinates;
                 draft.style.transform = `translate3d(${newCoordinates.x}px, ${newCoordinates.y}px, 0px)`;
             })
         );
@@ -90,14 +90,14 @@ const Flap: React.FunctionComponent<Props> = ({ isHovering, isPressing, color })
     useEffect(() => {
         if (!flapObject.current) return;
         const resizeObserver = new ResizeObserver(() => {
-            if (!flapObjectState.coordinatesWithoutCircumference) return;
-            setFlapObjectTranslation(flapObjectState.coordinatesWithoutCircumference);
+            if (!currentRelativeMouseCoordinates) return;
+            setFlapObjectTranslation(currentRelativeMouseCoordinates);
         });
         resizeObserver.observe(flapObject.current);
 
         /** Clean Up */
         return () => resizeObserver.disconnect();
-    }, [flapObjectState.coordinatesWithoutCircumference, setFlapObjectTranslation]);
+    }, [currentRelativeMouseCoordinates, setFlapObjectTranslation]);
 
     useEffect(() => {
         if (isPressing) {
@@ -107,6 +107,9 @@ const Flap: React.FunctionComponent<Props> = ({ isHovering, isPressing, color })
                 })
             );
         }
+
+        /** update currentRelativeMouseCoordinates  */
+        setCurrentRelativeMouseCoordinates(relativeMouseCoordinates);
 
         if (isHovering || isPressing) {
             /** Translation of FlapObject to the current mouse coordinates */

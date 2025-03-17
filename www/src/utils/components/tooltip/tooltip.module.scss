@@ -1,0 +1,13 @@
+@use "@/assets/styles/lib.scss";
+
+.tooltip {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+
+    border: lib.$stroke-width solid lib.$primary-dark-color;
+
+    background-color: lib.$primary-bright-color;
+    color: lib.$primary-dark-color;
+    font-family: "Space Mono";
+}

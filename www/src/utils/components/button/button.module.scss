@@ -8,25 +8,61 @@
     height: 100%;
     overflow: hidden;
 
+    position: relative;
+    z-index: 0;
+
     .button__background {
         @include lib.attachToGridOverlay(1);
     }
 
     .button__foreground {
         @include lib.attachToGridOverlay(2);
-
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-        gap: lib.$stroke-width;
+        @include lib.createGridOverlay();
 
         svg {
-            height: 70%;
+            display: inline-block;
+            vertical-align: middle;
+            margin: 0;
+            padding: 0;
+
+            /** get svg to same height as the text element */
+            height: 1.2em;
+            /** preserve aspect ratio */
+            width: auto;
         }
 
-        .button__foreground__text {
-            font-family: "Space Mono";
+        .button__foreground__notwrapped {
+            @include lib.attachToGridOverlay(1);
+
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: lib.$stroke-width;
+
+            .button__foreground__text {
+                /** Most of the CSS is to ensure that the Text container is minmal */
+                display: inline-block;
+                box-sizing: content-box;
+
+                padding: 0;
+                margin: 0;
+
+                border: none;
+                outline: none;
+
+                line-height: 1;
+                font-size: inherit;
+                vertical-align: middle;
+                font-family: "Space Mono";
+            }
+        }
+
+        .button__foreground__wrapped {
+            @include lib.attachToGridOverlay(2);
+
+            display: grid;
+            @include lib.center("grid");
         }
     }
 }

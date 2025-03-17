@@ -51,7 +51,7 @@ const Navbar: FunctionComponent = () => {
                     ) : (
                         <div className={scss["navbar__account__container__options"]}>
                             <div className={scss["navbar__account__container__options__signin"]}>
-                                <Button type="primary" text="sign in" capslock>
+                                <Button type="primary" text="sign in" linkTo="/login" capslock>
                                     <SignInGraphic />
                                 </Button>
                             </div>

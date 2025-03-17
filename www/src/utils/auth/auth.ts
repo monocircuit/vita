@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation'
+import { redirect } from "next/navigation";
 
 import PocketBase from "pocketbase";
 
@@ -24,7 +24,7 @@ export const auth = {
         try {
             await pb.collection("users").authWithPassword(username, password);
             document.cookie = `pb_auth=${pb.authStore.token}; path=/; Secure`;
-            redirect("/home")
+            redirect("/home");
         } catch (error) {
             console.error("Login failed", error);
             throw error;
@@ -32,10 +32,10 @@ export const auth = {
     },
 
     logout: () => {
-        console.log("big boobs")
+        console.log("big boobs");
         pb.authStore.clear();
         document.cookie = `pb_auth=; path=/; Secure`;
-        redirect("/")
+        redirect("/");
     },
 
     getUser: () => {
@@ -44,8 +44,7 @@ export const auth = {
 
     isAuthenticated: () => {
         return pb.authStore.isValid;
-    }
+    },
 };
 
 export default auth;
-
