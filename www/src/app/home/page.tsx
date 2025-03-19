@@ -2,7 +2,7 @@
 
 "use client";
 
-import auth from "@/utils/auth/auth";
+import auth from "@/utils/pbHelper/auth/auth";
 import React from "react";
 
 console.log(auth.getUser());

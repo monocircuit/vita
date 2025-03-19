@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import PocketBase from "pocketbase";
-import { auth } from "./utils/auth/auth";
+import { auth } from "./utils/pbHelper/auth/auth";
 
 // 1. Specify protected and public routes
 const protectedRoutes = ["/home"];
