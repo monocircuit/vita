@@ -69,10 +69,6 @@ const Tooltip: React.FunctionComponent<Props> = (props) => {
 
     /** ANCHOR: Effects */
     useEffect(() => {
-        console.log(props.isHidden);
-    }, [props.isHidden]);
-
-    useEffect(() => {
         isActive.current = props.isActive;
 
         /** resetting timeout such that the Tooltip adheres to the TOOLTIP_SPEED */

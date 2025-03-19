@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from "react";
 import Two from "two.js";
 
 import scss from "./page.module.scss";
-import displayBezierControls from "@/utils/functions/engine/displayBezierControls";
+import displayBezierControls from "@/utils/engine/displayBezierControls";
 
 const Engine = () => {
     const engine = useRef<HTMLDivElement>(null);

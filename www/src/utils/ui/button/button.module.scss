@@ -32,6 +32,10 @@
             width: auto;
         }
 
+        .button__foreground__svg {
+            display: inline-block;
+        }
+
         .button__foreground__notwrapped {
             @include lib.attachToGridOverlay(1);
 

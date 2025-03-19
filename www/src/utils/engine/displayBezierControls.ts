@@ -1,34 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Two from "two.js";
 import { Path } from "two.js/src/path";
-import { Line } from "two.js/src/shapes/line";
+import shortenLine from "@/utils/engine/shortenLine";
 
-const BEZIER_HANDLE_LENGTH = 200;
-
-const shortenLine = (line: Line, length: number) => {
-    const [startAnchor, endAnchor] = line.vertices;
-
-    const startVector = new Two.Vector(startAnchor.x, startAnchor.y);
-    const endVector = new Two.Vector(endAnchor.x, endAnchor.y);
-
-    const vector = Two.Vector.subtract(endVector, startVector);
-    const vectorLength = Math.sqrt(Math.pow(vector.x, 2) + Math.pow(vector.y, 2));
-
-    if (vectorLength == 0) return;
-
-    /** Calculate unit vector (normalizing the vector) */
-    vector.divideScalar(vectorLength);
-    /** Scaling vector to the wished distance */
-    vector.multiplyScalar(length);
-    vector.add(startVector);
-
-    endAnchor.x = vector.x;
-    endAnchor.y = vector.y;
-};
-
-const displayBezierControls = (environment: Two, path: Path) => {
+const displayBezierControls = (environment: Two, path: Path, options?: { shorten: number }) => {
     path.vertices.forEach((anchor, index) => {
-        const endPoints = {
+        const endVectors = {
             left: {
                 x: anchor.relative ? anchor.x + anchor.controls.left.x : anchor.controls.left.x,
                 y: anchor.relative ? anchor.y + anchor.controls.left.y : anchor.controls.left.y,
@@ -43,17 +20,22 @@ const displayBezierControls = (environment: Two, path: Path) => {
         dot.fill = "#00ff";
         dot.stroke = "#00ff";
 
-        const leftHandle = new Two.Line(anchor.x, anchor.y, endPoints.left.x, endPoints.left.y);
+        const leftHandle = new Two.Line(anchor.x, anchor.y, endVectors.left.x, endVectors.left.y);
         leftHandle.stroke = "#ff0000";
-        shortenLine(leftHandle, BEZIER_HANDLE_LENGTH);
+        if (options && options.shorten) shortenLine(leftHandle, options.shorten);
 
         const leftHandleDot = new Two.Circle(leftHandle.vertices[1].x, leftHandle.vertices[1].y, 2);
         leftHandleDot.fill = "#00ff";
         leftHandleDot.stroke = "#00ff";
 
-        const rightHandle = new Two.Line(anchor.x, anchor.y, endPoints.right.x, endPoints.right.y);
+        const rightHandle = new Two.Line(
+            anchor.x,
+            anchor.y,
+            endVectors.right.x,
+            endVectors.right.y
+        );
         rightHandle.stroke = "#00ff";
-        shortenLine(rightHandle, BEZIER_HANDLE_LENGTH);
+        if (options && options.shorten) shortenLine(rightHandle, options.shorten);
 
         const rightHandleDot = new Two.Circle(
             rightHandle.vertices[1].x,

@@ -2,7 +2,6 @@
 "use client";
 
 import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import Flap from "../flap/flap";
 import FlapContainer from "../flap/flapContainer";
@@ -63,13 +62,13 @@ export interface Props {
 
 interface WrappingState {
     isWrapped: boolean;
-    wrappedStyle: React.CSSProperties;
-    notWrappedStyle: React.CSSProperties;
+    memoryTextHeight?: number;
 }
 
 const Button: React.FunctionComponent<Props> = (props) => {
     /** ANCHOR: References */
     const button = useRef<HTMLDivElement>(null);
+    const buttonForegroundNotWrapped = useRef<HTMLDivElement>(null);
 
     /** ANCHOR: State */
     const [isHovering, setIsHovering] = useState<boolean>(false);
@@ -78,38 +77,46 @@ const Button: React.FunctionComponent<Props> = (props) => {
     const [wrappingState, setWrappingState] = useState<WrappingState>({
         /** Initial State */
         isWrapped: false,
-        notWrappedStyle: {
-            visibility: "visible",
-        },
-        wrappedStyle: {
-            visibility: "hidden",
-        },
     });
 
     /** ANCHOR: Callbacks */
+    /**
+     * The `updateWrapState` function is responsible for tracking and updating the "wrap" state of a button element.
+     * It checks if the text inside the button has changed in height (i.e., whether it has wrapped or not).
+     * Based on this, it toggles the visibility of styles that control the wrapped and not-wrapped states of the text.
+     */
     const updateWrapState = useCallback(() => {
-        if (!button.current) return;
-        console.log(button.current.scrollHeight > button.current.clientHeight);
-        if (button.current.scrollHeight > button.current.clientHeight) {
-            /** isWrapped = true*/
+        if (!button.current || !buttonForegroundNotWrapped.current) return;
+        const currentTextHeight =
+            buttonForegroundNotWrapped.current.children[0].getBoundingClientRect().y;
+
+        if (!wrappingState.memoryTextHeight) {
             setWrappingState((prevState) =>
                 produce(prevState, (draft) => {
-                    draft.isWrapped = true;
-                    draft.wrappedStyle.visibility = "visible";
-                    draft.notWrappedStyle.visibility = "hidden";
+                    draft.memoryTextHeight = currentTextHeight;
                 })
             );
-        } else {
-            /** isWrapped = false */
-            setWrappingState((prevState) =>
-                produce(prevState, (draft) => {
-                    draft.isWrapped = false;
-                    draft.wrappedStyle.visibility = "hidden";
-                    draft.notWrappedStyle.visibility = "visible";
-                })
-            );
+            return;
         }
-    }, []);
+
+        if (currentTextHeight - wrappingState.memoryTextHeight != 0) {
+            if (!wrappingState.isWrapped) {
+                setWrappingState((prevState) =>
+                    produce(prevState, (draft) => {
+                        draft.isWrapped = true;
+                        draft.memoryTextHeight = currentTextHeight;
+                    })
+                );
+            } else {
+                setWrappingState((prevState) =>
+                    produce(prevState, (draft) => {
+                        draft.isWrapped = false;
+                        draft.memoryTextHeight = currentTextHeight;
+                    })
+                );
+            }
+        }
+    }, [wrappingState.memoryTextHeight, wrappingState.isWrapped]);
 
     /** ANCHOR: Effects */
     /**
@@ -194,15 +201,16 @@ const Button: React.FunctionComponent<Props> = (props) => {
                     <div className={scss["button__foreground"]}>
                         <div
                             className={scss["button__foreground__wrapped"]}
-                            style={wrappingState.wrappedStyle}
+                            style={{ visibility: wrappingState.isWrapped ? "visible" : "hidden" }}
                         >
                             {props.children}
                         </div>
                         <div
                             className={scss["button__foreground__notwrapped"]}
-                            style={wrappingState.notWrappedStyle}
+                            style={{ visibility: wrappingState.isWrapped ? "hidden" : "visible" }}
+                            ref={buttonForegroundNotWrapped}
                         >
-                            {props.children}
+                            <div className={scss["button__foreground__svg"]}>{props.children}</div>
                             <div
                                 className={scss["button__foreground__text"]}
                                 style={{ textTransform: props.capslock ? "uppercase" : "unset" }}
