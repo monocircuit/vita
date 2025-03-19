@@ -1,6 +1,7 @@
 /** @format */
 
-import Input from "@/utils/input/input.utils"
+
+import Input from "@/utils/ui/input/input.utils"
 import React, { useState } from "react"
 
 interface props {
