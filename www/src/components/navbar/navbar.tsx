@@ -17,9 +17,12 @@ import SignInGraphic from "@/assets/images/svg/login2.svg";
 import SignUpGraphic from "@/assets/images/svg/signup2.svg";
 import MonocircuitLogo from "@/assets/images/svg/monocircuit.svg";
 
-import Button from "@/utils/components/button/button";
+import Button from "@/utils/ui/button/button";
+import { useRouter } from "next/navigation";
 
 const Navbar: FunctionComponent = () => {
+    const router = useRouter();
+
     const signedIn = false;
 
     return (
@@ -51,7 +54,12 @@ const Navbar: FunctionComponent = () => {
                     ) : (
                         <div className={scss["navbar__account__container__options"]}>
                             <div className={scss["navbar__account__container__options__signin"]}>
-                                <Button type="primary" text="sign in" linkTo="/login" capslock>
+                                <Button
+                                    type="primary"
+                                    text="sign in"
+                                    onPress={() => router.push("/login")}
+                                    capslock
+                                >
                                     <SignInGraphic />
                                 </Button>
                             </div>

@@ -1,0 +1,47 @@
+@use "@/assets/styles/lib.scss";
+
+$padding: 12px;
+
+.signin {
+    @include lib.size(100%);
+
+    display: grid;
+    grid-template-rows: [row0] calc(30px + $padding) [row1] 1fr [row2];
+    grid-template-columns: [col0] 1fr [col1];
+
+    border: lib.$stroke-width solid lib.$primary-dark-color;
+
+    .signin__header {
+        grid-area: row0 / col0 / row1 / col1;
+        border-bottom: lib.$stroke-width solid lib.$primary-dark-color;
+
+        display: flex;
+
+        .signin__header__logo {
+            display: flex;
+            overflow: hidden;
+            width: calc(30px + $padding);
+        }
+
+        .signin__header__divider {
+            width: lib.$stroke-width;
+            background-color: lib.$primary-dark-color;
+            height: 100%;
+        }
+
+        .signin__header__text {
+            @include lib.toTextContainer();
+
+            flex: 1;
+
+            display: flex;
+            justify-content: left;
+            align-items: center;
+            padding: $padding;
+
+            font-family: "Consolas";
+            text-transform: uppercase;
+            font-size: 1.2em;
+        }
+    }
+}

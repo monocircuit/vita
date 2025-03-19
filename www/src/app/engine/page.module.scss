@@ -1,0 +1,5 @@
+@use "@/assets/styles/lib.scss";
+
+.engine {
+    @include lib.size(100%);
+}

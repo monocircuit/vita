@@ -69,3 +69,18 @@ $stroke-width: 1px;
     user-select: none; /* Non-prefixed version, currently
                                         supported by Chrome, Edge, Opera and Firefox */
 }
+
+@mixin toTextContainer() {
+    display: inline-block;
+    box-sizing: content-box;
+
+    padding: 0;
+    margin: 0;
+
+    border: none;
+    outline: none;
+
+    line-height: 1;
+    font-size: inherit;
+    vertical-align: middle;
+}

@@ -6,10 +6,6 @@
 .navbar {
     @include lib.size(100%);
 
-    // display: grid;
-    // grid-template-columns: [col0] 1fr [col1] 10fr [col2] 1fr;
-    // grid-template-rows: [row0] 100%;
-
     display: flex;
 
     border-bottom: lib.$stroke-width solid lib.$primary-dark-color;
@@ -50,7 +46,7 @@
         .navbar__account__text {
             display: flex;
             align-content: start;
-            font-family: "Space Mono";
+            font-family: "Consolas";
             font-size: 12px;
             font-weight: 500;
         }

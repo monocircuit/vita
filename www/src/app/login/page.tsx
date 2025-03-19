@@ -1,17 +1,19 @@
-/** @format */
+import React from "react";
+import Login from "@/components/login/login";
+import auth from "@/utils/auth/auth";
 
-import LoginComp from "@/components/login/login.comp"
-import auth from "@/utils/auth/auth"
-import React from "react"
+import scss from "@/app/login/page.module.scss";
 
 function LoginPage() {
-    console.log("test: " + auth.getUser())
+    console.log("test: " + auth.getUser());
 
     return (
-        <div className="h-full w-full">
-            <LoginComp></LoginComp>
+        <div className={scss["page"]}>
+            <div className={scss["page__login"]}>
+                <Login></Login>
+            </div>
         </div>
-    )
+    );
 }
 
-export default LoginPage
+export default LoginPage;

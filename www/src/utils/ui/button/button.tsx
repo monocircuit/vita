@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
@@ -5,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 import Flap from "../flap/flap";
 import FlapContainer from "../flap/flapContainer";
-import Tooltip from "@/utils/components/tooltip/tooltip";
+import Tooltip from "@/utils/ui/tooltip/tooltip";
 
 import scss from "./button.module.scss";
 import PassRelativeMouseCoordinates from "../passMouseCoordinates/passMouseCoordinates";
@@ -21,18 +22,6 @@ export interface Props {
      * Specifies the font size of the button text, in pixels.
      */
     fontSize?: number;
-
-    /**
-     * Sets the width of the button.
-     * Accepts values in pixels or percentages (e.g., "100px" or "50%").
-     */
-    width?: `${number}px` | `${number}%`;
-
-    /**
-     * Sets the height of the button.
-     * Accepts values in pixels or percentages (e.g., "50px" or "20%").
-     */
-    height?: `${number}px` | `${number}%`;
 
     /**
      * Determines the visual style of the button.
@@ -62,9 +51,14 @@ export interface Props {
     onlyHoverAnimation?: boolean;
 
     /**
-     * Redirects to the given url
+     * Sets a function that will be executed when the button is pressed
      */
-    linkTo?: string;
+    onPress?: () => void;
+
+    /**
+     * Sets icon height
+     */
+    iconSize?: number;
 }
 
 interface WrappingState {
@@ -76,9 +70,6 @@ interface WrappingState {
 const Button: React.FunctionComponent<Props> = (props) => {
     /** ANCHOR: References */
     const button = useRef<HTMLDivElement>(null);
-
-    /** ANCHOR: Router */
-    const router = useRouter();
 
     /** ANCHOR: State */
     const [isHovering, setIsHovering] = useState<boolean>(false);
@@ -98,6 +89,7 @@ const Button: React.FunctionComponent<Props> = (props) => {
     /** ANCHOR: Callbacks */
     const updateWrapState = useCallback(() => {
         if (!button.current) return;
+        console.log(button.current.scrollHeight > button.current.clientHeight);
         if (button.current.scrollHeight > button.current.clientHeight) {
             /** isWrapped = true*/
             setWrappingState((prevState) =>
@@ -120,10 +112,35 @@ const Button: React.FunctionComponent<Props> = (props) => {
     }, []);
 
     /** ANCHOR: Effects */
+    /**
+     * This effect ensures that any rasterized images (e.g., <img> elements)
+     * within the button component have their height explicitly set if
+     * the `iconSize` prop is provided. It scans for all <img> elements
+     * within the `button` reference, and for each image, sets the `height`
+     * property to the value of `iconSize`. This is useful for maintaining
+     * consistent icon sizing when rasterized images are used as icons.
+     */
+    useEffect(() => {
+        if (!props.iconSize || !button.current) return;
+        const imgs = button.current.querySelectorAll("img");
+        imgs.forEach((img) => {
+            if (!props.iconSize) return;
+            img.style.height = `${props.iconSize}px`;
+            img.style.width = `${props.iconSize}px`;
+        });
+    });
+
+    /**
+     * This effect observes the size of the `button` component using a `ResizeObserver`.
+     * If the button becomes too small, it triggers the `updateWrapState` function,
+     * which removes the button's text and ensures only the icon is displayed.
+     * This is useful for maintaining usability and a clean design when space is limited.
+     * The `ResizeObserver` is disconnected during cleanup to avoid memory leaks.
+     */
     useEffect(() => {
         if (!button.current) return;
         updateWrapState();
-        const resizeObserver = new ResizeObserver(() => updateWrapState());
+        const resizeObserver = new ResizeObserver(updateWrapState);
         resizeObserver.observe(button.current);
 
         /** Clean Up */
@@ -142,11 +159,7 @@ const Button: React.FunctionComponent<Props> = (props) => {
 
     const handleMouseDown: React.MouseEventHandler<HTMLDivElement> = () => {
         setIsPressing(true);
-
-        /** Redirecting if link is given */
-        if (props.linkTo) {
-            router.push(props.linkTo);
-        }
+        if (props.onPress) props.onPress();
     };
 
     const handleMouseUp: React.MouseEventHandler<HTMLDivElement> = () => {

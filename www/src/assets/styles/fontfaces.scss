@@ -1,6 +1,6 @@
 @use "@/assets/styles/lib.scss";
 
-/** SECTION: Lemon Milk Pro */
+/** ANCHOR: Lemon Milk Pro */
 @include lib.createFontFace("Lemon Milk Pro Bold", "../fonts/Lemon Milk Pro/lemonmilkpro_bold.OTF");
 @include lib.createFontFace(
     "Lemon Milk Bold Italic",
@@ -24,12 +24,15 @@
     "../fonts/Lemon Milk Pro/lemonmilkpro_ultra_light_italic.OTF"
 );
 
-/** SECTION: Roboto */
+/** ANCHOR: Roboto */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 
-/** SECTION: Space Mono */
+/** ANCHOR: Space Mono */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap");
 
-/** SECTION: Albertus Nova */
+/** ANCHOR: Albertus Nova */
 @include lib.createFontFace("Albertus Nova", "../fonts/Albertus Nova/albertusnova.otf");
 @include lib.createFontFace("Albertus Nova Thin", "../fonts/Albertus Nova/albertusnovathin.otf");
+
+/** ANCHOR: Consolas */
+@include lib.createFontFace("Consolas", "../fonts/Consolas/consolas.ttf");

@@ -19,7 +19,8 @@
         @include lib.attachToGridOverlay(2);
         @include lib.createGridOverlay();
 
-        svg {
+        svg,
+        img {
             display: inline-block;
             vertical-align: middle;
             margin: 0;
@@ -41,20 +42,8 @@
             gap: lib.$stroke-width;
 
             .button__foreground__text {
-                /** Most of the CSS is to ensure that the Text container is minmal */
-                display: inline-block;
-                box-sizing: content-box;
-
-                padding: 0;
-                margin: 0;
-
-                border: none;
-                outline: none;
-
-                line-height: 1;
-                font-size: inherit;
-                vertical-align: middle;
-                font-family: "Space Mono";
+                @include lib.toTextContainer();
+                font-family: "Consolas";
             }
         }
 
