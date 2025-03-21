@@ -1,3 +1,4 @@
+import { parse } from "cookie";
 import { redirect } from "next/navigation";
 
 import PocketBase from "pocketbase";
@@ -40,6 +41,10 @@ export const auth = {
 
     getUser: () => {
         return pb.authStore.record;
+    },
+
+    getToken: () => {
+        return pb.authStore.token;
     },
 
     isAuthenticated: () => {

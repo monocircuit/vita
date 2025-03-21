@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import PocketBase from "pocketbase";
 import LoginTemp from "./logintemp";
 import { auth } from "@/utils/pbHelper/auth/auth";
+import { useForm } from "react-hook-form";
 
 import Cross from "@/assets/images/png/sharp_line/delete.png";
 import scss from "@/components/login/login.module.scss";
@@ -36,14 +37,23 @@ const SignIn: React.FunctionComponent = () => {
                 </div>
                 <div className={scss["signin__header__divider"]}></div>
                 <div className={scss["signin__header__text"]}>sign in</div>
+                <div className={scss["signin__body"]}></div>
+                <div className="border-black border-2 rounded-lg w-[500px] h-[600px] m-2 flex justify-center items-center flex-col">
+                {!needRegister ? (
+                    <LoginTemp
+                        rootRegistration={() => setNeedRegister(true)}
+                        authfunction={(e) => auth.login(e.username, e.password)}
+                    />
+                ) : (
+                    <div></div>
+                )}
             </div>
-            <div className={scss["signin__body"]}></div>
+            </div>
         </div>
     );
 };
 
 export default SignIn;
-
 {
     /* <div className="flex h-full justify-center items-center">
             <div className="border-black border-2 rounded-lg w-[500px] h-[600px] m-2 flex justify-center items-center flex-col">

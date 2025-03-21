@@ -5,17 +5,20 @@ const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL;
 
 const pb = new PocketBase(PB_URL);
 
-export const credentialApi = () => {
-    const createCredentials = async (data: CredentialModel) => {
+export const credentialApi = {
+    createCredentials: async (data: CredentialModel) => {
         try {
+            pb.authStore.record?.id ? (data.user = pb.authStore.record?.id) : (data.user = "");
+
             const record = await pb.collection("credentials").create(data);
             return record;
         } catch (error) {
             console.error("Creation failed", error);
             throw error;
         }
-    };
-    const getCredentials = async () => {
+    },
+
+    getCredentials: async () => {
         try {
             const records = await pb.collection("credentials").getFullList({
                 sort: "startDate",
@@ -25,8 +28,9 @@ export const credentialApi = () => {
             console.error("Cant Fetch Data", error);
             throw error;
         }
-    };
-    const getCredentialById = async (id: string) => {
+    },
+
+    getCredentialById: async (id: string) => {
         try {
             const record = await pb.collection("credentials").getOne(id, {}); //Testen von Expanding Field
             return record;
@@ -34,9 +38,16 @@ export const credentialApi = () => {
             console.error("Cant Fetch Data", error);
             throw error;
         }
-    };
-    const updateCredentialById = () => {};
-    const deleteCredentialById = () => {};
+    },
+
+    updateCredentialById: () => {},
+
+    deleteCredentialById: () => {},
+};
+
+export const fetchData = async () => {
+    const test = await credentialApi.getCredentials();
+    return test;
 };
 
 export default credentialApi;
