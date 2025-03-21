@@ -1,6 +1,6 @@
 import React from "react";
 import Login from "@/components/login/login";
-import auth from "@/utils/auth/auth";
+import auth from "@/utils/pbHelper/auth/auth";
 
 import scss from "@/app/login/page.module.scss";
 

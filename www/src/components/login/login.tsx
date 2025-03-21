@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import PocketBase from "pocketbase";
 import LoginTemp from "./logintemp";
-import { auth } from "@/utils/auth/auth";
+import { auth } from "@/utils/pbHelper/auth/auth";
 
 import Cross from "@/assets/images/png/sharp_line/delete.png";
 import scss from "@/components/login/login.module.scss";
