@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import scss from "./tooltip.module.scss";
 import { produce } from "immer";
+import createChildMutator from "@/utils/react/createChildMutator";
 
 export interface Props {
     isActive: boolean;
@@ -99,17 +99,7 @@ const Tooltip: React.FunctionComponent<Props> = (props) => {
             {React.Children.map(props.children, (child) => {
                 if (!child) return;
 
-                return React.cloneElement(child as any, {
-                    ref: (element: any) => {
-                        if (!child || !child.props) return;
-                        if (typeof child.props.ref === "function") {
-                            child.props.ref(element);
-                        } else {
-                            child.props.ref.current = element;
-                        }
-                        tooltipObject.current = element;
-                    },
-                });
+                return createChildMutator(child).appendRef(tooltipObject).mutate();
             })}
         </>
     );

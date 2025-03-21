@@ -6,6 +6,11 @@
     ],
     "settings": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "svg.preview.background": "editor"
+        "svg.preview.background": "editor",
+        "eslint.rules.customizations": [
+            { "rule": "@typescript-eslint/no-explicit-any", "severity": "off" },
+            { "rule": "@typescript-eslint/no-unused-vars", "severity": "info" },
+            { "rule": "@typescript-eslint/no-empty-object-type", "severity": "info" }
+        ]
     }
 }

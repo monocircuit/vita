@@ -21,10 +21,9 @@
 
         svg,
         img {
-            display: inline-block;
-            vertical-align: middle;
-            margin: 0;
+            display: block;
             padding: 0;
+            margin: 0;
 
             /** get svg to same height as the text element */
             height: 1.2em;
@@ -32,23 +31,19 @@
             width: auto;
         }
 
-        .button__foreground__svg {
-            display: inline-block;
-        }
-
         .button__foreground__notwrapped {
             @include lib.attachToGridOverlay(1);
 
-            display: inline-flex;
+            /** Flex Configuration to center content of Container */
+            display: flex;
             flex-wrap: wrap;
             align-items: center;
             justify-content: center;
             gap: lib.$stroke-width;
+        }
 
-            .button__foreground__text {
-                @include lib.toTextContainer();
-                font-family: "Consolas";
-            }
+        .button__foreground__text {
+            font-family: "Fira Code";
         }
 
         .button__foreground__wrapped {

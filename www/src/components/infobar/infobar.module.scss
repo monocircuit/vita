@@ -3,5 +3,7 @@
 .infobar {
     width: 100%;
     height: 100%;
-    border-bottom: lib.$stroke-width solid lib.$primary-dark-color;
+    border-width: lib.$stroke-width 0px lib.$stroke-width 0px;
+    border-style: solid;
+    border-color: lib.$primary-dark-color;
 }
