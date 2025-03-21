@@ -1,0 +1,9 @@
+@use "@/assets/styles/lib.scss";
+
+.popup {
+    position: sticky;
+
+    background-color: blue;
+    width: 300px;
+    height: 800px;
+}

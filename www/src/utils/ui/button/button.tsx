@@ -9,7 +9,6 @@ import Tooltip from "@/utils/ui/tooltip/tooltip";
 
 import scss from "./button.module.scss";
 import PassRelativeMouseCoordinates from "../passMouseCoordinates/passMouseCoordinates";
-import { produce } from "immer";
 
 export interface Props {
     /**
@@ -60,63 +59,28 @@ export interface Props {
     iconSize?: number;
 }
 
-interface WrappingState {
-    isWrapped: boolean;
-    memoryTextHeight?: number;
-}
-
 const Button: React.FunctionComponent<Props> = (props) => {
     /** ANCHOR: References */
     const button = useRef<HTMLDivElement>(null);
-    const buttonForegroundNotWrapped = useRef<HTMLDivElement>(null);
+    const buttonUnwrappedSvg = useRef<HTMLDivElement>(null);
+    const buttonUnwrappedTxt = useRef<HTMLDivElement>(null);
 
     /** ANCHOR: State */
     const [isHovering, setIsHovering] = useState<boolean>(false);
     const [isPressing, setIsPressing] = useState<boolean>(false);
 
-    const [wrappingState, setWrappingState] = useState<WrappingState>({
-        /** Initial State */
-        isWrapped: false,
-    });
+    const [isWrapped, setIsWrapped] = useState<boolean>(false);
 
     /** ANCHOR: Callbacks */
-    /**
-     * The `updateWrapState` function is responsible for tracking and updating the "wrap" state of a button element.
-     * It checks if the text inside the button has changed in height (i.e., whether it has wrapped or not).
-     * Based on this, it toggles the visibility of styles that control the wrapped and not-wrapped states of the text.
-     */
     const updateWrapState = useCallback(() => {
-        if (!button.current || !buttonForegroundNotWrapped.current) return;
-        const currentTextHeight =
-            buttonForegroundNotWrapped.current.children[0].getBoundingClientRect().y;
+        if (!buttonUnwrappedSvg.current || !buttonUnwrappedTxt.current) return;
+        const buttonUnwrappedSvgRect = buttonUnwrappedSvg.current.getBoundingClientRect();
+        const buttonUnwrappedTxtRect = buttonUnwrappedTxt.current.getBoundingClientRect();
 
-        if (!wrappingState.memoryTextHeight) {
-            setWrappingState((prevState) =>
-                produce(prevState, (draft) => {
-                    draft.memoryTextHeight = currentTextHeight;
-                })
-            );
-            return;
-        }
-
-        if (currentTextHeight - wrappingState.memoryTextHeight != 0) {
-            if (!wrappingState.isWrapped) {
-                setWrappingState((prevState) =>
-                    produce(prevState, (draft) => {
-                        draft.isWrapped = true;
-                        draft.memoryTextHeight = currentTextHeight;
-                    })
-                );
-            } else {
-                setWrappingState((prevState) =>
-                    produce(prevState, (draft) => {
-                        draft.isWrapped = false;
-                        draft.memoryTextHeight = currentTextHeight;
-                    })
-                );
-            }
-        }
-    }, [wrappingState.memoryTextHeight, wrappingState.isWrapped]);
+        setIsWrapped(
+            buttonUnwrappedSvgRect.y + buttonUnwrappedSvgRect.height <= buttonUnwrappedTxtRect.y
+        );
+    }, []);
 
     /** ANCHOR: Effects */
     /**
@@ -175,7 +139,7 @@ const Button: React.FunctionComponent<Props> = (props) => {
 
     return (
         <PassRelativeMouseCoordinates>
-            <Tooltip isActive={isHovering} isHidden={!wrappingState.isWrapped} text={props.text}>
+            <Tooltip isActive={isHovering} isHidden={!isWrapped} text={props.text}>
                 <div
                     className={[scss["button"], scss[`button__${props.type}`]].join(" ")}
                     ref={button}
@@ -199,21 +163,32 @@ const Button: React.FunctionComponent<Props> = (props) => {
                         </FlapContainer>
                     </div>
                     <div className={scss["button__foreground"]}>
+                        {/**
+                         * WRAPPED CONSTELLATION!
+                         */}
                         <div
                             className={scss["button__foreground__wrapped"]}
-                            style={{ visibility: wrappingState.isWrapped ? "visible" : "hidden" }}
+                            style={{ visibility: isWrapped ? "visible" : "hidden" }}
                         >
                             {props.children}
                         </div>
+                        {/**
+                         * UNWRAPPED CONSTELLATION!
+                         */}
                         <div
                             className={scss["button__foreground__notwrapped"]}
-                            style={{ visibility: wrappingState.isWrapped ? "hidden" : "visible" }}
-                            ref={buttonForegroundNotWrapped}
+                            style={{ visibility: isWrapped ? "hidden" : "visible" }}
                         >
-                            <div className={scss["button__foreground__svg"]}>{props.children}</div>
+                            <div
+                                className={scss["button__foreground__svg"]}
+                                ref={buttonUnwrappedSvg}
+                            >
+                                {props.children}
+                            </div>
                             <div
                                 className={scss["button__foreground__text"]}
                                 style={{ textTransform: props.capslock ? "uppercase" : "unset" }}
+                                ref={buttonUnwrappedTxt}
                             >
                                 {props.text}
                             </div>

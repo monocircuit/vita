@@ -1,9 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Coordinates } from "@/utils/types/types";
+import ReactChildMutator from "@/utils/react/ReactChildMutator";
+import createChildMutator from "@/utils/react/createChildMutator";
 
 export interface Props {
     children?: React.ReactElement<any, any>;
@@ -57,20 +58,35 @@ const PassRelativeMouseCoordinates: React.FunctionComponent<Props> = ({ children
         });
     };
 
+    useEffect(() => {
+        console.log("coords", ref.current);
+    }, []);
+
     return (
         <RelativeMouseCoordinates.Provider value={relativeMouseCoordinates}>
             {React.Children.map(children, (child) => {
+                if (!child) return;
+
                 /** Bypass when Tooltip is wrapping UI Element */
                 if (child && child.type && child.type.name == "Tooltip") {
-                    return React.cloneElement(child as any, {
-                        children: React.cloneElement(
-                            child.props.children,
-                            getChildProps(child.props.children)
-                        ),
+                    const element = React.cloneElement(child as any, {
+                        children: createChildMutator(child.props.children)
+                            .appendRef(ref)
+                            .appendHandler("onMouseEnter", handleMouseEvent)
+                            .appendHandler("onMouseMove", handleMouseEvent)
+                            .appendHandler("onMouseLeave", handleMouseEvent)
+                            .mutate(),
                     });
+
+                    return element;
                 }
 
-                return React.cloneElement(child as any, getChildProps(child));
+                return createChildMutator(child)
+                    .appendRef(ref)
+                    .appendHandler("onMouseEnter", handleMouseEvent)
+                    .appendHandler("onMouseMove", handleMouseEvent)
+                    .appendHandler("onMouseLeave", handleMouseEvent)
+                    .mutate();
             })}
         </RelativeMouseCoordinates.Provider>
     );

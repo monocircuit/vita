@@ -30,9 +30,11 @@
 /** ANCHOR: Space Mono */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap");
 
+/** ANCHOR: Fira Code */
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap");
 /** ANCHOR: Albertus Nova */
 @include lib.createFontFace("Albertus Nova", "../fonts/Albertus Nova/albertusnova.otf");
 @include lib.createFontFace("Albertus Nova Thin", "../fonts/Albertus Nova/albertusnovathin.otf");
 
 /** ANCHOR: Consolas */
-@include lib.createFontFace("Consolas", "../fonts/Consolas/consolas.ttf");
+@include lib.createFontFace("Consolas", "../fonts/Consolas/consolas_italic.ttf");

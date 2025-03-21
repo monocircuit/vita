@@ -3,23 +3,16 @@
 
 @include lib.polishDom();
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    scrollbar-width: none;
+}
+
 body {
     /**
      * LINK: https://stackoverflow.com/questions/52848856/100vh-height-when-address-bar-is-shown-chrome-mobile
      */
     @include lib.size(100dvw, 100dvh);
-}
-
-html {
-    /** 
-     * LINK: https://stackoverflow.com/questions/7768269/disable-scrolling-and-bounce-effect-on-mobile-safari
-     * 
-     * Solves an issue where the safari browser kept showing the scrollbar altough no scroll behaviour is
-     * wanted.
-     */
-    overscroll-behavior: none;
-    overflow: hidden;
-    body {
-        overflow: hidden;
-    }
 }

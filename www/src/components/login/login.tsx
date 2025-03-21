@@ -12,7 +12,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 interface loginData {
-    username: string;
+    username: any;
     password: string;
 }
 
