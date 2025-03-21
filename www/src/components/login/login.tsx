@@ -41,11 +41,13 @@ const SignIn: React.FunctionComponent = () => {
     return (
         <div className={scss["signin"]}>
             <div className={scss["signin__header"]}>
-                <div className={scss["signin__header__logo"]}>
-                    <Button iconSize={30} onPress={() => router.push("/")}>
-                        <Image src={Cross} alt="cross"></Image>
-                    </Button>
-                </div>
+                <Button
+                    classNames={`${scss.signin__header__logo}`}
+                    iconSize={30}
+                    onPress={() => router.push("/")}
+                >
+                    <Image src={Cross} alt="cross"></Image>
+                </Button>
                 <div className={scss["signin__header__divider"]}></div>
                 <div className={scss["signin__header__text"]}>sign in</div>
             </div>
@@ -68,26 +70,19 @@ const SignIn: React.FunctionComponent = () => {
                     {errors.password && <span>This field is required</span>}
 
                     <Button
-                        classNames={`${scss.signin__body__form__button}`}
-                        type="primary"
+                        classNames={`${scss.test}`}
+                        Formtype="submit"
                         text="Login"
                         onPress={() => router.push("/login")}
                         capslock
                     ></Button>
-
                 </form>
             </div>
         </div>
     );
 };
 
-
-//<input
-//className={scss["signin__body__form__button"]}
-//type="submit"
-//value={"LOGIN"}
-///>
-//export default SignIn;
+export default SignIn;
 {
     /* <div className="flex h-full justify-center items-center">
             <div className="border-black border-2 rounded-lg w-[500px] h-[600px] m-2 flex justify-center items-center flex-col">

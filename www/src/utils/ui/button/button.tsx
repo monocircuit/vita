@@ -58,6 +58,12 @@ export interface Props {
      */
     iconSize?: number;
 
+     /**
+     * Sets Type for Form / for example: "submit"
+     */
+     Formtype?: string;
+
+
     classNames?: string;
 }
 
@@ -139,8 +145,17 @@ const Button: React.FunctionComponent<Props> = (props) => {
         setIsPressing(false);
     };
 
+    //find Closest Form and submit on Button Click
+    const handleClick = (e: any) => {
+        if (props.Formtype === "submit") {
+            const form = e.target.closest("form"); // Find the closest form
+            if (form) form.requestSubmit(); // Safely submit the form
+        }
+    };
+
+
     return (
-        <div className={props.classNames}>
+        <div className={props.classNames} onClick={handleClick}  >
             <PassRelativeMouseCoordinates>
                 <Tooltip isActive={isHovering} isHidden={!isWrapped} text={props.text}>
                     <div

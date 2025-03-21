@@ -58,7 +58,9 @@ $padding: 12px;
 
             display: grid;
             gap: 15px;
-
+            min-width: 200px;
+            max-width: 500px;
+            margin: 3em;
             grid-template-rows: [row0] 1fr [row1] 1fr [row2];
             grid-template-columns: [col0] 1fr [col1];
 
@@ -87,7 +89,6 @@ $padding: 12px;
 
 .signin__body__form__input__field {
     font-family: "Fira Code" !important;
-
     border-width: 1px;
     border-radius: 0;
     padding: 1em;
@@ -109,11 +110,10 @@ $padding: 12px;
     background-color: white;
     font-family: "Fira Code";
     font-size: 1.2em;
-    
 }
 
 .test {
-    width: 150px;
+    width: 100%;
     height: 50px;
     flex: 1;
     overflow: hidden;
