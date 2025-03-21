@@ -10,6 +10,7 @@ import scss from "@/components/login/login.module.scss";
 import Button from "@/utils/ui/button/button";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { SubmitHandler, useForm } from "react-hook-form";
 
 interface loginData {
     username: any;
@@ -18,6 +19,15 @@ interface loginData {
 
 //Testuser username: test@monocircuit BingoBongo password: test1234
 const SignIn: React.FunctionComponent = () => {
+    const {
+        register,
+        handleSubmit,
+        watch,
+        formState: { errors },
+    } = useForm<loginData>();
+
+    const onSubmit: SubmitHandler<loginData> = (data) => auth.login(data.username, data.password);
+
     const router = useRouter();
 
     const [input, setInput] = useState<loginData>({
@@ -26,6 +36,8 @@ const SignIn: React.FunctionComponent = () => {
     });
     const [needRegister, setNeedRegister] = useState<boolean>(false);
 
+    console.log(watch("username"));
+    console.log(watch("password"));
     return (
         <div className={scss["signin"]}>
             <div className={scss["signin__header"]}>
@@ -37,7 +49,26 @@ const SignIn: React.FunctionComponent = () => {
                 <div className={scss["signin__header__divider"]}></div>
                 <div className={scss["signin__header__text"]}>sign in</div>
             </div>
-            <div className={scss["signin__body"]}></div>
+            <div className={scss["signin__body"]}>
+                <form className={scss["signin__body__form"]} onSubmit={handleSubmit(onSubmit)}>
+                    {/*// Username + Validation  */}
+
+                    <input
+                        className={scss["signin__body__form__input__field"]}
+                        placeholder="Username" 
+                        {...register("username", { required: true })}
+                    />
+                    {errors.username && <span>This field is required</span>}
+                    {/*// Password + Validation  */}
+                    <input
+                        className={scss["signin__body__form__input__field"]}
+                        placeholder="Password" 
+                        {...register("password", { required: true })}
+                    />
+                    {errors.password && <span>This field is required</span>}
+                    <input className={scss["signin__body__form__button"]} type="submit" value={"LOGIN"}/>
+                </form>
+            </div>
         </div>
     );
 };
