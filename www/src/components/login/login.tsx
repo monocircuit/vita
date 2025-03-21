@@ -66,18 +66,28 @@ const SignIn: React.FunctionComponent = () => {
                         {...register("password", { required: true })}
                     />
                     {errors.password && <span>This field is required</span>}
-                    <input
-                        className={scss["signin__body__form__button"]}
-                        type="submit"
-                        value={"LOGIN"}
-                    />
+
+                    <Button
+                        classNames={`${scss.signin__body__form__button}`}
+                        type="primary"
+                        text="Login"
+                        onPress={() => router.push("/login")}
+                        capslock
+                    ></Button>
+
                 </form>
             </div>
         </div>
     );
 };
 
-export default SignIn;
+
+//<input
+//className={scss["signin__body__form__button"]}
+//type="submit"
+//value={"LOGIN"}
+///>
+//export default SignIn;
 {
     /* <div className="flex h-full justify-center items-center">
             <div className="border-black border-2 rounded-lg w-[500px] h-[600px] m-2 flex justify-center items-center flex-col">
