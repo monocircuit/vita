@@ -23,6 +23,8 @@ const createChildMutator = (target: React.ReactElement<any, any>) => {
         handlers: [],
     };
 
+    const props: any = {};
+
     const result = {
         appendRef: (ref: React.RefObject<unknown>) => {
             store.refs.push((element: any) => {
@@ -48,8 +50,12 @@ const createChildMutator = (target: React.ReactElement<any, any>) => {
             return result;
         },
 
+        appendProp: (key: string, value: any) => {
+            props[key] = value;
+        },
+
         mutate: (clone: React.ReactElement<any, any> = target) => {
-            const props: any = { ref: (element: any) => store.refs.forEach((ref) => ref(element)) };
+            props.ref = (element: any) => store.refs.forEach((ref) => ref(element));
             store.handlers.forEach((handler) => (props[handler.key] = handler.handle));
 
             return React.cloneElement(clone, props);

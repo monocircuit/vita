@@ -18,9 +18,26 @@ const Scrollbar: React.FunctionComponent<Props> = ({ children: child, orientatio
     const childRef = useRef<HTMLElement>(null);
 
     /** ANCHOR: State */
+    const [scrollPercentage, setScrollPercentage] = useState<number>(0);
     const [scrollbarState, setScrollbarState] = useState<ScrollbarState>({
         /** Initial Style */
+        width: `${scrollPercentage}%`,
     });
+
+    /** ANCHOR: Callbacks */
+    const calculatePercentage = useCallback(() => {
+        const target = childRef.current;
+        if (!target) return;
+
+        const percentage =
+            (1 -
+                (target.scrollHeight - (target.scrollTop + target.clientHeight)) /
+                    (target.scrollHeight - target.clientHeight)) *
+            100;
+
+        console.log(percentage);
+        return percentage;
+    }, []);
 
     /** ANCHOR: Effects */
     useEffect(() => {
@@ -52,21 +69,20 @@ const Scrollbar: React.FunctionComponent<Props> = ({ children: child, orientatio
         }
     }, [orientation, scrollbarState]);
 
-    useEffect(() => {
-        console.log(
-            createChildMutator(child as any)
-                .appendRef(childRef)
-                .mutate()
-        );
-        console.log("ref1", childRef.current);
-    }, [child]);
-
     /** ANCHOR: Handlers */
-    const handleScroll: React.UIEventHandler<HTMLDivElement> = (event) => {};
+    const handleScroll: React.UIEventHandler<HTMLDivElement> = () => {
+        setScrollbarState((prevState) =>
+            produce(prevState, (draft) => {
+                draft.width = `${calculatePercentage()}%`;
+            })
+        );
+    };
 
     return (
         <>
-            <div className={scss["scrollbar"]} style={scrollbarState} />
+            <div className={scss["scrollbar__wrapper"]} style={scrollbarState}>
+                <div className={scss["scrollbar"]} />
+            </div>
             {createChildMutator(child as any)
                 .appendRef(childRef)
                 .appendHandler("onScroll", handleScroll)

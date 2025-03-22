@@ -87,7 +87,7 @@ const Navbar: FunctionComponent = () => {
                     </div>
                 </div>
             </div>
-            <Popup position={{ x: 100, y: 300 }}></Popup>
+            <Popup position={{ x: 100, y: 50 }}></Popup>
         </>
     );
 };

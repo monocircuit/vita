@@ -15,4 +15,5 @@ body {
      * LINK: https://stackoverflow.com/questions/52848856/100vh-height-when-address-bar-is-shown-chrome-mobile
      */
     @include lib.size(100dvw, 100dvh);
+    background-color: white;
 }
