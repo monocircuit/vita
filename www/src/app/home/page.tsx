@@ -1,27 +1,25 @@
 /** @format */
 
-"use client";
-
-import auth from "@/utils/pbHelper/auth/auth";
 import React from "react";
+import { CredentialModel } from "@/models/credential/credential.model";
+import { credentialApi, fetchData } from "../../utils/pbHelper/credentials/credentials";
+import HomeClient from "./client";
+import PocketBase from "pocketbase";
 
-console.log(auth.getUser());
+const HomePage = async () => {
+    
 
-const HomePage = () => {
+    
+
     return (
         <div className="flex flex-col">
             <div className=" flex flex-row">
                 <div>user: </div> <div></div>
             </div>
-            <button
-                onClick={() => {
-                    auth.logout();
-                }}
-            >
-                Fick die Dicken
-            </button>
+            <HomeClient></HomeClient>
         </div>
     );
 };
+
 
 export default HomePage;

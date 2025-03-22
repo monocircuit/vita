@@ -13,7 +13,7 @@ export default async function middleware(req: NextRequest) {
     const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL);
 
     const token = req.cookies.get("pb_auth")?.value;
-
+    
     if (token) {
         pb.authStore.save(token, null); // Restore auth
     }
@@ -22,10 +22,9 @@ export default async function middleware(req: NextRequest) {
     const path = req.nextUrl.pathname;
     const isProtectedRoute = protectedRoutes.includes(path);
     const isPublicRoute = publicRoutes.includes(path);
-
+    console.log(pb.authStore.record);
     // 4. Redirect to /login if the user is not authenticated
     if (isProtectedRoute && !pb.authStore.isValid) {
-        console.log("test");
         return NextResponse.redirect(new URL("/login", req.nextUrl));
     }
 

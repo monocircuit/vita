@@ -60,10 +60,9 @@ const Navbar: FunctionComponent = () => {
                             </div>
                         ) : (
                             <div className={scss["navbar__account__container__options"]}>
-                                <div
-                                    className={scss["navbar__account__container__options__signin"]}
-                                >
+                                
                                     <Button
+                                        classNames={`${scss.navbar__account__container__options__signin}`}
                                         type="primary"
                                         text="sign in"
                                         onPress={() => router.push("/login")}
@@ -71,17 +70,14 @@ const Navbar: FunctionComponent = () => {
                                     >
                                         <SignInGraphic />
                                     </Button>
-                                </div>
                                 <div
                                     className={scss["navbar__account__container__options__divider"]}
                                 ></div>
-                                <div
-                                    className={scss["navbar__account__container__options__signup"]}
-                                >
-                                    <Button type="secondary" text="sign up" capslock>
+                                
+                                    <Button classNames={`${scss.navbar__account__container__options__signup}`} type="secondary" text="sign up" capslock>
                                         <SignUpGraphic />
                                     </Button>
-                                </div>
+                                
                             </div>
                         )}
                     </div>

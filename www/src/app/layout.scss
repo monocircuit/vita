@@ -1,7 +1,8 @@
 @use "../assets/styles/lib.scss";
 @use "../assets/styles/fontfaces.scss";
-
+@import "./tailwind.css";
 @include lib.polishDom();
+
 
 * {
     margin: 0;

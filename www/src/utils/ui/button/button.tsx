@@ -57,6 +57,14 @@ export interface Props {
      * Sets icon height
      */
     iconSize?: number;
+
+     /**
+     * Sets Type for Form / for example: "submit"
+     */
+     Formtype?: string;
+
+
+    classNames?: string;
 }
 
 const Button: React.FunctionComponent<Props> = (props) => {
@@ -137,66 +145,79 @@ const Button: React.FunctionComponent<Props> = (props) => {
         setIsPressing(false);
     };
 
+    //find Closest Form and submit on Button Click
+    const handleClick = (e: any) => {
+        if (props.Formtype === "submit") {
+            const form = e.target.closest("form"); // Find the closest form
+            if (form) form.requestSubmit(); // Safely submit the form
+        }
+    };
+
+
     return (
-        <PassRelativeMouseCoordinates>
-            <Tooltip isActive={isHovering} isHidden={!isWrapped} text={props.text}>
-                <div
-                    className={[scss["button"], scss[`button__${props.type}`]].join(" ")}
-                    ref={button}
-                    onMouseEnter={handleMouseEnter}
-                    onMouseLeave={handleMouseLeave}
-                    onMouseDown={handleMouseDown}
-                    onMouseUp={handleMouseUp}
-                >
-                    <div className={scss["button__background"]}>
-                        <FlapContainer>
-                            {props.onlyPressAnimation ? (
-                                <></>
-                            ) : (
-                                <Flap isHovering={isHovering} color="#FFD100" />
-                            )}
-                            {props.onlyHoverAnimation ? (
-                                <></>
-                            ) : (
-                                <Flap isPressing={isPressing} color="#FFD100" />
-                            )}
-                        </FlapContainer>
-                    </div>
-                    <div className={scss["button__foreground"]}>
-                        {/**
-                         * WRAPPED CONSTELLATION!
-                         */}
-                        <div
-                            className={scss["button__foreground__wrapped"]}
-                            style={{ visibility: isWrapped ? "visible" : "hidden" }}
-                        >
-                            {props.children}
+        <div className={props.classNames} onClick={handleClick}  >
+            <PassRelativeMouseCoordinates>
+                <Tooltip isActive={isHovering} isHidden={!isWrapped} text={props.text}>
+                    <div
+                        className={[scss["button"], scss[`button__${props.type}`]].join(" ")}
+                        ref={button}
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                        onMouseDown={handleMouseDown}
+                        onMouseUp={handleMouseUp}
+                    >
+                        <div className={scss["button__background"]}>
+                            <FlapContainer>
+                                {props.onlyPressAnimation ? (
+                                    <></>
+                                ) : (
+                                    <Flap isHovering={isHovering} color="#FFD100" />
+                                )}
+                                {props.onlyHoverAnimation ? (
+                                    <></>
+                                ) : (
+                                    <Flap isPressing={isPressing} color="#FFD100" />
+                                )}
+                            </FlapContainer>
                         </div>
-                        {/**
-                         * UNWRAPPED CONSTELLATION!
-                         */}
-                        <div
-                            className={scss["button__foreground__notwrapped"]}
-                            style={{ visibility: isWrapped ? "hidden" : "visible" }}
-                        >
+                        <div className={scss["button__foreground"]}>
+                            {/**
+                             * WRAPPED CONSTELLATION!
+                             */}
                             <div
-                                className={scss["button__foreground__svg"]}
-                                ref={buttonUnwrappedSvg}
+                                className={scss["button__foreground__wrapped"]}
+                                style={{ visibility: isWrapped ? "visible" : "hidden" }}
                             >
                                 {props.children}
                             </div>
+                            {/**
+                             * UNWRAPPED CONSTELLATION!
+                             */}
                             <div
-                                className={scss["button__foreground__text"]}
-                                style={{ textTransform: props.capslock ? "uppercase" : "unset" }}
-                                ref={buttonUnwrappedTxt}
+                                className={scss["button__foreground__notwrapped"]}
+                                style={{ visibility: isWrapped ? "hidden" : "visible" }}
                             >
-                                {props.text}
+                                <div
+                                    className={scss["button__foreground__svg"]}
+                                    ref={buttonUnwrappedSvg}
+                                >
+                                    {props.children}
+                                </div>
+                                <div
+                                    className={scss["button__foreground__text"]}
+                                    style={{
+                                        textTransform: props.capslock ? "uppercase" : "unset",
+                                    }}
+                                    ref={buttonUnwrappedTxt}
+                                >
+                                    {props.text}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </Tooltip>
-        </PassRelativeMouseCoordinates>
+                </Tooltip>
+            </PassRelativeMouseCoordinates>
+        </div>
     );
 };
 
