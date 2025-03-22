@@ -83,17 +83,3 @@ const SignIn: React.FunctionComponent = () => {
 };
 
 export default SignIn;
-{
-    /* <div className="flex h-full justify-center items-center">
-            <div className="border-black border-2 rounded-lg w-[500px] h-[600px] m-2 flex justify-center items-center flex-col">
-                {!needRegister ? (
-                    <LoginTemp
-                        rootRegistration={() => setNeedRegister(true)}
-                        authfunction={(e) => auth.login(e.username, e.password)}
-                    />
-                ) : (
-                    <div></div>
-                )}
-            </div>
-        </div> */
-}

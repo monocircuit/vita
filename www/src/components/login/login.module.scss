@@ -56,11 +56,10 @@ $padding: 12px;
         .signin__body__form {
             grid-area: row0 / col0 / row1 / col1;
 
+            width: 300px;
             display: grid;
             gap: 15px;
-            min-width: 200px;
-            max-width: 500px;
-            margin: 3em;
+            margin: 2em;
             grid-template-rows: [row0] 1fr [row1] 1fr [row2];
             grid-template-columns: [col0] 1fr [col1];
 
@@ -117,4 +116,5 @@ $padding: 12px;
     height: 50px;
     flex: 1;
     overflow: hidden;
+    outline: 1px solid;
 }
