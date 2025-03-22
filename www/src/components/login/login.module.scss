@@ -87,17 +87,24 @@ $padding: 12px;
 }
 
 .signin__body__form__input__field {
-    font-family: "Fira Code" !important;
-    border-width: 1px;
-    border-radius: 0;
-    padding: 1em;
+    // border-width: 1px;
+    // border-radius: 0;
 
-    font-size: 1.2em;
-    &:focus {
-        outline: 2px solid;
-        border-radius: 0px;
-        transition: 0.1s;
+    /** Testweise */
+    width: 200px;
+    height: 50px;
+
+    input {
+        font-family: "Fira Code" !important;
+        padding: 1em;
+        font-size: 1.2em;
     }
+
+    // &:focus {
+    //     outline: 2px solid;
+    //     border-radius: 0px;
+    //     transition: 0.1s;
+    // }
 }
 
 .signin__body__form__button {

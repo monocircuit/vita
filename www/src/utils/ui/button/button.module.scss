@@ -13,6 +13,16 @@
 
     .button__background {
         @include lib.attachToGridOverlay(1);
+
+        .button__background__flap__hover {
+            filter: opacity(10%);
+            background-color: #ffd100;
+        }
+
+        .button__background__flap__press {
+            filter: opacity(100%);
+            background-color: #ffd100;
+        }
     }
 
     .button__foreground {

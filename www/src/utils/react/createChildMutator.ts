@@ -15,7 +15,7 @@ const createChildMutator = (target: React.ReactElement<any, any>) => {
             (element) => {
                 if (typeof target.props.ref === "function") {
                     target.props.ref(element);
-                } else {
+                } else if (target.props.ref) {
                     target.props.ref.current = element;
                 }
             },

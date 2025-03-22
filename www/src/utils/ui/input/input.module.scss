@@ -1,0 +1,26 @@
+@use "@/assets/styles/lib.scss";
+
+.input__wrapper {
+    @include lib.createGridOverlay();
+
+    border: var(--stroke) solid var(--primary-color);
+
+    .input__wrapper__background {
+        @include lib.attachToGridOverlay(0);
+
+        .input__wrapper__background__flap {
+            background-color: black;
+        }
+    }
+
+    .input__wrapper__foreground {
+        @include lib.attachToGridOverlay(1);
+
+        .input {
+            @include lib.size(100%);
+            font-family: "Fire Code";
+            outline: none;
+            background-color: transparent;
+        }
+    }
+}

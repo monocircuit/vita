@@ -6,11 +6,13 @@ import scss from "./flap.module.scss";
 import { RelativeMouseCoordinates } from "../passMouseCoordinates/passMouseCoordinates";
 import { produce } from "immer";
 import { Coordinates } from "@/utils/types/types";
+import useClassNames from "@/utils/hooks/useClassNames";
 
 export interface Props {
+    isActive?: boolean;
     isHovering?: boolean;
     isPressing?: boolean;
-    color?: string;
+    classNames?: string[];
     mouseCoordinates?: boolean;
 }
 
@@ -18,10 +20,13 @@ interface FlapObjectState {
     style: React.CSSProperties;
 }
 
-const Flap: React.FunctionComponent<Props> = ({ isHovering, isPressing, color }) => {
+const Flap: React.FunctionComponent<Props> = (props) => {
     /** ANCHOR: References */
     const flap = useRef<HTMLDivElement>(null);
     const flapObject = useRef<HTMLDivElement>(null);
+
+    /** ANCHOR: ClassNames */
+    const flapObjectClassName = useClassNames(scss["flap__object"], props.classNames);
 
     /** ANCHOR: Context */
     const relativeMouseCoordinates = useContext(RelativeMouseCoordinates);
@@ -34,7 +39,6 @@ const Flap: React.FunctionComponent<Props> = ({ isHovering, isPressing, color })
         style: {
             visibility: "hidden",
             height: "20px",
-            backgroundColor: color,
         },
     });
 
@@ -100,18 +104,10 @@ const Flap: React.FunctionComponent<Props> = ({ isHovering, isPressing, color })
     }, [currentRelativeMouseCoordinates, setFlapObjectTranslation]);
 
     useEffect(() => {
-        if (isPressing) {
-            setFlapObjectState((prevState) =>
-                produce(prevState, (draft) => {
-                    draft.style.filter = `opacity(100%)`;
-                })
-            );
-        }
-
         /** update currentRelativeMouseCoordinates  */
         setCurrentRelativeMouseCoordinates(relativeMouseCoordinates);
 
-        if (isHovering || isPressing) {
+        if (props.isActive) {
             /** Translation of FlapObject to the current mouse coordinates */
             setFlapObjectTranslation(relativeMouseCoordinates);
             /** Making the FlapObject visible */
@@ -127,11 +123,11 @@ const Flap: React.FunctionComponent<Props> = ({ isHovering, isPressing, color })
         /** Sizing the FlapObject down such that it can be sized up again at the next hover event */
         setFlapObjectSize(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isHovering, isPressing]);
+    }, [props.isActive]);
 
     return (
         <div className={scss["flap"]} ref={flap}>
-            <div className={scss["flap__object"]} style={flapObjectState.style} ref={flapObject} />
+            <div className={flapObjectClassName} style={flapObjectState.style} ref={flapObject} />
         </div>
     );
 };

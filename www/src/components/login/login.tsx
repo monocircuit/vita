@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PocketBase from "pocketbase";
 import LoginTemp from "./logintemp";
 import { auth } from "@/utils/pbHelper/auth/auth";
@@ -11,6 +11,7 @@ import Button from "@/utils/ui/button/button";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
+import Input from "@/utils/ui/input/input";
 
 interface loginData {
     username: any;
@@ -36,13 +37,18 @@ const SignIn: React.FunctionComponent = () => {
     });
     const [needRegister, setNeedRegister] = useState<boolean>(false);
 
+    useEffect(() => {
+        const c = register("username", { required: true });
+        console.log(c);
+    }, []);
+
     console.log(watch("username"));
     console.log(watch("password"));
     return (
         <div className={scss["signin"]}>
             <div className={scss["signin__header"]}>
                 <Button
-                    classNames={`${scss.signin__header__logo}`}
+                    classNames={[scss.signin__header__logo]}
                     iconSize={30}
                     onPress={() => router.push("/")}
                 >
@@ -54,24 +60,23 @@ const SignIn: React.FunctionComponent = () => {
             <div className={scss["signin__body"]}>
                 <form className={scss["signin__body__form"]} onSubmit={handleSubmit(onSubmit)}>
                     {/*// Username + Validation  */}
-
-                    <input
-                        className={scss["signin__body__form__input__field"]}
+                    <Input
                         placeholder="Username"
-                        {...register("username", { required: true })}
+                        classNames={[scss["signin__body__form__input__field"]]}
+                        register={register("username", { required: true })}
                     />
                     {errors.username && <span>This field is required</span>}
                     {/*// Password + Validation  */}
-                    <input
-                        className={scss["signin__body__form__input__field"]}
+                    <Input
                         placeholder="Password"
-                        {...register("password", { required: true })}
+                        classNames={[scss["signin__body__form__input__field"]]}
+                        register={register("password", { required: true })}
                     />
                     {errors.password && <span>This field is required</span>}
 
                     <Button
-                        classNames={`${scss.test}`}
-                        Formtype="submit"
+                        classNames={[scss.test]}
+                        formType="submit"
                         text="Login"
                         onPress={() => router.push("/login")}
                         capslock

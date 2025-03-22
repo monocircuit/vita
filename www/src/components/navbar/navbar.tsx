@@ -60,24 +60,29 @@ const Navbar: FunctionComponent = () => {
                             </div>
                         ) : (
                             <div className={scss["navbar__account__container__options"]}>
-                                
-                                    <Button
-                                        classNames={`${scss.navbar__account__container__options__signin}`}
-                                        type="primary"
-                                        text="sign in"
-                                        onPress={() => router.push("/login")}
-                                        capslock
-                                    >
-                                        <SignInGraphic />
-                                    </Button>
+                                <Button
+                                    classNames={[scss.navbar__account__container__options__signin]}
+                                    type="primary"
+                                    text="sign in"
+                                    onPress={() => router.push("/login")}
+                                    capslock
+                                    vibrate
+                                >
+                                    <SignInGraphic />
+                                </Button>
                                 <div
                                     className={scss["navbar__account__container__options__divider"]}
                                 ></div>
-                                
-                                    <Button classNames={`${scss.navbar__account__container__options__signup}`} type="secondary" text="sign up" capslock>
-                                        <SignUpGraphic />
-                                    </Button>
-                                
+
+                                <Button
+                                    classNames={[scss.navbar__account__container__options__signup]}
+                                    type="secondary"
+                                    text="sign up"
+                                    capslock
+                                    vibrate
+                                >
+                                    <SignUpGraphic />
+                                </Button>
                             </div>
                         )}
                     </div>

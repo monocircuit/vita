@@ -9,6 +9,7 @@ import Tooltip from "@/utils/ui/tooltip/tooltip";
 
 import scss from "./button.module.scss";
 import PassRelativeMouseCoordinates from "../passMouseCoordinates/passMouseCoordinates";
+import useClassNames from "@/utils/hooks/useClassNames";
 
 export interface Props {
     /**
@@ -58,13 +59,20 @@ export interface Props {
      */
     iconSize?: number;
 
-     /**
+    /**
      * Sets Type for Form / for example: "submit"
      */
-     Formtype?: string;
+    formType?: string;
 
+    /**
+     * classNames that will be attached to the wrapping div of the button
+     */
+    classNames?: string[];
 
-    classNames?: string;
+    /**
+     * vibrates onClick when vibration is available.
+     */
+    vibrate?: boolean;
 }
 
 const Button: React.FunctionComponent<Props> = (props) => {
@@ -78,6 +86,10 @@ const Button: React.FunctionComponent<Props> = (props) => {
     const [isPressing, setIsPressing] = useState<boolean>(false);
 
     const [isWrapped, setIsWrapped] = useState<boolean>(false);
+
+    /** ANCHOR: ClassNames */
+    const buttonClassName = useClassNames(scss["button"], scss[`button__${props.type}`]);
+    const buttonWrapperClassName = useClassNames(props.classNames);
 
     /** ANCHOR: Callbacks */
     const updateWrapState = useCallback(() => {
@@ -145,38 +157,49 @@ const Button: React.FunctionComponent<Props> = (props) => {
         setIsPressing(false);
     };
 
-    //find Closest Form and submit on Button Click
-    const handleClick = (e: any) => {
-        if (props.Formtype === "submit") {
-            const form = e.target.closest("form"); // Find the closest form
-            if (form) form.requestSubmit(); // Safely submit the form
+    const handleClick: React.MouseEventHandler<HTMLDivElement> = () => {
+        /** find closest Form and submit on click */
+        if (props.formType === "submit" && button.current) {
+            const form = button.current.closest("form"); /** find closest form */
+            if (form) form.requestSubmit(); /** safely submit the form */
+        }
+
+        /** vibrate if vibration is available */
+        if (typeof navigator.vibrate === "function") {
+            navigator.vibrate(100);
         }
     };
 
-
     return (
-        <div className={props.classNames} onClick={handleClick}  >
+        <div className={buttonWrapperClassName}>
             <PassRelativeMouseCoordinates>
                 <Tooltip isActive={isHovering} isHidden={!isWrapped} text={props.text}>
                     <div
-                        className={[scss["button"], scss[`button__${props.type}`]].join(" ")}
+                        className={buttonClassName}
                         ref={button}
                         onMouseEnter={handleMouseEnter}
                         onMouseLeave={handleMouseLeave}
                         onMouseDown={handleMouseDown}
                         onMouseUp={handleMouseUp}
+                        onClick={handleClick}
                     >
                         <div className={scss["button__background"]}>
                             <FlapContainer>
                                 {props.onlyPressAnimation ? (
                                     <></>
                                 ) : (
-                                    <Flap isHovering={isHovering} color="#FFD100" />
+                                    <Flap
+                                        classNames={[scss["button__background__flap__hover"]]}
+                                        isActive={isHovering}
+                                    />
                                 )}
                                 {props.onlyHoverAnimation ? (
                                     <></>
                                 ) : (
-                                    <Flap isPressing={isPressing} color="#FFD100" />
+                                    <Flap
+                                        classNames={[scss["button__background__flap__press"]]}
+                                        isActive={isPressing}
+                                    />
                                 )}
                             </FlapContainer>
                         </div>

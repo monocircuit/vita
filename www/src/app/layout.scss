@@ -1,8 +1,12 @@
+@use "@/assets/styles/variables.scss";
 @use "../assets/styles/lib.scss";
 @use "../assets/styles/fontfaces.scss";
 @import "./tailwind.css";
 @include lib.polishDom();
 
+:root {
+    @include variables.inject();
+}
 
 * {
     margin: 0;

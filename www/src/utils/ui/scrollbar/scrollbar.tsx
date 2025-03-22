@@ -35,7 +35,6 @@ const Scrollbar: React.FunctionComponent<Props> = ({ children: child, orientatio
                     (target.scrollHeight - target.clientHeight)) *
             100;
 
-        console.log(percentage);
         return percentage;
     }, []);
 

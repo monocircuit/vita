@@ -4,15 +4,14 @@
     @include lib.createGridOverlay();
     @include lib.size(100%);
 
+    overflow: hidden;
+
     .flap__object {
         @include lib.attachToGridOverlay(0);
 
         border-radius: 100%;
         aspect-ratio: 1/1;
 
-        background-color: lib.$primary-dark-color;
-
         transition: height 1s cubic-bezier(0.2, 0.72, 0.38, 1.02);
-        filter: opacity(20%);
     }
 }
