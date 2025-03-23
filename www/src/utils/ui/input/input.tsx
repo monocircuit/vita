@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { forwardRef, useEffect, useState } from "react";
 
 import { UseFormRegisterReturn } from "react-hook-form";
 import { produce } from "immer";
@@ -11,58 +11,78 @@ import PassRelativeMouseCoordinates from "@/utils/ui/passMouseCoordinates/passMo
 type Props<Data extends Record<string, unknown>> = {
     register: UseFormRegisterReturn<Extract<keyof Data, string>>;
     placeholder: string;
-    classNames?: string[];
+    className?: string;
+    error?: string;
     type?: "primary" | "secondary";
 };
 
+type Data = Record<string, unknown>;
+
 type InputWrapperState = React.CSSProperties;
 
-const Input = <Data extends Record<string, unknown>>(props: Props<Data>) => {
-    /** ANCHOR: State */
-    const [isFocused, setIsFocused] = useState<boolean>(false);
+const Input: React.ForwardRefExoticComponent<Props<Data> & React.RefAttributes<HTMLDivElement>> =
+    forwardRef((props, ref?) => {
+        /** ANCHOR: State */
+        const [isFocused, setIsFocused] = useState<boolean>(false);
+        const [inputWrapperState, setInputWrapperState] = useState<InputWrapperState>({
+            /** Initial State */
+        });
 
-    const [inputWrapperState, setInputWrapperState] = useState<InputWrapperState>({
-        /** Initial State */
+        /** ANCHOR: ClassNames */
+        const inputClassNames = useClassName(scss["input"]);
+        const inputWrapperClassNames = useClassName(scss["input__wrapper"], props.className);
+
+        /** ANCHOR: Effects */
+        useEffect(() => {
+            if (props.error) {
+                setInputWrapperState((prevState) =>
+                    produce(prevState, (draft) => {
+                        draft.border = `var(--stroke) solid var(--error-color)`;
+                    })
+                );
+            }
+        }, [props.error]);
+
+        /** ANCHOR: Handlers */
+        const handleFocus: React.FocusEventHandler<HTMLInputElement> = (event) => {
+            setIsFocused(true);
+
+            setInputWrapperState((prevState) => produce(prevState, (draft) => {}));
+        };
+
+        const handleBlur: React.FocusEventHandler<HTMLInputElement> = (event) => {
+            setIsFocused(false);
+
+            setInputWrapperState((prevState) => produce(prevState, (draft) => {}));
+        };
+
+        return (
+            <PassRelativeMouseCoordinates>
+                <div
+                    className={inputWrapperClassNames}
+                    style={inputWrapperState}
+                    {...(ref && { ref })}
+                >
+                    <div className={scss["input__wrapper__background"]}>
+                        <Flap
+                            className={scss["input__wrapper__background__flap"]}
+                            isActive={isFocused}
+                        />
+                    </div>
+                    <div className={scss["input__wrapper__foreground"]}>
+                        <input
+                            className={inputClassNames}
+                            placeholder={props.placeholder}
+                            {...props.register}
+                            onFocus={handleFocus}
+                            onBlur={handleBlur}
+                        />
+                    </div>
+                    {props.error ? <div className={scss["input__wrapper__error"]}></div> : <></>}
+                </div>
+            </PassRelativeMouseCoordinates>
+        );
     });
 
-    /** ANCHOR: ClassNames */
-    const inputClassNames = useClassName(scss["input"]);
-    const inputWrapperClassNames = useClassName(scss["input__wrapper"], props.classNames);
-
-    /** ANCHOR: Handlers */
-    const handleFocus: React.FocusEventHandler<HTMLInputElement> = (event) => {
-        setIsFocused(true);
-
-        setInputWrapperState((prevState) => produce(prevState, (draft) => {}));
-    };
-
-    const handleBlur: React.FocusEventHandler<HTMLInputElement> = (event) => {
-        setIsFocused(false);
-
-        setInputWrapperState((prevState) => produce(prevState, (draft) => {}));
-    };
-
-    return (
-        <PassRelativeMouseCoordinates>
-            <div className={inputWrapperClassNames} style={inputWrapperState}>
-                <div className={scss["input__wrapper__background"]}>
-                    <Flap
-                        className={scss["input__wrapper__background__flap"]}
-                        isActive={isFocused}
-                    />
-                </div>
-                <div className={scss["input__wrapper__foreground"]}>
-                    <input
-                        className={inputClassNames}
-                        placeholder={props.placeholder}
-                        {...props.register}
-                        onFocus={handleFocus}
-                        onBlur={handleBlur}
-                    />
-                </div>
-            </div>
-        </PassRelativeMouseCoordinates>
-    );
-};
-
+Input.displayName = "Input";
 export default Input;

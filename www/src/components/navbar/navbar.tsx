@@ -93,7 +93,12 @@ const Navbar: FunctionComponent = () => {
                     </div>
                 </div>
             </div>
-            <Popup position={{ x: 100, y: 50 }}></Popup>
+            <Popup className={scss.popup} position={{ x: 100, y: 50 }}>
+                test
+            </Popup>
+            <Popup className={scss.popup2} position={{ x: 300, y: 0 }}>
+                ladida
+            </Popup>
         </>
     );
 };

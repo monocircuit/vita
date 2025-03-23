@@ -1,0 +1,37 @@
+@use "@/assets/styles/lib.scss";
+
+.element-message__wrapper {
+    @include lib.size(100%);
+    @include lib.createGridOverlay();
+
+    .element-message__wrapper__popup {
+        @include lib.attachToGridOverlay(1);
+        width: fit-content;
+        height: fit-content;
+
+        .element-message__wrapper__popup__content {
+            @include lib.createGridOverlay();
+
+            width: fit-content;
+            height: fit-content;
+            overflow: hidden;
+
+            .element-message__wrapper__popup__content__background {
+                @include lib.attachToGridOverlay(0);
+            }
+
+            .element-message__wrapper__popup__content__foreground {
+                @include lib.attachToGridOverlay(1);
+            }
+        }
+    }
+
+    .element-message__wrappper__children {
+        @include lib.attachToGridOverlay(0);
+        overflow: hidden;
+
+        > div {
+            @include lib.size(100%);
+        }
+    }
+}

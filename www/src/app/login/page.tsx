@@ -5,7 +5,7 @@ import auth from "@/utils/pbHelper/auth/auth";
 import scss from "@/app/login/page.module.scss";
 
 function LoginPage() {
-    console.log("test: " + auth.getUser());
+    // console.log("test: " + auth.getUser());
 
     return (
         <div className={scss["page"]}>

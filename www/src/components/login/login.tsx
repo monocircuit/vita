@@ -8,10 +8,12 @@ import { auth } from "@/utils/pbHelper/auth/auth";
 import Cross from "@/assets/images/png/sharp_line/delete.png";
 import scss from "@/components/login/login.module.scss";
 import Button from "@/utils/ui/button/button";
+import SigninGraphic from "@/assets/images/svg/login2.svg";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
 import Input from "@/utils/ui/input/input";
+import ElementMessage from "@/utils/ui/ElementMessage/ElementMessage";
 
 interface loginData {
     username: any;
@@ -39,14 +41,29 @@ const SignIn: React.FunctionComponent = () => {
 
     useEffect(() => {
         const c = register("username", { required: true });
-        console.log(c);
+        // console.log(c);
     }, []);
 
-    console.log(watch("username"));
-    console.log(watch("password"));
+    // console.log(watch("username"));
+    // console.log(watch("password"));
     return (
         <div className={scss["signin"]}>
             <div className={scss["signin__header"]}>
+                <Button
+                    className={scss["signin__header__exit-button"]}
+                    iconSize={30}
+                    onClick={() => router.push("/")}
+                >
+                    <Image src={Cross} alt="cross"></Image>
+                </Button>
+                <div className={scss["signin__header__title"]}>
+                    <div className={scss["signin__header__title__icon"]}>
+                        <SigninGraphic />
+                    </div>
+                    <div className={scss["signin__header__title__text"]}>sign in</div>
+                </div>
+            </div>
+            {/* <div className={scss["signin__header"]}>
                 <Button
                     className={scss.signin__header__logo}
                     iconSize={30}
@@ -56,26 +73,22 @@ const SignIn: React.FunctionComponent = () => {
                 </Button>
                 <div className={scss["signin__header__divider"]}></div>
                 <div className={scss["signin__header__text"]}>sign in</div>
-            </div>
+            </div> */}
             <div className={scss["signin__body"]}>
                 <form className={scss["signin__body__form"]} onSubmit={handleSubmit(onSubmit)}>
-                    {/*// Username + Validation  */}
                     <Input
                         placeholder="Username"
-                        classNames={[scss["signin__body__form__input__field"]]}
+                        className={scss["signin__body__form__input__username"]}
                         register={register("username", { required: true })}
+                        error={!!errors.username ? "This field is required" : undefined}
                     />
-                    {errors.username && <span>This field is required</span>}
-                    {/*// Password + Validation  */}
                     <Input
                         placeholder="Password"
-                        classNames={[scss["signin__body__form__input__field"]]}
+                        className={scss["signin__body__form__input__password"]}
                         register={register("password", { required: true })}
                     />
-                    {errors.password && <span>This field is required</span>}
-
                     <Button
-                        className={scss.test}
+                        className={scss["signin__body__form__submit"]}
                         formType="submit"
                         text="Login"
                         onClick={() => router.push("/login")}
@@ -83,6 +96,7 @@ const SignIn: React.FunctionComponent = () => {
                     ></Button>
                 </form>
             </div>
+            <Button className={scss["signin__alt"]} text="Dont have an account?"></Button>
         </div>
     );
 };

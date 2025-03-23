@@ -23,7 +23,9 @@ const createChildMutator = (target: React.ReactElement<any, any>) => {
         handlers: [],
     };
 
-    const props: any = {};
+    const props: any = {
+        children: target.props.children ? <>{target.props.children}</> : <></>,
+    };
 
     const result = {
         appendRef: (ref: React.RefObject<unknown>) => {
@@ -50,8 +52,21 @@ const createChildMutator = (target: React.ReactElement<any, any>) => {
             return result;
         },
 
+        appendChild: (child: React.ReactNode) => {
+            props.children = (
+                <>
+                    {props.children && props.children}
+                    {child}
+                </>
+            );
+
+            return result;
+        },
+
         appendProp: (key: string, value: any) => {
             props[key] = value;
+
+            return result;
         },
 
         mutate: (clone: React.ReactElement<any, any> = target) => {

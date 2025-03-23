@@ -8,6 +8,8 @@
     .input__wrapper__background {
         @include lib.attachToGridOverlay(0);
 
+        overflow: hidden;
+
         .input__wrapper__background__flap {
             background-color: black;
         }
@@ -22,5 +24,13 @@
             outline: none;
             background-color: transparent;
         }
+    }
+
+    .input__wrapper__error {
+        @include lib.attachToGridOverlay(2);
+        pointer-events: none;
+        height: 10px;
+        background-color: rgba(var(--error-color-rgb), 0.5);
+        border-bottom: var(--stroke) solid var(--error-color);
     }
 }
