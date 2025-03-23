@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const useClassNames = (...classNameEntities: (string | string[] | undefined)[]) => {
+const useClassName = (...classNameEntities: (string | string[] | undefined)[]) => {
     const [className, setClassName] = useState<string>("");
 
     useEffect(() => {
@@ -9,6 +9,7 @@ const useClassNames = (...classNameEntities: (string | string[] | undefined)[]) 
             if (!classNameEntity) return;
             if (typeof classNameEntity === "string") {
                 classNames.push(classNameEntity);
+                return;
             }
             classNames.push(...classNameEntity);
         });
@@ -18,4 +19,4 @@ const useClassNames = (...classNameEntities: (string | string[] | undefined)[]) 
     return className;
 };
 
-export default useClassNames;
+export default useClassName;

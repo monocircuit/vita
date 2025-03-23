@@ -6,13 +6,14 @@ import scss from "./flap.module.scss";
 import { RelativeMouseCoordinates } from "../passMouseCoordinates/passMouseCoordinates";
 import { produce } from "immer";
 import { Coordinates } from "@/utils/types/types";
-import useClassNames from "@/utils/hooks/useClassNames";
+import useClassName from "@/utils/hooks/useClassName";
+import getDiameterToFillParent from "@/utils/functions/getDiameterToFillContainer";
 
 export interface Props {
     isActive?: boolean;
     isHovering?: boolean;
     isPressing?: boolean;
-    classNames?: string[];
+    className?: string;
     mouseCoordinates?: boolean;
 }
 
@@ -26,7 +27,7 @@ const Flap: React.FunctionComponent<Props> = (props) => {
     const flapObject = useRef<HTMLDivElement>(null);
 
     /** ANCHOR: ClassNames */
-    const flapObjectClassName = useClassNames(scss["flap__object"], props.classNames);
+    const flapObjectClassName = useClassName(scss["flap__object"], props.className);
 
     /** ANCHOR: Context */
     const relativeMouseCoordinates = useContext(RelativeMouseCoordinates);
@@ -65,14 +66,11 @@ const Flap: React.FunctionComponent<Props> = (props) => {
         );
     }, []);
     const setFlapObjectSize = useCallback((sizeUp: boolean) => {
-        if (!flap.current) return;
+        if (!flap.current || !flapObject.current) return;
 
         if (sizeUp) {
             /** calculating circumference such that ButtonBackground fully fills the button */
-            const newHeight =
-                (flap.current.clientHeight > flap.current.clientWidth
-                    ? flap.current.clientHeight
-                    : flap.current.clientWidth) * 3;
+            const newHeight = getDiameterToFillParent(flap.current);
 
             setFlapObjectState((prevState) =>
                 produce(prevState, (draft) => {

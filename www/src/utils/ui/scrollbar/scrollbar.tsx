@@ -47,24 +47,28 @@ const Scrollbar: React.FunctionComponent<Props> = ({ children: child, orientatio
                         d.top = "0px";
                     })
                 );
+                break;
             case "bottom":
                 setScrollbarState((p) =>
                     produce(p, (d) => {
                         d.bottom = "0px";
                     })
                 );
+                break;
             case "left":
                 setScrollbarState((p) =>
                     produce(p, (d) => {
                         d.left = "0px";
                     })
                 );
+                break;
             case "right":
                 setScrollbarState((p) =>
                     produce(p, (d) => {
                         d.right = "0px";
                     })
                 );
+                break;
         }
     }, [orientation, scrollbarState]);
 

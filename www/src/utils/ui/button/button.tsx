@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
@@ -9,7 +8,8 @@ import Tooltip from "@/utils/ui/tooltip/tooltip";
 
 import scss from "./button.module.scss";
 import PassRelativeMouseCoordinates from "../passMouseCoordinates/passMouseCoordinates";
-import useClassNames from "@/utils/hooks/useClassNames";
+import useClassName from "@/utils/hooks/useClassName";
+import Drop from "../drop/drop";
 
 export interface Props {
     /**
@@ -27,7 +27,7 @@ export interface Props {
      * - "primary": Highlights the button as the main action.
      * - "secondary": Indicates a less prominent action.
      */
-    type?: "primary" | "secondary";
+    type?: "primary" | "secondary" | "tertiary";
 
     /**
      * If set to true, the button text will be displayed in uppercase letters.
@@ -42,7 +42,7 @@ export interface Props {
     /**
      * Turns the animation for hovering off
      */
-    onlyPressAnimation?: boolean;
+    onlyClickAnimation?: boolean;
 
     /**
      * Turns the animation for pressing off
@@ -52,7 +52,7 @@ export interface Props {
     /**
      * Sets a function that will be executed when the button is pressed
      */
-    onPress?: () => void;
+    onClick?: () => void;
 
     /**
      * Sets icon height
@@ -67,12 +67,28 @@ export interface Props {
     /**
      * classNames that will be attached to the wrapping div of the button
      */
-    classNames?: string[];
+    className?: string;
+
+    /**
+     * className for Drop
+     */
+    classNameDrop?: string;
+
+    /**
+     * className for Flap
+     */
+    classNameFlap?: string;
 
     /**
      * vibrates onClick when vibration is available.
      */
     vibrate?: boolean;
+
+    /**
+     * Tells the button to if it should show a Tooltip in case there is no
+     * icon.
+     */
+    tooltip?: boolean;
 }
 
 const Button: React.FunctionComponent<Props> = (props) => {
@@ -88,10 +104,33 @@ const Button: React.FunctionComponent<Props> = (props) => {
     const [isWrapped, setIsWrapped] = useState<boolean>(false);
 
     /** ANCHOR: ClassNames */
-    const buttonClassName = useClassNames(scss["button"], scss[`button__${props.type}`]);
-    const buttonWrapperClassName = useClassNames(props.classNames);
+    const buttonClassName = useClassName(scss["button"], scss[`button__${props.type}`]);
+    const buttonWrapperClassName = useClassName(props.className);
+    const buttonBackgroundDropClassName = useClassName(
+        scss["button__background__drop"],
+        props.classNameDrop
+    );
+    const buttonBackgroundFlapClassName = useClassName(
+        scss["button__background__flap"],
+        props.classNameFlap
+    );
 
     /** ANCHOR: Callbacks */
+    const submitForm = useCallback(() => {
+        /** find closest Form and submit on click */
+        if (props.formType === "submit" && button.current) {
+            const form = button.current.closest("form"); /** find closest form */
+            if (form) form.requestSubmit(); /** safely submit the form */
+        }
+    }, [props.formType]);
+
+    const vibrate = useCallback(() => {
+        /** vibrate if vibration is available */
+        if (typeof navigator.vibrate === "function") {
+            navigator.vibrate(100);
+        }
+    }, []);
+
     const updateWrapState = useCallback(() => {
         if (!buttonUnwrappedSvg.current || !buttonUnwrappedTxt.current) return;
         const buttonUnwrappedSvgRect = buttonUnwrappedSvg.current.getBoundingClientRect();
@@ -148,58 +187,50 @@ const Button: React.FunctionComponent<Props> = (props) => {
         setIsPressing(false);
     };
 
-    const handleMouseDown: React.MouseEventHandler<HTMLDivElement> = () => {
-        setIsPressing(true);
-        if (props.onPress) props.onPress();
-    };
-
     const handleMouseUp: React.MouseEventHandler<HTMLDivElement> = () => {
         setIsPressing(false);
     };
 
     const handleClick: React.MouseEventHandler<HTMLDivElement> = () => {
-        /** find closest Form and submit on click */
-        if (props.formType === "submit" && button.current) {
-            const form = button.current.closest("form"); /** find closest form */
-            if (form) form.requestSubmit(); /** safely submit the form */
-        }
-
-        /** vibrate if vibration is available */
-        if (typeof navigator.vibrate === "function") {
-            navigator.vibrate(100);
-        }
+        setIsPressing(true);
+        vibrate();
+        submitForm();
+        if (props.onClick) props.onClick();
     };
 
     return (
         <div className={buttonWrapperClassName}>
             <PassRelativeMouseCoordinates>
-                <Tooltip isActive={isHovering} isHidden={!isWrapped} text={props.text}>
+                <Tooltip
+                    isActive={props.tooltip ? isHovering : false}
+                    isHidden={!isWrapped}
+                    text={props.text}
+                >
                     <div
                         className={buttonClassName}
                         ref={button}
+                        onClick={handleClick}
+                        onMouseUp={handleMouseUp}
                         onMouseEnter={handleMouseEnter}
                         onMouseLeave={handleMouseLeave}
-                        onMouseDown={handleMouseDown}
-                        onMouseUp={handleMouseUp}
-                        onClick={handleClick}
                     >
                         <div className={scss["button__background"]}>
                             <FlapContainer>
-                                {props.onlyPressAnimation ? (
+                                {props.onlyClickAnimation ? (
                                     <></>
                                 ) : (
                                     <Flap
-                                        classNames={[scss["button__background__flap__hover"]]}
+                                        className={buttonBackgroundFlapClassName}
                                         isActive={isHovering}
                                     />
                                 )}
                                 {props.onlyHoverAnimation ? (
                                     <></>
                                 ) : (
-                                    <Flap
-                                        classNames={[scss["button__background__flap__press"]]}
+                                    <Drop
+                                        className={buttonBackgroundDropClassName}
                                         isActive={isPressing}
-                                    />
+                                    ></Drop>
                                 )}
                             </FlapContainer>
                         </div>

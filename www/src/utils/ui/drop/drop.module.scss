@@ -1,0 +1,17 @@
+@use "@/assets/styles/lib.scss";
+
+.drop__wrapper {
+    @include lib.createGridOverlay();
+    @include lib.size(100%);
+
+    overflow: hidden;
+
+    .drop {
+        @include lib.attachToGridOverlay(0);
+
+        border-radius: 100%;
+        aspect-ratio: 1/1;
+
+        background-color: var(--error-color);
+    }
+}

@@ -4,9 +4,9 @@ import { UseFormRegisterReturn } from "react-hook-form";
 import { produce } from "immer";
 
 import scss from "@/utils/ui/input/input.module.scss";
-import useClassNames from "@/utils/hooks/useClassNames";
+import useClassName from "@/utils/hooks/useClassName";
 import Flap from "../flap/flap";
-import PassRelativeMouseCoordinates from "../passMouseCoordinates/passMouseCoordinates";
+import PassRelativeMouseCoordinates from "@/utils/ui/passMouseCoordinates/passMouseCoordinates";
 
 type Props<Data extends Record<string, unknown>> = {
     register: UseFormRegisterReturn<Extract<keyof Data, string>>;
@@ -26,8 +26,8 @@ const Input = <Data extends Record<string, unknown>>(props: Props<Data>) => {
     });
 
     /** ANCHOR: ClassNames */
-    const inputClassNames = useClassNames(scss["input"]);
-    const inputWrapperClassNames = useClassNames(scss["input__wrapper"], props.classNames);
+    const inputClassNames = useClassName(scss["input"]);
+    const inputWrapperClassNames = useClassName(scss["input__wrapper"], props.classNames);
 
     /** ANCHOR: Handlers */
     const handleFocus: React.FocusEventHandler<HTMLInputElement> = (event) => {
@@ -47,7 +47,7 @@ const Input = <Data extends Record<string, unknown>>(props: Props<Data>) => {
             <div className={inputWrapperClassNames} style={inputWrapperState}>
                 <div className={scss["input__wrapper__background"]}>
                     <Flap
-                        classNames={[scss["input__wrapper__background__flap"]]}
+                        className={scss["input__wrapper__background__flap"]}
                         isActive={isFocused}
                     />
                 </div>

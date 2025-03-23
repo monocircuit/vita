@@ -27,13 +27,6 @@ export default function Home() {
                 <div className={scss["page__navbar"]}>
                     <Navbar></Navbar>
                 </div>
-                <div className={scss["page__buttontest"]}>
-                    <div className={scss["page__buttontest__1"]}>
-                        <Button text="Test">
-                            <HomeGraphic />
-                        </Button>
-                    </div>
-                </div>
             </div>
         </Scrollbar>
     );

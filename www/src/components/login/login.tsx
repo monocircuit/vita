@@ -48,9 +48,9 @@ const SignIn: React.FunctionComponent = () => {
         <div className={scss["signin"]}>
             <div className={scss["signin__header"]}>
                 <Button
-                    classNames={[scss.signin__header__logo]}
+                    className={scss.signin__header__logo}
                     iconSize={30}
-                    onPress={() => router.push("/")}
+                    onClick={() => router.push("/")}
                 >
                     <Image src={Cross} alt="cross"></Image>
                 </Button>
@@ -75,10 +75,10 @@ const SignIn: React.FunctionComponent = () => {
                     {errors.password && <span>This field is required</span>}
 
                     <Button
-                        classNames={[scss.test]}
+                        className={scss.test}
                         formType="submit"
                         text="Login"
-                        onPress={() => router.push("/login")}
+                        onClick={() => router.push("/login")}
                         capslock
                     ></Button>
                 </form>

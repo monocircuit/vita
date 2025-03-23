@@ -34,10 +34,16 @@ const Navbar: FunctionComponent = () => {
     return (
         <>
             <div className={scss["navbar"]}>
-                <div className={scss["navbar__logo"]}>
+                <Button
+                    className={scss["navbar__logo"]}
+                    classNameDrop={scss["navbar__logo__drop"]}
+                    onClick={() => router.push("/")}
+                    onlyClickAnimation
+                    vibrate
+                >
                     <MonocircuitLogo />
-                    <div className={scss["navbar__divider"]}></div>
-                </div>
+                </Button>
+                <div className={scss["navbar__divider"]}></div>
                 <div className={scss["navbar__title"]}></div>
                 {/**
                  * Part of the Navbar that is concerned with the users account,
@@ -61,10 +67,10 @@ const Navbar: FunctionComponent = () => {
                         ) : (
                             <div className={scss["navbar__account__container__options"]}>
                                 <Button
-                                    classNames={[scss.navbar__account__container__options__signin]}
+                                    className={scss["navbar__account__container__options__signin"]}
                                     type="primary"
                                     text="sign in"
-                                    onPress={() => router.push("/login")}
+                                    onClick={() => router.push("/login")}
                                     capslock
                                     vibrate
                                 >
@@ -73,9 +79,8 @@ const Navbar: FunctionComponent = () => {
                                 <div
                                     className={scss["navbar__account__container__options__divider"]}
                                 ></div>
-
                                 <Button
-                                    classNames={[scss.navbar__account__container__options__signup]}
+                                    className={scss["navbar__account__container__options__signup"]}
                                     type="secondary"
                                     text="sign up"
                                     capslock
