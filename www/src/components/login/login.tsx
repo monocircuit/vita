@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PocketBase from "pocketbase";
 import LoginTemp from "./logintemp";
 import { auth } from "@/utils/pbHelper/auth/auth";
@@ -32,12 +32,6 @@ const SignIn: React.FunctionComponent = () => {
     const onSubmit: SubmitHandler<loginData> = (data) => auth.login(data.username, data.password);
 
     const router = useRouter();
-
-    const [input, setInput] = useState<loginData>({
-        username: "",
-        password: "",
-    });
-    const [needRegister, setNeedRegister] = useState<boolean>(false);
 
     useEffect(() => {
         const c = register("username", { required: true });

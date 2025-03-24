@@ -1,7 +1,6 @@
 /** @format */
 
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import PocketBase from "pocketbase";
 import { auth } from "./utils/pbHelper/auth/auth";
 
@@ -22,7 +21,7 @@ export default async function middleware(req: NextRequest) {
     const path = req.nextUrl.pathname;
     const isProtectedRoute = protectedRoutes.includes(path);
     const isPublicRoute = publicRoutes.includes(path);
-    console.log(pb.authStore.record);
+    
     // 4. Redirect to /login if the user is not authenticated
     if (isProtectedRoute && !pb.authStore.isValid) {
         return NextResponse.redirect(new URL("/login", req.nextUrl));
@@ -30,6 +29,7 @@ export default async function middleware(req: NextRequest) {
 
     // 5. Redirect to /dashboard if the user is authenticated
     if (isPublicRoute && auth.isAuthenticated() && !req.nextUrl.pathname.startsWith("/home")) {
+        console.log("test");
         return NextResponse.redirect(new URL("/home", req.nextUrl));
     }
 

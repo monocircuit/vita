@@ -1,5 +1,5 @@
-
 import { redirect } from "next/navigation";
+import { setCookie } from "cookies-next";
 
 import PocketBase from "pocketbase";
 
@@ -24,7 +24,20 @@ export const auth = {
     login: async (username: string, password: string) => {
         try {
             await pb.collection("users").authWithPassword(username, password);
-            document.cookie = `pb_auth=${pb.authStore.token}; path=/; Secure`;
+            console.log("tset");
+            setCookie("pb_auth", pb.authStore.token, {
+                path: "/",
+                sameSite: "lax",
+            });
+
+            //Wenn Production:
+            //setCookie("pb_auth", pb.authStore.token, {
+            //    httpOnly: true,
+            //    path: "/",
+            //    secure: true,
+            //    sameSite: "lax",
+            //});
+
             redirect("/home");
         } catch (error) {
             console.error("Login failed", error);
