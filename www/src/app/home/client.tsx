@@ -15,6 +15,7 @@ const HomeClient: () => React.JSX.Element = () => {
     const { register, handleSubmit } = useForm<CredentialModel>();
     const [Model, setModel] = useState<RecordModel[] | null>();
     const [boolean, setBoolean] = useState<boolean>(false);
+    const [userName, setUserName] = useState<string>();
 
     const onSubmit = (data: CredentialModel) => {
         data.startDate = new Date(data.startDate);
@@ -22,17 +23,22 @@ const HomeClient: () => React.JSX.Element = () => {
         credentialApi.createCredentials(data);
     };
 
+    
+    
     useEffect(() => {
         async function fetchPosts() {
             const test = await credentialApi.getCredentials();
-            console.log("Mango. " + test);
+            console.log(test);
             setModel(test);
         }
         fetchPosts();
+        setUserName(auth.getUser()?.name)
     }, []);
 
     return (
         <div>
+            
+            <div>user: </div> <div>{userName} </div>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <input {...register("title", { required: true })} placeholder="Title" />
                 <input {...register("description")} placeholder="Description" />

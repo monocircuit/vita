@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import PocketBase from "pocketbase";
-import LoginTemp from "./logintemp";
 import { auth } from "@/utils/pbHelper/auth/auth";
 
 import Cross from "@/assets/images/png/sharp_line/delete.png";
@@ -36,8 +34,6 @@ const SignIn: React.FunctionComponent = () => {
     });
     const [needRegister, setNeedRegister] = useState<boolean>(false);
 
-    console.log(watch("username"));
-    console.log(watch("password"));
     return (
         <div className={scss["signin"]}>
             <div className={scss["signin__header"]}>
@@ -52,7 +48,7 @@ const SignIn: React.FunctionComponent = () => {
                 <div className={scss["signin__header__text"]}>sign in</div>
             </div>
             <div className={scss["signin__body"]}>
-                <form className={scss["signin__body__form"]} onSubmit={handleSubmit(onSubmit)}>
+                <form className={scss["signin__body__form"]} onSubmit={handleSubmit(onSubmit)} autoComplete="on">
                     {/*// Username + Validation  */}
 
                     <input
