@@ -34,10 +34,16 @@ const Navbar: FunctionComponent = () => {
     return (
         <>
             <div className={scss["navbar"]}>
-                <div className={scss["navbar__logo"]}>
+                <Button
+                    className={scss["navbar__logo"]}
+                    classNameDrop={scss["navbar__logo__drop"]}
+                    onClick={() => router.push("/")}
+                    onlyClickAnimation
+                    vibrate
+                >
                     <MonocircuitLogo />
-                    <div className={scss["navbar__divider"]}></div>
-                </div>
+                </Button>
+                <div className={scss["navbar__divider"]}></div>
                 <div className={scss["navbar__title"]}></div>
                 {/**
                  * Part of the Navbar that is concerned with the users account,
@@ -60,30 +66,39 @@ const Navbar: FunctionComponent = () => {
                             </div>
                         ) : (
                             <div className={scss["navbar__account__container__options"]}>
-                                
-                                    <Button
-                                        classNames={`${scss.navbar__account__container__options__signin}`}
-                                        type="primary"
-                                        text="sign in"
-                                        onPress={() => router.push("/login")}
-                                        capslock
-                                    >
-                                        <SignInGraphic />
-                                    </Button>
+                                <Button
+                                    className={scss["navbar__account__container__options__signin"]}
+                                    type="primary"
+                                    text="sign in"
+                                    onClick={() => router.push("/login")}
+                                    capslock
+                                    vibrate
+                                >
+                                    <SignInGraphic />
+                                </Button>
                                 <div
                                     className={scss["navbar__account__container__options__divider"]}
                                 ></div>
-                                
-                                    <Button classNames={`${scss.navbar__account__container__options__signup}`} type="secondary" text="sign up" capslock>
-                                        <SignUpGraphic />
-                                    </Button>
-                                
+                                <Button
+                                    className={scss["navbar__account__container__options__signup"]}
+                                    type="secondary"
+                                    text="sign up"
+                                    capslock
+                                    vibrate
+                                >
+                                    <SignUpGraphic />
+                                </Button>
                             </div>
                         )}
                     </div>
                 </div>
             </div>
-            <Popup position={{ x: 100, y: 300 }}></Popup>
+            <Popup className={scss.popup} position={{ x: 100, y: 50 }}>
+                test
+            </Popup>
+            <Popup className={scss.popup2} position={{ x: 300, y: 0 }}>
+                ladida
+            </Popup>
         </>
     );
 };

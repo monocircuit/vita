@@ -1,8 +1,12 @@
+@use "@/assets/styles/variables.scss";
 @use "../assets/styles/lib.scss";
 @use "../assets/styles/fontfaces.scss";
 @import "./tailwind.css";
 @include lib.polishDom();
 
+:root {
+    @include variables.inject();
+}
 
 * {
     margin: 0;
@@ -16,4 +20,7 @@ body {
      * LINK: https://stackoverflow.com/questions/52848856/100vh-height-when-address-bar-is-shown-chrome-mobile
      */
     @include lib.size(100dvw, 100dvh);
+    background-color: white;
+
+    font-family: "Fira Code";
 }

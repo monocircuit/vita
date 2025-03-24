@@ -18,9 +18,25 @@ const Scrollbar: React.FunctionComponent<Props> = ({ children: child, orientatio
     const childRef = useRef<HTMLElement>(null);
 
     /** ANCHOR: State */
+    const [scrollPercentage, setScrollPercentage] = useState<number>(0);
     const [scrollbarState, setScrollbarState] = useState<ScrollbarState>({
         /** Initial Style */
+        width: `${scrollPercentage}%`,
     });
+
+    /** ANCHOR: Callbacks */
+    const calculatePercentage = useCallback(() => {
+        const target = childRef.current;
+        if (!target) return;
+
+        const percentage =
+            (1 -
+                (target.scrollHeight - (target.scrollTop + target.clientHeight)) /
+                    (target.scrollHeight - target.clientHeight)) *
+            100;
+
+        return percentage;
+    }, []);
 
     /** ANCHOR: Effects */
     useEffect(() => {
@@ -31,42 +47,45 @@ const Scrollbar: React.FunctionComponent<Props> = ({ children: child, orientatio
                         d.top = "0px";
                     })
                 );
+                break;
             case "bottom":
                 setScrollbarState((p) =>
                     produce(p, (d) => {
                         d.bottom = "0px";
                     })
                 );
+                break;
             case "left":
                 setScrollbarState((p) =>
                     produce(p, (d) => {
                         d.left = "0px";
                     })
                 );
+                break;
             case "right":
                 setScrollbarState((p) =>
                     produce(p, (d) => {
                         d.right = "0px";
                     })
                 );
+                break;
         }
     }, [orientation, scrollbarState]);
 
-    useEffect(() => {
-        console.log(
-            createChildMutator(child as any)
-                .appendRef(childRef)
-                .mutate()
-        );
-        console.log("ref1", childRef.current);
-    }, [child]);
-
     /** ANCHOR: Handlers */
-    const handleScroll: React.UIEventHandler<HTMLDivElement> = (event) => {};
+    const handleScroll: React.UIEventHandler<HTMLDivElement> = () => {
+        setScrollbarState((prevState) =>
+            produce(prevState, (draft) => {
+                draft.width = `${calculatePercentage()}%`;
+            })
+        );
+    };
 
     return (
         <>
-            <div className={scss["scrollbar"]} style={scrollbarState} />
+            <div className={scss["scrollbar__wrapper"]} style={scrollbarState}>
+                <div className={scss["scrollbar"]} />
+            </div>
             {createChildMutator(child as any)
                 .appendRef(childRef)
                 .appendHandler("onScroll", handleScroll)

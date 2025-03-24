@@ -15,12 +15,16 @@ const createChildMutator = (target: React.ReactElement<any, any>) => {
             (element) => {
                 if (typeof target.props.ref === "function") {
                     target.props.ref(element);
-                } else {
+                } else if (target.props.ref) {
                     target.props.ref.current = element;
                 }
             },
         ],
         handlers: [],
+    };
+
+    const props: any = {
+        children: target.props.children ? <>{target.props.children}</> : <></>,
     };
 
     const result = {
@@ -48,8 +52,25 @@ const createChildMutator = (target: React.ReactElement<any, any>) => {
             return result;
         },
 
+        appendChild: (child: React.ReactNode) => {
+            props.children = (
+                <>
+                    {props.children && props.children}
+                    {child}
+                </>
+            );
+
+            return result;
+        },
+
+        appendProp: (key: string, value: any) => {
+            props[key] = value;
+
+            return result;
+        },
+
         mutate: (clone: React.ReactElement<any, any> = target) => {
-            const props: any = { ref: (element: any) => store.refs.forEach((ref) => ref(element)) };
+            props.ref = (element: any) => store.refs.forEach((ref) => ref(element));
             store.handlers.forEach((handler) => (props[handler.key] = handler.handle));
 
             return React.cloneElement(clone, props);

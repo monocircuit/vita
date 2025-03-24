@@ -19,9 +19,15 @@
         height: 100%;
         aspect-ratio: 1/1;
 
+        .navbar__logo__drop {
+            background-color: var(--primary-color) !important;
+            filter: opacity(30%);
+        }
+
         svg {
             margin-right: lib.$stroke-width;
             padding: 12px;
+            height: 50% !important;
         }
     }
 
@@ -93,4 +99,15 @@
             }
         }
     }
+}
+
+.popup {
+    width: 100px !important;
+    height: 8000px !important;
+}
+
+.popup2 {
+    width: 200px !important;
+    height: 500px !important;
+    background-color: red !important;
 }

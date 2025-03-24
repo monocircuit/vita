@@ -1,17 +1,17 @@
 @use "@/assets/styles/lib.scss";
 
-.flap {
+.drop__wrapper {
     @include lib.createGridOverlay();
     @include lib.size(100%);
 
     overflow: hidden;
 
-    .flap__object {
+    .drop {
         @include lib.attachToGridOverlay(0);
 
         border-radius: 100%;
         aspect-ratio: 1/1;
 
-        transition: height 1s cubic-bezier(0.2, 0.72, 0.38, 1.02);
+        background-color: var(--error-color);
     }
 }

@@ -13,6 +13,15 @@
 
     .button__background {
         @include lib.attachToGridOverlay(1);
+
+        .button__background__flap {
+            filter: opacity(var(--default-opacity));
+            background-color: var(--highlight-color);
+        }
+
+        .button__background__drop {
+            background-color: var(--highlight-color);
+        }
     }
 
     .button__foreground {
