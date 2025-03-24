@@ -76,16 +76,26 @@ const SignIn: React.FunctionComponent = () => {
             </div> */}
             <div className={scss["signin__body"]}>
                 <form className={scss["signin__body__form"]} onSubmit={handleSubmit(onSubmit)}>
+                    <div className={scss["signin__body__form__divider__wrapper"]}>
+                        <div className={scss["signin__body__form__divider"]} />
+                        <div className={scss["signin__body__form__divider__text"]}>
+                            sign in with your account
+                        </div>
+                        <div className={scss["signin__body__form__divider"]} />
+                    </div>
                     <Input
                         placeholder="Username"
+                        type="text"
                         className={scss["signin__body__form__input__username"]}
                         register={register("username", { required: true })}
                         error={!!errors.username ? "This field is required" : undefined}
                     />
                     <Input
                         placeholder="Password"
+                        type="text"
                         className={scss["signin__body__form__input__password"]}
                         register={register("password", { required: true })}
+                        error={!!errors.password ? "This field is required" : undefined}
                     />
                     <Button
                         className={scss["signin__body__form__submit"]}

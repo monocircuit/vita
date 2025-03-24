@@ -52,24 +52,58 @@ $padding: 12px;
         display: flex;
         justify-content: center;
         align-items: center;
+        overflow: hidden;
 
         .signin__body__form {
-            display: grid;
-            grid-template-columns: [col0] 200px;
-            grid-template-rows: [row0] 60px [row1] 60px [row2] 40px [row3];
-            grid-auto-flow: row;
+            width: min(450px, 50%);
+            overflow: hidden;
+
+            display: flex;
+            flex-direction: column;
             gap: 10px;
+
+            input {
+                font-family: "Fira Sans" !important;
+                font-size: 16px; /* Optional: adjust font size */
+                padding: 8px; /* Optional: add padding for better readability */
+            }
+
+            .signin__body__form__divider__wrapper {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: calc(var(--stroke) * 2);
+
+                .signin__body__form__divider__text {
+                    font-size: 1.3cqh;
+                    font-family: "Fira Sans";
+                    text-transform: capitalize;
+                    color: var(--secondary-color);
+                    filter: brightness(70%);
+                }
+
+                .signin__body__form__divider {
+                    flex: 1;
+                    background-color: var(--secondary-color);
+                    filter: brightness(70%);
+                    height: var(--stroke);
+                }
+            }
+
+            $input-height: 50px;
 
             .signin__body__form__input__username {
                 grid-area: row0 / col0 / row1 / col0;
+                height: $input-height;
             }
 
             .signin__body__form__input__password {
                 grid-area: row1 / col0 / row2 / col0;
+                height: $input-height;
             }
 
             .signin__body__form__submit {
-                grid-area: row2/ col0/row3/col0;
+                height: 40px;
                 border: var(--stroke) solid var(--primary-color);
             }
         }

@@ -11,7 +11,8 @@
         overflow: hidden;
 
         .input__wrapper__background__flap {
-            background-color: black;
+            background-color: var(--highlight-color);
+            filter: opacity(20%);
         }
     }
 
@@ -29,8 +30,24 @@
     .input__wrapper__error {
         @include lib.attachToGridOverlay(2);
         pointer-events: none;
-        height: 10px;
+        height: 15px;
         background-color: rgba(var(--error-color-rgb), 0.5);
         border-bottom: var(--stroke) solid var(--error-color);
+
+        display: flex;
+        align-items: center;
+        padding: var(--stroke);
+
+        font-family: "Fira Sans";
+        font-size: 1.2cqh;
+
+        span {
+            flex: 1;
+        }
+
+        img {
+            height: 1.4cqh;
+            width: auto;
+        }
     }
 }

@@ -4,16 +4,18 @@ import { UseFormRegisterReturn } from "react-hook-form";
 import { produce } from "immer";
 
 import scss from "@/utils/ui/input/input.module.scss";
+import Error from "@/assets/images/png/sharp_line/error.png";
 import useClassName from "@/utils/hooks/useClassName";
 import Flap from "../flap/flap";
 import PassRelativeMouseCoordinates from "@/utils/ui/passMouseCoordinates/passMouseCoordinates";
+import Image from "next/image";
 
 type Props<Data extends Record<string, unknown>> = {
     register: UseFormRegisterReturn<Extract<keyof Data, string>>;
+    type: string;
     placeholder: string;
     className?: string;
     error?: string;
-    type?: "primary" | "secondary";
 };
 
 type Data = Record<string, unknown>;
@@ -34,10 +36,17 @@ const Input: React.ForwardRefExoticComponent<Props<Data> & React.RefAttributes<H
 
         /** ANCHOR: Effects */
         useEffect(() => {
+            console.log(props.error);
             if (props.error) {
                 setInputWrapperState((prevState) =>
                     produce(prevState, (draft) => {
                         draft.border = `var(--stroke) solid var(--error-color)`;
+                    })
+                );
+            } else {
+                setInputWrapperState((prevState) =>
+                    produce(prevState, (draft) => {
+                        draft.border = `var(--stroke) solid var(--primary-color)`;
                     })
                 );
             }
@@ -76,9 +85,17 @@ const Input: React.ForwardRefExoticComponent<Props<Data> & React.RefAttributes<H
                             {...props.register}
                             onFocus={handleFocus}
                             onBlur={handleBlur}
+                            type={props.type}
                         />
                     </div>
-                    {props.error ? <div className={scss["input__wrapper__error"]}></div> : <></>}
+                    {props.error ? (
+                        <div className={scss["input__wrapper__error"]}>
+                            <span>{props.error}</span>
+                            <Image src={Error} alt="test"></Image>
+                        </div>
+                    ) : (
+                        <></>
+                    )}
                 </div>
             </PassRelativeMouseCoordinates>
         );

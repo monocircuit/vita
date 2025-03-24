@@ -107,8 +107,6 @@ const Flap: React.ForwardRefExoticComponent<Props & React.RefAttributes<HTMLDivE
             setCurrentRelativeMouseCoordinates(relativeMouseCoordinates);
 
             if (props.isActive) {
-                console.log(relativeMouseCoordinates);
-
                 /** Translation of FlapObject to the current mouse coordinates */
                 setFlapObjectTranslation(relativeMouseCoordinates);
                 /** Making the FlapObject visible */
