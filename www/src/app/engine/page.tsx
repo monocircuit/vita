@@ -1,12 +1,58 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Two from "two.js";
 
 import scss from "./page.module.scss";
 import displayBezierControls from "@/utils/engine/displayBezierControls";
+import credentialApi from "@/utils/pbHelper/credentials/credentials";
+import { RecordModel } from "pocketbase";
+import { TreeModel } from "@/models/tree/tree.model";
+import { produce } from "immer";
+import auth from "@/utils/pbHelper/auth/auth";
+import { CredentialForTreeModel, CredentialModel } from "@/models/credential/credential.model";
 
 const Engine = () => {
+    const [credentials, setCredentials] = useState<RecordModel[]>();
+    const [credentialsTrimmed, setCredentialsTrimmed] = useState<CredentialForTreeModel[]>([]);
+
+    const [tree, setTree] = useState<TreeModel>({ id: "", user: "", credentials: [] });
+
+    //Fetching Logic:
+    useEffect(() => {
+        //Get All Credentials of User
+        fetchPosts();
+        async function fetchPosts() {
+            const credentialsFetched = await credentialApi.getCredentials();
+            setCredentials(credentialsFetched);
+        }
+    }, []);
+
+    useEffect(() => {
+        let TempArrayForCredentials: CredentialForTreeModel[] = [];
+
+        if (credentials) {
+            credentials.forEach((e) => {
+                TempArrayForCredentials.push({ id: e.id, priority: 1 });
+            });
+        }
+        setCredentialsTrimmed(TempArrayForCredentials);
+    }, [credentials]);
+
+    useEffect(() => {
+        setTree(
+            produce((draft) => {
+                draft.user = auth.getUser()!.id;
+                draft.credentials = credentialsTrimmed;
+            })
+        );
+    }, [credentialsTrimmed]);
+
+
+
+
+
+    //Two JS Logic :
     const engine = useRef<HTMLDivElement>(null);
 
     useEffect(() => {

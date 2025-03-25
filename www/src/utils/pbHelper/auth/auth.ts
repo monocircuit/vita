@@ -23,6 +23,10 @@ export const auth = {
 
     login: async (username: string, password: string) => {
         try {
+            //Removes wrongly placed spaces
+            username = username.trim();
+            password = password.trim();
+
             await pb.collection("users").authWithPassword(username, password);
             console.log("tset");
             setCookie("pb_auth", pb.authStore.token, {

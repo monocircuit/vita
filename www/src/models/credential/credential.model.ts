@@ -6,4 +6,9 @@ export interface CredentialModel {
     startDate: Date;
     endDate: Date;
     user: string;
+    priority: number;
 }
+export type CredentialForTreeModel = Omit<
+    CredentialModel,
+    "user" | "title" | "description" | "type" | "startDate" | "endDate"
+>;

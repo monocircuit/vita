@@ -2,7 +2,13 @@
 import Two from "two.js";
 import { Path } from "two.js/src/path";
 import shortenLine from "@/utils/engine/shortenLine";
-
+/**
+ *
+ * @param Enviroment should be set to the current TwoJs Env where it will draw the Helper Lines 
+ * @param path should be set to the Path that includes the Bezier Curve in the 
+ * 
+ *
+ */
 const displayBezierControls = (environment: Two, path: Path, options?: { shorten: number }) => {
     path.vertices.forEach((anchor, index) => {
         const endVectors = {

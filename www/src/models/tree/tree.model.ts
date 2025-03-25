@@ -1,7 +1,10 @@
 import { CredentialModel } from "../credential/credential.model";
 
-interface TreeModel {
+export interface TreeModel {
     id: string;
     user: string;
-    credentials: { credentialModelID: string; priority: number }[];
+    credentials: Omit<
+        CredentialModel,
+        "user" | "title" | "description" | "type" | "startDate" | "endDate"
+    >[];
 }

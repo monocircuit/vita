@@ -17,12 +17,12 @@ interface props {
 }
 
 const HomeClient: () => React.JSX.Element = () => {
-    const { register, handleSubmit } = useForm<CredentialModel>();
+    const { register, handleSubmit } = useForm<Omit<CredentialModel, "priority">>();
     const [Model, setModel] = useState<RecordModel[] | null>();
     const [boolean, setBoolean] = useState<boolean>(false);
     const [userName, setUserName] = useState<string>();
 
-    const onSubmit = (data: CredentialModel) => {
+    const onSubmit = (data: Omit<CredentialModel, "priority">) => {
         data.startDate = new Date(data.startDate);
         data.endDate = new Date(data.endDate);
         credentialApi.createCredentials(data);
@@ -92,7 +92,6 @@ const HomeClient: () => React.JSX.Element = () => {
             </div>
             <div className="w-full">
                 <Loader />
-
             </div>
 
             <div className="flex flex-col ">

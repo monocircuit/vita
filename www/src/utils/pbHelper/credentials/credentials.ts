@@ -6,7 +6,7 @@ const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL;
 const pb = new PocketBase(PB_URL);
 
 export const credentialApi = {
-    createCredentials: async (data: CredentialModel) => {
+    createCredentials: async (data: Omit<CredentialModel, "priority">) => {
         try {
             pb.authStore.record?.id ? (data.user = pb.authStore.record?.id) : (data.user = "");
 
