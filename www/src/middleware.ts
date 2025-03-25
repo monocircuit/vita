@@ -6,13 +6,13 @@ import { auth } from "./utils/pbHelper/auth/auth";
 
 // 1. Specify protected and public routes
 const protectedRoutes = ["/home"];
-const publicRoutes = ["/login", "/signup", "/"];
+const publicRoutes = ["/login", "/signup"];
 
 export default async function middleware(req: NextRequest) {
     const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL);
 
     const token = req.cookies.get("pb_auth")?.value;
-    
+
     if (token) {
         pb.authStore.save(token, null); // Restore auth
     }
@@ -21,15 +21,14 @@ export default async function middleware(req: NextRequest) {
     const path = req.nextUrl.pathname;
     const isProtectedRoute = protectedRoutes.includes(path);
     const isPublicRoute = publicRoutes.includes(path);
-    
+
     // 4. Redirect to /login if the user is not authenticated
     if (isProtectedRoute && !pb.authStore.isValid) {
         return NextResponse.redirect(new URL("/login", req.nextUrl));
     }
 
     // 5. Redirect to /dashboard if the user is authenticated
-    if (isPublicRoute && auth.isAuthenticated() && !req.nextUrl.pathname.startsWith("/home")) {
-        console.log("test");
+    if (isPublicRoute && pb.authStore.isValid && !req.nextUrl.pathname.startsWith("/home")) {
         return NextResponse.redirect(new URL("/home", req.nextUrl));
     }
 

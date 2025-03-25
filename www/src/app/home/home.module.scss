@@ -1,0 +1,230 @@
+@use "@/assets/styles/lib.scss";
+
+$padding: 12px;
+@import "../../app/tailwind.css";
+
+.signin {
+    @include lib.size(100%);
+
+    display: grid;
+    grid-template-rows: [row0] calc($padding + 30px) [row1] 1fr [row2] 50px [row3];
+    grid-template-columns: [col0] 1fr [col1];
+
+    border: lib.$stroke-width solid lib.$primary-dark-color;
+    overflow: hidden;
+
+    .signin__header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+
+        .signin__header__exit-button {
+            border-width: 0 var(--stroke) 0 0;
+            border-style: solid;
+            border-color: var(--primary-color);
+            width: calc(30px + $padding);
+            height: calc(30px + $padding);
+        }
+
+        .signin__header__title {
+            flex: 1;
+            display: flex;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            gap: 2px;
+
+            .signin__header__title__icon {
+                height: 25px;
+                aspect-ratio: 1;
+            }
+
+            .signin__header__title__text {
+                display: inline-block;
+                text-transform: uppercase;
+                font-size: large;
+            }
+        }
+    }
+
+    .signin__body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+
+        .signin__body__form {
+            width: min(450px, 50%);
+            overflow: hidden;
+
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+
+            input {
+                font-family: "Fira Sans" !important;
+                font-size: 16px; /* Optional: adjust font size */
+                padding: 8px; /* Optional: add padding for better readability */
+            }
+
+            .signin__body__form__divider__wrapper {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: calc(var(--stroke) * 2);
+
+                .signin__body__form__divider__text {
+                    font-size: 1.3cqh;
+                    font-family: "Fira Sans";
+                    text-transform: capitalize;
+                    color: var(--secondary-color);
+                    filter: brightness(70%);
+                }
+
+                .signin__body__form__divider {
+                    flex: 1;
+                    background-color: var(--secondary-color);
+                    filter: brightness(70%);
+                    height: var(--stroke);
+                }
+            }
+
+            $input-height: 50px;
+
+            .signin__body__form__input__username {
+                grid-area: row0 / col0 / row1 / col0;
+                height: $input-height;
+            }
+
+            .signin__body__form__input__password {
+                grid-area: row1 / col0 / row2 / col0;
+                height: $input-height;
+            }
+
+            .signin__body__form__submit {
+                height: 40px;
+                border: var(--stroke) solid var(--primary-color);
+            }
+        }
+    }
+
+    .signin__alt {
+        overflow: hidden;
+        border-top: var(--stroke) solid var(--primary-color);
+    }
+
+    .signin__header {
+        grid-area: row0 / col0 / row1 / col1;
+        border-bottom: lib.$stroke-width solid lib.$primary-dark-color;
+
+        display: flex;
+
+        .signin__header__logo {
+            display: flex;
+            overflow: hidden;
+            width: calc(30px + $padding);
+        }
+
+        .signin__header__divider {
+            width: lib.$stroke-width;
+            background-color: lib.$primary-dark-color;
+            height: 100%;
+        }
+
+        .signin__header__text {
+            @include lib.toTextContainer();
+
+            flex: 1;
+
+            display: flex;
+            justify-content: left;
+            align-items: center;
+            padding: $padding;
+
+            font-family: "Fira Code";
+            text-transform: uppercase;
+            font-size: 1.2em;
+        }
+    }
+
+    // .signin__body {
+    //     grid-area: row1 / col0 / row2 / col1;
+    //     font-family: "Fira Code";
+    //     display: flex;
+    //     align-items: center;
+    //     height: 100%;
+    //     justify-content: center;
+
+    //     .signin__body__form {
+    //         grid-area: row0 / col0 / row1 / col1;
+
+    //         width: 300px;
+    //         display: grid;
+    //         gap: 15px;
+    //         margin: 2em;
+    //         grid-template-rows: [row0] 1fr [row1] 1fr [row2];
+    //         grid-template-columns: [col0] 1fr [col1];
+
+    //         .signin__body__form__input {
+    //             grid-area: row0 / col0 / row1 / col1;
+    //             display: flex;
+    //             justify-content: center;
+    //             align-items: center;
+
+    //             .signin__body__form__input__icon {
+    //                 width: calc(30px + $padding);
+    //                 display: flex;
+    //                 justify-content: center;
+    //                 align-items: center;
+    //             }
+    //         }
+    //         .input[type="text"] {
+    //             width: 100%;
+    //             padding: 12px 20px;
+    //             margin: 8px 0;
+    //             box-sizing: border-box;
+    //         }
+    //     }
+    // }
+}
+
+.signin__body__form__input__field {
+    // border-width: 1px;
+    // border-radius: 0;
+
+    /** Testweise */
+    width: 200px;
+    height: 50px;
+
+    input {
+        font-family: "Fira Code" !important;
+        padding: 1em;
+        font-size: 1.2em;
+    }
+
+    // &:focus {
+    //     outline: 2px solid;
+    //     border-radius: 0px;
+    //     transition: 0.1s;
+    // }
+}
+
+.signin__body__form__button {
+    border-radius: 1px;
+    padding: 1em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    font-family: "Fira Code";
+    font-size: 1.2em;
+}
+
+.test {
+    width: 100%;
+    height: 50px;
+    flex: 1;
+    overflow: hidden;
+    outline: 1px solid;
+}

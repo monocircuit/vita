@@ -7,7 +7,7 @@
 
 "use client";
 
-import { FunctionComponent, useEffect } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import Image from "next/image";
 
 import scss from "./navbar.module.scss";
@@ -18,14 +18,19 @@ import SignUpGraphic from "@/assets/images/svg/signup2.svg";
 import MonocircuitLogo from "@/assets/images/svg/monocircuit.svg";
 
 import Button from "@/utils/ui/button/button";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import Popup from "@/utils/ui/popup/popup";
 import useOnScrollbarVisible from "@/utils/hooks/useOnScrollbarVisible";
+import auth from "@/utils/pbHelper/auth/auth";
+import { tree } from "next/dist/build/templates/app-page";
 
 const Navbar: FunctionComponent = () => {
+    const [signedIn, setSingedIn] = useState<boolean>();
     const router = useRouter();
 
-    const signedIn = false;
+    useEffect(() => {
+        setSingedIn(auth.isAuthenticated());
+    }, []);
 
     useOnScrollbarVisible(() => {
         console.log("scollbar visible");
@@ -59,6 +64,9 @@ const Navbar: FunctionComponent = () => {
                         {signedIn ? (
                             <div className={scss["navbar__account__icon"]}>
                                 <Image
+                                    onClick={() => {
+                                        router.push("/home");
+                                    }}
                                     className={scss["navbar__account__icon__image"]}
                                     src={profilePic}
                                     alt="profile picture"

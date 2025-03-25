@@ -13,7 +13,7 @@ export const credentialApi = {
             const record = await pb.collection("credentials").create(data);
             return record;
         } catch (error) {
-            console.error("Creation failed", error);
+            console.error("Cant Create Data", error);
             throw error;
         }
     },
@@ -40,9 +40,25 @@ export const credentialApi = {
         }
     },
 
-    updateCredentialById: () => {},
+    updateCredentialById: async (data: Omit<CredentialModel, "user" | "id">) => {
+        try {
+            const record = await pb.collection("credentials").create(data);
+            return record;
+        } catch (error) {
+            console.error("Cant Create Data", error);
+            throw error;
+        }
+    },
 
-    deleteCredentialById: () => {},
+    deleteCredentialById: async (id: string) => {
+        try {
+            const record = await pb.collection("credentials").delete(id); //Testen von Expanding Field
+            return record;
+        } catch (error) {
+            console.error("Cant Delete Data", error);
+            throw error;
+        }
+    },
 };
 
 export const fetchData = async () => {

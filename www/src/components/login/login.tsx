@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import PocketBase from "pocketbase";
-import LoginTemp from "./logintemp";
 import { auth } from "@/utils/pbHelper/auth/auth";
 
 import Cross from "@/assets/images/png/sharp_line/delete.png";
@@ -13,7 +11,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
 import Input from "@/utils/ui/input/input";
-import ElementMessage from "@/utils/ui/ElementMessage/ElementMessage";
 
 interface loginData {
     username: any;
@@ -57,17 +54,6 @@ const SignIn: React.FunctionComponent = () => {
                     <div className={scss["signin__header__title__text"]}>sign in</div>
                 </div>
             </div>
-            {/* <div className={scss["signin__header"]}>
-                <Button
-                    className={scss.signin__header__logo}
-                    iconSize={30}
-                    onClick={() => router.push("/")}
-                >
-                    <Image src={Cross} alt="cross"></Image>
-                </Button>
-                <div className={scss["signin__header__divider"]}></div>
-                <div className={scss["signin__header__text"]}>sign in</div>
-            </div> */}
             <div className={scss["signin__body"]}>
                 <form className={scss["signin__body__form"]} onSubmit={handleSubmit(onSubmit)}>
                     <div className={scss["signin__body__form__divider__wrapper"]}>
