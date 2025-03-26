@@ -13,6 +13,7 @@ import auth from "@/utils/pbHelper/auth/auth";
 import { CredentialForTreeModel, CredentialModel } from "@/models/credential/credential.model";
 import Popup from "@/utils/ui/popup/popup";
 import CredentialAddOrRemoveFromTreeCard from "./components/AddOrRemoveCred.engine.comp";
+import Modal from "@/utils/ui/modal/modal";
 
 const Engine = () => {
     const [credentials, setCredentials] = useState<RecordModel[]>();
@@ -94,16 +95,10 @@ const Engine = () => {
     }, []);
     //<div className={scss["engine"]} ref={engine}></div>
     return (
-        <div className="w-full h-full bg-red-500">
-            <Popup
-                position={{
-                    x: 50,
-                    y: 100,
-                }}
-                className={""}
-            >
+        <div className="w-full h-full">
+            <Modal className={"flex justify-center items-center select-none"}>
                 <CredentialAddOrRemoveFromTreeCard />
-            </Popup>
+            </Modal>
         </div>
     );
 };

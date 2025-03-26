@@ -8,6 +8,7 @@ export interface CredentialModel {
     user: string;
     priority: number;
 }
+
 export type CredentialForTreeModel = Omit<
     CredentialModel,
     "user" | "title" | "description" | "type" | "startDate" | "endDate"

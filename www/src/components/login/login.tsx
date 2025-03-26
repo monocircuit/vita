@@ -30,10 +30,6 @@ const SignIn: React.FunctionComponent = () => {
 
     const router = useRouter();
 
-    useEffect(() => {
-        const c = register("username", { required: true });
-        // console.log(c);
-    }, []);
 
     // console.log(watch("username"));
     // console.log(watch("password"));

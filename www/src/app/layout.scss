@@ -24,3 +24,43 @@ body {
 
     font-family: "Fira Code";
 }
+
+.form {
+    width: min(450px, 50%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .form_divider__wrapper {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: calc(var(--stroke) * 2);
+
+        .form__divider__text {
+            font-size: 1.3cqh;
+            font-family: "Fira Sans";
+            text-transform: capitalize;
+            color: var(--secondary-color);
+            filter: brightness(70%);
+        }
+
+        .form__divider {
+            flex: 1;
+            background-color: var(--secondary-color);
+            filter: brightness(70%);
+            height: var(--stroke);
+        }
+    }
+    $input-height: 50px;
+
+    .form__input {
+        grid-area: row0 / col0 / row1 / col0;
+        height: $input-height;
+    }
+    .form__submit {
+        height: 40px;
+        border: var(--stroke) solid var(--primary-color);
+    }
+}
