@@ -11,6 +11,8 @@ import { TreeModel } from "@/models/tree/tree.model";
 import { produce } from "immer";
 import auth from "@/utils/pbHelper/auth/auth";
 import { CredentialForTreeModel, CredentialModel } from "@/models/credential/credential.model";
+import Popup from "@/utils/ui/popup/popup";
+import CredentialAddOrRemoveFromTreeCard from "./components/AddOrRemoveCred.engine.comp";
 
 const Engine = () => {
     const [credentials, setCredentials] = useState<RecordModel[]>();
@@ -47,10 +49,6 @@ const Engine = () => {
             })
         );
     }, [credentialsTrimmed]);
-
-
-
-
 
     //Two JS Logic :
     const engine = useRef<HTMLDivElement>(null);
@@ -94,8 +92,20 @@ const Engine = () => {
 
         two.update();
     }, []);
-
-    return <div className={scss["engine"]} ref={engine}></div>;
+    //<div className={scss["engine"]} ref={engine}></div>
+    return (
+        <div className="w-full h-full bg-red-500">
+            <Popup
+                position={{
+                    x: 50,
+                    y: 100,
+                }}
+                className={""}
+            >
+                <CredentialAddOrRemoveFromTreeCard />
+            </Popup>
+        </div>
+    );
 };
 
 export default Engine;
