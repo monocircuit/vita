@@ -7,12 +7,12 @@ import { auth } from "@/utils/pbHelper/auth/auth";
 
 import Cross from "@/assets/images/png/sharp_line/delete.png";
 import scss from "@/components/login/login.module.scss";
-import Button from "@/utils/ui/button/button";
+import Button from "@/utils/ui/Button/Button";
 import SigninGraphic from "@/assets/images/svg/login2.svg";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
-import Input from "@/utils/ui/input/input";
+import Input from "@/utils/ui/Input/Input";
 import ElementMessage from "@/utils/ui/ElementMessage/ElementMessage";
 
 interface loginData {

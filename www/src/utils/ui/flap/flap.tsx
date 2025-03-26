@@ -2,8 +2,8 @@
 
 import React, { forwardRef, useCallback, useContext, useEffect, useRef, useState } from "react";
 
-import scss from "./flap.module.scss";
-import { RelativeMouseCoordinates } from "../passMouseCoordinates/passMouseCoordinates";
+import scss from "./Flap.module.scss";
+import { RelativeMouseCoordinates } from "../PassMouseCoordinates/PassMouseCoordinates";
 import { produce } from "immer";
 import { Coordinates } from "@/utils/types/types";
 import useClassName from "@/utils/hooks/useClassName";
@@ -14,6 +14,7 @@ export interface Props {
     isHovering?: boolean;
     isPressing?: boolean;
     className?: string;
+    classNameObject?: string;
     mouseCoordinates?: boolean;
 }
 
@@ -28,7 +29,8 @@ const Flap: React.ForwardRefExoticComponent<Props & React.RefAttributes<HTMLDivE
         const flapObject = useRef<HTMLDivElement>(null);
 
         /** ANCHOR: ClassNames */
-        const flapObjectClassName = useClassName(scss["flap__object"], props.className);
+        const flapClassName = useClassName(scss["flap"], props.className);
+        const flapObjectClassName = useClassName(scss["flap__object"], props.classNameObject);
 
         /** ANCHOR: Context */
         const relativeMouseCoordinates = useContext(RelativeMouseCoordinates);
@@ -125,7 +127,7 @@ const Flap: React.ForwardRefExoticComponent<Props & React.RefAttributes<HTMLDivE
         }, [props.isActive]);
 
         return (
-            <div className={scss["flap"]} ref={flap} {...(ref && { ref })}>
+            <div className={flapClassName} ref={flap} {...(ref && { ref })}>
                 <div
                     className={flapObjectClassName}
                     style={flapObjectState.style}

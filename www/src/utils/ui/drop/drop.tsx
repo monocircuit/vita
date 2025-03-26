@@ -2,14 +2,15 @@
 
 import React, { forwardRef, useCallback, useContext, useEffect, useRef } from "react";
 
-import scss from "@/utils/ui/drop/drop.module.scss";
+import scss from "@/utils/ui/Drop/Drop.module.scss";
 import useClassName from "@/utils/hooks/useClassName";
 import getDiameterToFillParent from "@/utils/functions/getDiameterToFillContainer";
-import { RelativeMouseCoordinates } from "../passMouseCoordinates/passMouseCoordinates";
+import { RelativeMouseCoordinates } from "../PassMouseCoordinates/PassMouseCoordinates";
 import { Coordinates } from "@/utils/types/types";
 
 type Props = {
     className?: string;
+    classNameObject?: string;
     isActive?: boolean;
 
     /**
@@ -25,7 +26,8 @@ const Drop: React.ForwardRefExoticComponent<Props & React.RefAttributes<HTMLDivE
         const animationDuration = useRef<number>(1000);
 
         /** ANCHOR: ClassNames */
-        const dropClassName = useClassName(scss["drop"], props.className);
+        const dropWrapperClassName = useClassName(scss["drop__wrapper"], props.className);
+        const dropClassName = useClassName(scss["drop"], props.classNameObject);
 
         /** ANCHOR: Context */
         const relativeMouseCoordinates = useContext(RelativeMouseCoordinates);
@@ -112,7 +114,7 @@ const Drop: React.ForwardRefExoticComponent<Props & React.RefAttributes<HTMLDivE
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [props.isActive, createDrop]);
 
-        return <div className={scss["drop__wrapper"]} ref={dropWrapper} {...(ref && { ref })} />;
+        return <div className={dropWrapperClassName} ref={dropWrapper} {...(ref && { ref })} />;
     });
 
 Drop.displayName = "Drop";

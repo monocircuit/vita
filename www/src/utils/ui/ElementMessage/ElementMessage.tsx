@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import scss from "./ElementMessage.module.scss";
-import Popup from "../popup/popup";
+import Popup from "../oldpopup/popup";
 import createChildMutator from "@/utils/react/createChildMutator";
 import { Coordinates } from "@/utils/types/types";
 import { produce } from "immer";

@@ -3,7 +3,7 @@ import Two from "two.js";
 import { Path } from "two.js/src/path";
 import shortenLine from "@/utils/engine/shortenLine";
 
-const displayBezierControls = (environment: Two, path: Path, options?: { shorten: number }) => {
+const displayBezierControls = (path: Path, options?: { shorten: number }) => {
     path.vertices.forEach((anchor, index) => {
         const endVectors = {
             left: {
@@ -45,8 +45,11 @@ const displayBezierControls = (environment: Two, path: Path, options?: { shorten
         rightHandleDot.fill = "#00ff";
         rightHandleDot.stroke = "#00ff";
 
-        if (index != 0) environment.add(leftHandle as any, leftHandleDot as any);
-        environment.add(dot as any, rightHandle as any, rightHandleDot as any);
+        const controls = [];
+        if (index != 0) controls.push(leftHandle, leftHandleDot);
+        controls.push(dot, rightHandle, rightHandleDot);
+
+        return controls;
     });
 };
 

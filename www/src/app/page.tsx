@@ -5,10 +5,10 @@ import scss from "./page.module.scss";
 /** Components */
 import Infobar from "@/components/infobar/infobar";
 import Navbar from "@/components/navbar/navbar";
-import Button from "@/utils/ui/button/button";
+import Button from "@/utils/ui/Button/Button";
 import HomeGraphic from "@/assets/images/svg/sharp_line/home.svg";
-import Popup from "@/utils/ui/popup/popup";
-import Scrollbar from "@/utils/ui/scrollbar/scrollbar";
+import Popup from "@/utils/ui/oldpopup/popup";
+import ScrollContainer from "@/utils/ui/ScrollContainer/ScrollContainer";
 import { useEffect, useRef } from "react";
 
 export default function Home() {
@@ -19,7 +19,7 @@ export default function Home() {
     }, []);
 
     return (
-        <Scrollbar orientation="top">
+        <ScrollContainer orientation="top" yScroll>
             <div className={scss["page"]} ref={page}>
                 <div className={scss["page__infobar"]}>
                     <Infobar></Infobar>
@@ -27,7 +27,8 @@ export default function Home() {
                 <div className={scss["page__navbar"]}>
                     <Navbar></Navbar>
                 </div>
+                <div className={scss["test"]}></div>
             </div>
-        </Scrollbar>
+        </ScrollContainer>
     );
 }

@@ -2,14 +2,14 @@
 
 import React, { forwardRef, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
-import Flap from "../flap/flap";
-import FlapContainer from "../flap/flapContainer";
-import Tooltip from "@/utils/ui/tooltip/tooltip";
+import Flap from "../Flap/Flap";
+import FlapContainer from "../Flap/FlapContainer";
+import Tooltip from "@/utils/ui/Tooltip/Tooltip";
 
-import scss from "./button.module.scss";
-import PassRelativeMouseCoordinates from "../passMouseCoordinates/passMouseCoordinates";
+import scss from "./Button.module.scss";
+import PassRelativeMouseCoordinates from "../PassMouseCoordinates/PassMouseCoordinates";
 import useClassName from "@/utils/hooks/useClassName";
-import Drop from "../drop/drop";
+import Drop from "../Drop/Drop";
 
 export interface Props {
     /**
@@ -52,7 +52,7 @@ export interface Props {
     /**
      * Sets a function that will be executed when the button is pressed
      */
-    onClick?: () => void;
+    onClick?: (props: Props) => void;
 
     /**
      * Sets icon height
@@ -196,7 +196,7 @@ const Button: React.ForwardRefExoticComponent<Props & React.RefAttributes<HTMLDi
             setIsPressing(true);
             vibrate();
             submitForm();
-            if (props.onClick) props.onClick();
+            if (props.onClick) props.onClick(props);
         };
 
         return (
@@ -221,7 +221,7 @@ const Button: React.ForwardRefExoticComponent<Props & React.RefAttributes<HTMLDi
                                         <></>
                                     ) : (
                                         <Flap
-                                            className={buttonBackgroundFlapClassName}
+                                            classNameObject={buttonBackgroundFlapClassName}
                                             isActive={isHovering}
                                         />
                                     )}
@@ -229,7 +229,7 @@ const Button: React.ForwardRefExoticComponent<Props & React.RefAttributes<HTMLDi
                                         <></>
                                     ) : (
                                         <Drop
-                                            className={buttonBackgroundDropClassName}
+                                            classNameObject={buttonBackgroundDropClassName}
                                             isActive={isPressing}
                                         ></Drop>
                                     )}

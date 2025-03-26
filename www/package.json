@@ -16,8 +16,10 @@
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-hook-form": "^7.54.2",
+        "react-merge-refs": "^2.1.1",
         "text-to-svg": "^3.1.5",
         "two.js": "^0.8.17",
+        "use-state-with-callback": "^3.0.2",
         "usehooks-ts": "^3.1.1"
     },
     "devDependencies": {

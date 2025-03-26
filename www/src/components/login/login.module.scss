@@ -147,52 +147,9 @@ $padding: 12px;
             font-size: 1.2em;
         }
     }
-
-    // .signin__body {
-    //     grid-area: row1 / col0 / row2 / col1;
-    //     font-family: "Fira Code";
-    //     display: flex;
-    //     align-items: center;
-    //     height: 100%;
-    //     justify-content: center;
-
-    //     .signin__body__form {
-    //         grid-area: row0 / col0 / row1 / col1;
-
-    //         width: 300px;
-    //         display: grid;
-    //         gap: 15px;
-    //         margin: 2em;
-    //         grid-template-rows: [row0] 1fr [row1] 1fr [row2];
-    //         grid-template-columns: [col0] 1fr [col1];
-
-    //         .signin__body__form__input {
-    //             grid-area: row0 / col0 / row1 / col1;
-    //             display: flex;
-    //             justify-content: center;
-    //             align-items: center;
-
-    //             .signin__body__form__input__icon {
-    //                 width: calc(30px + $padding);
-    //                 display: flex;
-    //                 justify-content: center;
-    //                 align-items: center;
-    //             }
-    //         }
-    //         .input[type="text"] {
-    //             width: 100%;
-    //             padding: 12px 20px;
-    //             margin: 8px 0;
-    //             box-sizing: border-box;
-    //         }
-    //     }
-    // }
 }
 
 .signin__body__form__input__field {
-    // border-width: 1px;
-    // border-radius: 0;
-
     /** Testweise */
     width: 200px;
     height: 50px;
@@ -202,12 +159,6 @@ $padding: 12px;
         padding: 1em;
         font-size: 1.2em;
     }
-
-    // &:focus {
-    //     outline: 2px solid;
-    //     border-radius: 0px;
-    //     transition: 0.1s;
-    // }
 }
 
 .signin__body__form__button {

@@ -7,7 +7,7 @@
 
 "use client";
 
-import { FunctionComponent, useEffect } from "react";
+import { FunctionComponent, useRef, useState } from "react";
 import Image from "next/image";
 
 import scss from "./navbar.module.scss";
@@ -17,12 +17,19 @@ import SignInGraphic from "@/assets/images/svg/login2.svg";
 import SignUpGraphic from "@/assets/images/svg/signup2.svg";
 import MonocircuitLogo from "@/assets/images/svg/monocircuit.svg";
 
-import Button from "@/utils/ui/button/button";
+import Button from "@/utils/ui/Button/Button";
 import { useRouter } from "next/navigation";
-import Popup from "@/utils/ui/popup/popup";
 import useOnScrollbarVisible from "@/utils/hooks/useOnScrollbarVisible";
+import Popover from "@/utils/ui/Popover/Popover";
+import Login from "@/components/login/login";
 
 const Navbar: FunctionComponent = () => {
+    /** ANCHOR: References */
+    const signInButton = useRef<HTMLDivElement>(null);
+
+    /** ANCHOR: State */
+    const [signInPopupIsActive, setSignInPopupIsActive] = useState<boolean>(false);
+
     const router = useRouter();
 
     const signedIn = false;
@@ -66,16 +73,33 @@ const Navbar: FunctionComponent = () => {
                             </div>
                         ) : (
                             <div className={scss["navbar__account__container__options"]}>
-                                <Button
-                                    className={scss["navbar__account__container__options__signin"]}
-                                    type="primary"
-                                    text="sign in"
-                                    onClick={() => router.push("/login")}
-                                    capslock
-                                    vibrate
+                                <Popover
+                                    content={<Login />}
+                                    className={
+                                        scss["navbar__account__container__options__signin__popup"]
+                                    }
+                                    isActive={signInPopupIsActive}
+                                    config={{
+                                        pushTo: "left",
+                                        isConnected: true,
+                                        isDraggable: true,
+                                    }}
                                 >
-                                    <SignInGraphic />
-                                </Button>
+                                    <Button
+                                        ref={signInButton}
+                                        className={
+                                            scss[
+                                                "navbar__account__container__options__signin__button"
+                                            ]
+                                        }
+                                        text="sign in"
+                                        onClick={() => setSignInPopupIsActive(!signInPopupIsActive)}
+                                        capslock
+                                        vibrate
+                                    >
+                                        <SignInGraphic />
+                                    </Button>
+                                </Popover>
                                 <div
                                     className={scss["navbar__account__container__options__divider"]}
                                 ></div>
@@ -93,12 +117,6 @@ const Navbar: FunctionComponent = () => {
                     </div>
                 </div>
             </div>
-            <Popup className={scss.popup} position={{ x: 100, y: 50 }}>
-                test
-            </Popup>
-            <Popup className={scss.popup2} position={{ x: 300, y: 0 }}>
-                ladida
-            </Popup>
         </>
     );
 };

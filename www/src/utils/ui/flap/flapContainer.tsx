@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import scss from "./flapContainer.module.scss";
+import scss from "./FlapContainer.module.scss";
 
 export interface Props {
     children?: React.ReactElement[];

@@ -11,6 +11,8 @@
     position: relative;
     z-index: 0;
 
+    cursor: pointer;
+
     .button__background {
         @include lib.attachToGridOverlay(1);
 

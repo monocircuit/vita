@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const useClassName = (...classNameEntities: (string | string[] | undefined)[]) => {
-    const [className, setClassName] = useState<string>("");
-
-    useEffect(() => {
+    const getClassName = () => {
         const classNames: string[] = [];
         classNameEntities.forEach((classNameEntity) => {
             if (!classNameEntity) return;
@@ -13,8 +11,10 @@ const useClassName = (...classNameEntities: (string | string[] | undefined)[]) =
             }
             classNames.push(...classNameEntity);
         });
-        setClassName(classNames.join(" "));
-    }, [classNameEntities]);
+        return classNames.join(" ");
+    };
+
+    const [className] = useState<string>(getClassName());
 
     return className;
 };
