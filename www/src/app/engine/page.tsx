@@ -16,40 +16,7 @@ import CredentialAddOrRemoveFromTreeCard from "./components/AddOrRemoveCred.engi
 import Modal from "@/utils/ui/modal/modal";
 
 const Engine = () => {
-    const [credentials, setCredentials] = useState<RecordModel[]>();
-    const [credentialsTrimmed, setCredentialsTrimmed] = useState<CredentialForTreeModel[]>([]);
-
-    const [tree, setTree] = useState<TreeModel>({ id: "", user: "", credentials: [] });
-
-    //Fetching Logic:
-    useEffect(() => {
-        //Get All Credentials of User
-        fetchPosts();
-        async function fetchPosts() {
-            const credentialsFetched = await credentialApi.getCredentials();
-            setCredentials(credentialsFetched);
-        }
-    }, []);
-
-    useEffect(() => {
-        let TempArrayForCredentials: CredentialForTreeModel[] = [];
-
-        if (credentials) {
-            credentials.forEach((e) => {
-                TempArrayForCredentials.push({ id: e.id, priority: 1 });
-            });
-        }
-        setCredentialsTrimmed(TempArrayForCredentials);
-    }, [credentials]);
-
-    useEffect(() => {
-        setTree(
-            produce((draft) => {
-                draft.user = auth.getUser()!.id;
-                draft.credentials = credentialsTrimmed;
-            })
-        );
-    }, [credentialsTrimmed]);
+   
 
     //Two JS Logic :
     const engine = useRef<HTMLDivElement>(null);

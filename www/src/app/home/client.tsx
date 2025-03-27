@@ -1,6 +1,6 @@
 "use client";
 
-import Card from "@/components/card/card.component";
+import Card from "@/utils/ui/card/card.component";
 import { CredentialModel } from "@/models/credential/credential.model";
 import auth from "@/utils/pbHelper/auth/auth";
 import credentialApi, { fetchData } from "@/utils/pbHelper/credentials/credentials";
