@@ -1,0 +1,9 @@
+@use "@/assets/styles/lib.scss";
+
+$padding: 12px;
+@import "@/app/tailwind.css";
+
+.scrollgrid {
+    max-height: 400px; /* Set a max height to trigger vertical scrolling */
+    position: relative; /* Ensure it doesn't get clipped */
+}

@@ -1,6 +1,7 @@
 import useClassName from "@/utils/hooks/useClassName";
 import Card from "@/utils/ui/card/card.component";
 import { RecordModel } from "pocketbase";
+import scss from "@/utils/ui/grids/scrollablegrid/scrollablegrid.module.scss";
 
 interface ScrollableCardGridProps {
     className?: string;
@@ -8,10 +9,7 @@ interface ScrollableCardGridProps {
 }
 
 export default function ScrollableCardGrid({ items, className }: ScrollableCardGridProps) {
-    const gridClassNames = useClassName(
-        "overflow-y-auto overflow-x-visible  overscroll-contain grid  gap-4 p-2  ",
-        className
-    );
+    const gridClassNames = useClassName("overscroll-contain grid  gap-4   ",scss["scrollgrid"] ,className);
 
     return (
         <div className={gridClassNames}>
