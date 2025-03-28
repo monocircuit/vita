@@ -9,7 +9,7 @@ interface ScrollableCardGridProps {
 
 export default function ScrollableCardGrid({ items, className }: ScrollableCardGridProps) {
     const gridClassNames = useClassName(
-        "overflow-y-scroll overscroll-contain grid  gap-4 p-2  ",
+        "overflow-y-auto overflow-x-visible  overscroll-contain grid  gap-4 p-2  ",
         className
     );
 

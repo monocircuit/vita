@@ -53,10 +53,13 @@ function CredentialAddOrRemoveFromTreeCard() {
         <>
             <Box className="w-[80%] min-w-[500px]">
                 <DndContext>
-                    <div className="flex flex-row max-h-[400px] items-center">
-                        <ScrollableCardGrid className="w-[50%] grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3" items={credentials} />
-                        <Droppable className="flex  " key={"j"}>
-                            <div>Hallo</div>
+                    <div className="flex flex-row h-full items-center">
+                        <ScrollableCardGrid
+                            className="w-[50%] max-h-[300px] grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
+                            items={credentials}
+                        />
+                        <Droppable className="flex  w-[50%] h-full" id="test">
+                            <div className="w-full h-full bg-red-500"></div>
                         </Droppable>
                     </div>
                 </DndContext>

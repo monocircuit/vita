@@ -4,16 +4,16 @@ import { UniqueIdentifier, useDroppable } from "@dnd-kit/core";
 interface props {
     className?: string;
     children: React.ReactNode;
-    key: UniqueIdentifier;
+    id: UniqueIdentifier;
 }
 
-const Droppable: ({ children, className, key }: props) => React.ReactNode = ({
+const Droppable: ({ children, className, id }: props) => React.ReactNode = ({
     children,
     className,
-    key,
+    id,
 }) => {
     const { isOver, setNodeRef } = useDroppable({
-        id: key,
+        id: id,
     });
     const style = {
         color: isOver ? "green" : undefined,
