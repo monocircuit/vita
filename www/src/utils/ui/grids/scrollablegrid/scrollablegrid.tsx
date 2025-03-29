@@ -2,30 +2,15 @@ import useClassName from "@/utils/hooks/useClassName";
 import Card from "@/utils/ui/card/card.component";
 import { RecordModel } from "pocketbase";
 import scss from "@/utils/ui/grids/scrollablegrid/scrollablegrid.module.scss";
+import { Children } from "react";
 
 interface ScrollableCardGridProps {
     className?: string;
-    items: RecordModel[] | undefined;
+    children: React.ReactNode;
 }
 
-export default function ScrollableCardGrid({ items, className }: ScrollableCardGridProps) {
-    const gridClassNames = useClassName("overscroll-contain grid  gap-4   ",scss["scrollgrid"] ,className);
+export default function ScrollableCardGrid({ className, children }: ScrollableCardGridProps) {
+    const gridClassNames = useClassName(scss["scrollgrid"], className);
 
-    return (
-        <div className={gridClassNames}>
-            {items?.length ? (
-                items.map((item: RecordModel) => (
-                    <Card
-                        id={item.id}
-                        title={item.title}
-                        className="p-1 bg-white shadow rounded-lg h-[150px]"
-                    >
-                        {item.title}
-                    </Card>
-                ))
-            ) : (
-                <div className="text-center col-span-full">No items available</div>
-            )}
-        </div>
-    );
+    return <div className={gridClassNames}>{children}</div>;
 }

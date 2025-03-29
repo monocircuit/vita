@@ -60,23 +60,25 @@ function CredentialAddOrRemoveFromTreeCard() {
                             strategy: MeasuringStrategy.WhileDragging,
                         },
                     }}
-                    sensors={useSensors(
-                        useSensor(PointerSensor, {
-                            activationConstraint: {
-                                distance: 5,
-                            },
-                        })
-                    )}
                 >
                     <div className="flex flex-row gap-10  items-center overflow-x-visible h-full">
-                        <ScrollableCardGrid
-                            className="flex flex-1 overflow-y-auto overflow-x-visible h-full grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
-                            items={credentials}
-                        />
-                        <Droppable className="flex  w-[50%] h-full" id="test">
-                            <div className="flex flex-1 h-full top-0 p-[10px] bg-red-500 sticky ">
-                                hallo
-                            </div>
+                        <ScrollableCardGrid>
+                            {credentials?.length ? (
+                                credentials.map((item: RecordModel) => (
+                                    <Card
+                                        id={item.id}
+                                        title={item.title}
+                                        className="p-1 bg-white shadow rounded-lg h-[150px]"
+                                    >
+                                        {item.title}
+                                    </Card>
+                                ))
+                            ) : (
+                                <div className="text-center col-span-full">No items available</div>
+                            )}
+                        </ScrollableCardGrid>
+                        <Droppable className="flex flex-1 h-full bg-red-500" id="test">
+                            <div>Hallo</div>
                         </Droppable>
                     </div>
                 </DndContext>
