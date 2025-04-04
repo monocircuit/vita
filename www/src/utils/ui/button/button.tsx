@@ -7,7 +7,7 @@ import FlapContainer from "../Flap/FlapContainer";
 import Tooltip from "@/utils/ui/Tooltip/Tooltip";
 
 import scss from "./Button.module.scss";
-import PassRelativeMouseCoordinates from "../PassMouseCoordinates/PassMouseCoordinates";
+import RelativeMouseCoordiantesContext from "../RelativeMouseCoordinatesContext/RelativeMouseCoordinatesContext";
 import useClassName from "@/utils/hooks/useClassName";
 import Drop from "../Drop/Drop";
 
@@ -201,7 +201,7 @@ const Button: React.ForwardRefExoticComponent<Props & React.RefAttributes<HTMLDi
 
         return (
             <div className={buttonWrapperClassName} {...(ref && { ref })}>
-                <PassRelativeMouseCoordinates>
+                <RelativeMouseCoordiantesContext>
                     <Tooltip
                         isActive={props.tooltip ? isHovering : false}
                         isHidden={!isWrapped}
@@ -271,7 +271,7 @@ const Button: React.ForwardRefExoticComponent<Props & React.RefAttributes<HTMLDi
                             </div>
                         </div>
                     </Tooltip>
-                </PassRelativeMouseCoordinates>
+                </RelativeMouseCoordiantesContext>
             </div>
         );
     });

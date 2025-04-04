@@ -1,0 +1,18 @@
+@use "@/assets/styles/lib.scss";
+
+.element-connection {
+    position: relative;
+    z-index: 1001;
+    overflow: visible;
+
+    .element-connection__canvas {
+        position: absolute;
+        pointer-events: none;
+
+        svg {
+            height: fit-content !important;
+            width: fit-content !important;
+            overflow: visible !important;
+        }
+    }
+}

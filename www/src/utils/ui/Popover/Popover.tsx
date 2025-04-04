@@ -1,172 +1,97 @@
-import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
-
-import scss from "./Popover.module.scss";
-import useClassName from "@/utils/hooks/useClassName";
-import createChildMutator from "@/utils/react/createChildMutator";
-import { Coordinates } from "@/utils/types/types";
-import { produce } from "immer";
+import React, { forwardRef, useEffect, useRef, useState } from "react";
+import styles from "./Popover.module.scss";
 import { mergeRefs } from "react-merge-refs";
-import Two from "two.js";
-import displayBezierControls from "@/utils/engine/displayBezierControls";
-import getClosestPointOnRect from "@/utils/functions/domrect/getClosestPointOnRect";
-import getCenterOnRect from "@/utils/functions/domrect/getCenterOnRect";
-import getRelativeCoordinates from "@/utils/functions/domrect/getRelativeCoordinates";
-import getRectOrigin from "@/utils/functions/domrect/getRectOrigin";
-import PassRelativeMouseCoordinates from "../PassMouseCoordinates/PassMouseCoordinates";
-import Flap from "../Flap/Flap";
-import { useStateWithCallbackLazy } from "use-state-with-callback";
+import { DndContext, Modifier } from "@dnd-kit/core";
+import { Coordinates } from "@dnd-kit/utilities";
+import PopoverDraggable from "./PopoverDraggable";
+import useDraggableDelta from "@/utils/hooks/useDraggableDelta";
+import createChildMutator from "@/utils/react/createChildMutator";
+import useElementConnection from "@/utils/ui/ElementConnection/useElementConnection";
 
-type Props = {
-    content: React.ReactNode;
+export type PopoverProps = {
+    /**
+     * The element to which the popover will be anchored.
+     * This is typically a React element that triggers or interacts with the popover.
+     */
     children: React.ReactElement<any, any>;
-    isActive?: boolean;
+
+    /**
+     * The content to be displayed inside the popover.
+     * Can be any valid React node, such as text, components, or elements.
+     */
+    content: React.ReactNode;
+
+    /**
+     * A flag indicating whether the popover should be rendered.
+     * - `true`: The popover is rendered and displayed.
+     * - `false`: The popover is not rendered.
+     * Defaults to `false` if not provided.
+     */
+    shouldRender?: boolean;
+
+    /**
+     * An optional CSS class name to be applied to the popover's outer `<div>` element.
+     * Allows for custom styling of the popover via external styles or CSS frameworks.
+     */
     className?: string;
+
+    /**
+     * Configuration options to customize the popover's appearance and behavior.
+     */
     config?: {
+        /**
+         * Specifies the direction in which the popover should be positioned relative to the anchor element.
+         * - `"left"`: popover appears to the left of the anchor.
+         * - `"right"`: popover appears to the right of the anchor.
+         * - `"top"`: popover appears above the anchor.
+         * - `"bottom"`: popover appears below the anchor.
+         */
         pushTo?: "left" | "right" | "top" | "bottom";
+
+        pushDistance?: number;
+
+        /**
+         * Indicates whether the popover is visually or contextually connected to its anchor element.
+         * - `true`: The popover maintains a visual connection (e.g., with an arrow or close placement).
+         * - `false`: The popover may appear detached.
+         * Defaults to `false` if not provided.
+         */
         isConnected?: boolean;
+
+        /**
+         * Determines if the popover can be dragged by the user.
+         * - `true`: popover is draggable.
+         * - `false`: popover remains fixed at its position.
+         * Defaults to `false` if not provided.
+         */
         isDraggable?: boolean;
     };
 };
 
-type PopoverState = {
-    position: Coordinates;
-    isVisible: boolean;
-};
-
-type DragHandleState = {
-    isHovering: boolean;
-    isPressing: boolean;
-};
-
-const Popover: React.ForwardRefExoticComponent<Props & React.RefAttributes<HTMLDivElement>> =
-    forwardRef(({ config = {}, ...props }, ref) => {
-        /** ANCHOR: Constants */
-        const CONNECTING_DOT_DIAMETER = 6;
-        const PUSH_DISTANCE = 100;
+const Popover = forwardRef(
+    (
+        { children: anchorElement, config = {}, ...props }: PopoverProps,
+        forwardRef: React.ForwardedRef<HTMLDivElement>
+    ) => {
+        /** ANCHOR: Contants */
+        const PUSH_DISTANCE = config.pushDistance ?? 5;
 
         /** ANCHOR: References */
-        /** Mandatory References */
         const popover = useRef<HTMLDivElement>(null);
-        const popoverPosition = useRef<Coordinates>(null);
+        const anchorElementRef = useRef<HTMLDivElement>(null);
 
-        const child = useRef<HTMLElement>(null);
-        /** Connection References */
-        const popoverConnectionTwo = useRef<Two>(null);
-        const popoverConnectionCanvas = useRef<HTMLDivElement>(null);
+        /** ANCHOR: DraggableDelta */
+        const { handleDragEnd, draggableDelta } = useDraggableDelta();
+
+        /** ANCHOR: ElementConnection */
+        const elementConnection = useElementConnection(anchorElementRef, popover);
 
         /** ANCHOR: State */
-        const [popoverState, setPopoverState] = useStateWithCallbackLazy<PopoverState>({
-            isVisible: false,
-            position: { x: 0, y: 0 },
-        });
-        const [popoverDragHandleState, setPopoverDragHandleState] = useState<DragHandleState>({
-            isHovering: false,
-            isPressing: false,
-        });
-
-        /** ANCHOR: ClassName */
-        const popupClassName = useClassName(scss["popover"], props.className);
-
-        /** ANCHOR: Callbacks */
-        const drawPopoverConnection = useCallback(() => {
-            /** If the TwoJS canvas has not yet been initialized, initialize it */
-            if (!popoverConnectionTwo.current) {
-                if (!popoverConnectionCanvas.current) return;
-                popoverConnectionTwo.current = new Two({
-                    /**
-                     * needs to be false in order not to interfere with other
-                     * elements that have `position: absolute`.
-                     */
-                    fullscreen: false,
-                    type: Two.Types.svg,
-                    /**
-                     * If `autostart` is set to `true`, the issue with `Maximum re-renders`
-                     * vanishes. Calling `two.update()` on very `drawPopoverConnection()`
-                     * causes this issue.
-                     */
-                    autostart: true,
-                }).appendTo(popoverConnectionCanvas.current);
-            }
-
-            if (!popoverConnectionTwo.current || !child.current || !popover.current) return;
-            /** Clear canvas to make a fresh start */
-            popoverConnectionTwo.current.clear();
-
-            const childRect = child.current.getBoundingClientRect();
-            const popoverRect = popover.current.getBoundingClientRect();
-
-            /** Calculate absolute coordinates of the points */
-            const childDotAbsoluteCoordinates = getClosestPointOnRect(
-                childRect,
-                getCenterOnRect(popoverRect)
-            );
-            const popoverDotAbsoluteCoordinates = getClosestPointOnRect(
-                popoverRect,
-                childDotAbsoluteCoordinates
-            );
-
-            /** Calculate the relative coordinates of the points */
-            const childDotRelativeCoordinates = getRelativeCoordinates(
-                childDotAbsoluteCoordinates,
-                getRectOrigin(childRect)
-            );
-            const popoverDotRelativeCoordinates = getRelativeCoordinates(
-                popoverDotAbsoluteCoordinates,
-                getRectOrigin(childRect)
-            );
-
-            /** defining anchor points */
-            const childAnchor = new Two.Anchor(
-                childDotRelativeCoordinates.x,
-                childDotRelativeCoordinates.y,
-                -100,
-                0,
-                -100,
-                0
-            );
-            const popoverAnchor = new Two.Anchor(
-                popoverDotRelativeCoordinates.x,
-                popoverDotRelativeCoordinates.y,
-                100,
-                0,
-                100,
-                0
-            );
-
-            /** Define connecting line */
-            const connection = new Two.Path([childAnchor, popoverAnchor], false, true, false);
-            connection.id = "connection";
-            connection.stroke = "#000";
-            connection.linewidth = 1;
-            connection.noFill();
-
-            /**  Define Dots */
-            const childDot = new Two.Circle(
-                childAnchor.x,
-                childAnchor.y,
-                CONNECTING_DOT_DIAMETER / 2
-            );
-            childDot.id = "childDot";
-            childDot.fill = "#000000";
-
-            const popoverDot = new Two.Circle(
-                popoverAnchor.x,
-                popoverAnchor.y,
-                CONNECTING_DOT_DIAMETER / 2
-            );
-            popoverDot.id = "popoverDot";
-            popoverDot.fill = "#000000";
-
-            popoverConnectionTwo.current.add(connection as any, childDot as any, popoverDot as any);
-        }, []);
+        const [pushTo, setPushTo] = useState<Coordinates>();
 
         /** ANCHOR: Effects */
-        /**
-         * This effect handles the popover coordinates when it is initialized
-         * or in other words, here the popup is pushed away from the child.
-         */
         useEffect(() => {
-            if (!popover.current || !child.current) return;
+            if (!popover.current) return;
             const popoverRect = popover.current.getBoundingClientRect();
             const popoverCoordinates = { x: 0, y: 0 };
 
@@ -189,164 +114,45 @@ const Popover: React.ForwardRefExoticComponent<Props & React.RefAttributes<HTMLD
                     break;
             }
 
-            popoverPosition.current = popoverCoordinates;
-
-            setPopoverState(
-                (prevState) =>
-                    produce(prevState, (draft) => {
-                        draft.position = popoverCoordinates;
-                    }),
-                /**
-                 * When the setState is finished and the changes have rendered,
-                 * draw the connection.
-                 */
-                () => {
-                    setPopoverState(
-                        (prevState) =>
-                            produce(prevState, (draft) => {
-                                draft.isVisible = true;
-                            }),
-                        () => {}
-                    );
-                    drawPopoverConnection();
-                }
-            );
-        }, [props.isActive, config.pushTo, drawPopoverConnection, setPopoverState]);
+            setPushTo(popoverCoordinates);
+        }, [PUSH_DISTANCE, config.pushTo, props.shouldRender]);
 
         useEffect(() => {
-            if (popoverConnectionTwo.current && popoverConnectionCanvas.current) {
-                popoverConnectionTwo.current.appendTo(popoverConnectionCanvas.current);
-            }
-        }, [props.isActive]);
+            if (props.shouldRender) elementConnection.drawElementConnection();
+        }, [props.shouldRender, elementConnection]);
 
         /** ANCHOR: Handlers */
-        const handleDragHandleMouseEnter: React.MouseEventHandler<HTMLDivElement> = () => {
-            setPopoverDragHandleState((prevState) =>
-                produce(prevState, (draft) => {
-                    draft.isHovering = true;
-                })
-            );
-
-            if (!popoverDragHandleState.isPressing) document.body.style.cursor = "grab";
-        };
-
-        const handleDragHandleMouseLeave: React.MouseEventHandler<HTMLDivElement> = () => {
-            setPopoverDragHandleState((prevState) =>
-                produce(prevState, (draft) => {
-                    draft.isHovering = false;
-                })
-            );
-        };
-
-        const handleDragHandleMouseDown: React.MouseEventHandler<HTMLDivElement> = (event) => {
-            /** Start Flap Animation */
-            setPopoverDragHandleState((prevState) =>
-                produce(prevState, (draft) => {
-                    draft.isPressing = true;
-                })
-            );
-
-            if (config.isDraggable) {
-                /** Set the cursor type to `grabbing` */
-                document.body.style.cursor = "grabbing";
-                /**  Turn off text selection for entire document */
-                document.body.style.userSelect = "none";
-
-                /** Initializes the drag event */
-                const initialMouseCoordinates = { x: event.clientX, y: event.clientY };
-                const initialPopoverCoordinates = popoverState.position;
-
-                /** Add the mouse move and mouse up to the document */
-                const handleMouseMove = (event: MouseEvent) => {
-                    const offsetCoordinates = {
-                        x: initialPopoverCoordinates.x + event.clientX - initialMouseCoordinates.x,
-                        y: initialPopoverCoordinates.y + event.clientY - initialMouseCoordinates.y,
-                    };
-
-                    popoverPosition.current = offsetCoordinates;
-                    setPopoverState(
-                        (prevState) =>
-                            produce(prevState, (draft) => {
-                                draft.position = offsetCoordinates;
-                            }),
-                        () => {}
-                    );
-
-                    if (config.isConnected) drawPopoverConnection();
-                };
-                const handleMouseUp = () => {
-                    setPopoverDragHandleState((prevState) =>
-                        produce(prevState, (draft) => {
-                            draft.isPressing = false;
-                        })
-                    );
-
-                    document.body.style.cursor = "unset";
-                    document.body.style.userSelect = "unset";
-
-                    document.removeEventListener("mousemove", handleMouseMove);
-                    document.removeEventListener("mouseup", handleMouseUp);
-                };
-
-                document.addEventListener("mousemove", handleMouseMove);
-                document.addEventListener("mouseup", handleMouseUp);
-            }
+        const handleDragMove = () => {
+            elementConnection.drawElementConnection();
         };
 
         return (
             <>
-                {props.isActive && (
+                {props.shouldRender && (
                     <>
-                        <div className={scss["popover__wrapper"]}>
-                            <div
-                                className={popupClassName}
-                                style={{
-                                    visibility: popoverState.isVisible ? "visible" : "hidden",
-                                    transform: `translate3d(${popoverState.position.x}px, ${popoverState.position.y}px, 0px)`,
-                                }}
-                                ref={mergeRefs([popover, ref])}
-                            >
-                                <div className={scss["popover__content"]}>{props.content}</div>
-                                <PassRelativeMouseCoordinates>
-                                    <div
-                                        className={scss["popover__drag-handle"]}
-                                        onMouseEnter={handleDragHandleMouseEnter}
-                                        onMouseLeave={handleDragHandleMouseLeave}
-                                        onMouseDown={handleDragHandleMouseDown}
-                                    >
-                                        <div className={scss["popover__drag-handle__background"]} />
-                                        <Flap
-                                            className={scss["popover__drag-handle__flap"]}
-                                            classNameObject={
-                                                scss["popover__drag-handle__flap-object"]
-                                            }
-                                            isActive={popoverDragHandleState.isHovering}
-                                        />
-                                        <Flap
-                                            className={scss["popover__drag-handle__drop"]}
-                                            classNameObject={
-                                                scss["popover__drag-handle__drop__object"]
-                                            }
-                                            isActive={popoverDragHandleState.isPressing}
-                                        />
-                                    </div>
-                                </PassRelativeMouseCoordinates>
-                            </div>
+                        <div className={styles["popover__wrapper"]}>
+                            <DndContext onDragMove={handleDragMove} onDragEnd={handleDragEnd}>
+                                <PopoverDraggable
+                                    className={props.className}
+                                    ref={mergeRefs([forwardRef, popover])}
+                                    draggableDelta={{
+                                        x: (draggableDelta?.x ?? 0) + (pushTo?.x ?? 0),
+                                        y: (draggableDelta?.y ?? 0) + (pushTo?.y ?? 0),
+                                    }}
+                                    isVisible={!!pushTo}
+                                >
+                                    {props.content}
+                                </PopoverDraggable>
+                            </DndContext>
                         </div>
-                        {config.isConnected && (
-                            <div className={scss["popover__connection"]}>
-                                <div
-                                    className={scss["popover__connection__canvas"]}
-                                    ref={popoverConnectionCanvas}
-                                />
-                            </div>
-                        )}
+                        {elementConnection.connection}
                     </>
                 )}
-                {createChildMutator(props.children).appendRef(child).mutate()}
+                {createChildMutator(anchorElement).appendRef(anchorElementRef).mutate()}
             </>
         );
-    });
+    }
+);
 
-Popover.displayName = "Popup";
+Popover.displayName = "Popover";
 export default Popover;

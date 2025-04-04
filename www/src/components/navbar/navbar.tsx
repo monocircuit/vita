@@ -78,7 +78,7 @@ const Navbar: FunctionComponent = () => {
                                     className={
                                         scss["navbar__account__container__options__signin__popup"]
                                     }
-                                    isActive={signInPopupIsActive}
+                                    shouldRender={signInPopupIsActive}
                                     config={{
                                         pushTo: "left",
                                         isConnected: true,

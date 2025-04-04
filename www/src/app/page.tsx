@@ -1,34 +1,26 @@
 "use client";
 
 /** Styling */
-import scss from "./page.module.scss";
+import styles from "./page.module.scss";
 /** Components */
 import Infobar from "@/components/infobar/infobar";
 import Navbar from "@/components/navbar/navbar";
-import Button from "@/utils/ui/Button/Button";
-import HomeGraphic from "@/assets/images/svg/sharp_line/home.svg";
-import Popup from "@/utils/ui/oldpopup/popup";
-import ScrollContainer from "@/utils/ui/ScrollContainer/ScrollContainer";
-import { useEffect, useRef } from "react";
+import Scrollable from "@/utils/ui/Scrollable/Scrollable";
 
-export default function Home() {
-    const page = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        // console.log("refOriginal", page.current);
-    }, []);
-
+const Home = () => {
     return (
-        <ScrollContainer orientation="top" yScroll>
-            <div className={scss["page"]} ref={page}>
-                <div className={scss["page__infobar"]}>
+        <Scrollable shouldScrollY classNameScrollbar={styles["scrollbar"]}>
+            <div className={styles["page"]}>
+                <div className={styles["page__infobar"]}>
                     <Infobar></Infobar>
                 </div>
-                <div className={scss["page__navbar"]}>
+                <div className={styles["page__navbar"]}>
                     <Navbar></Navbar>
                 </div>
-                <div className={scss["test"]}></div>
+                <div className={styles["test"]}></div>
             </div>
-        </ScrollContainer>
+        </Scrollable>
     );
-}
+};
+
+export default Home;

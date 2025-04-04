@@ -4,8 +4,6 @@
     display: inline-block;
     width: 100%;
 
-    overflow-x: hidden;
-
     .page__infobar {
         width: 100%;
         height: 25px;
@@ -17,8 +15,19 @@
     }
 }
 
+.scrollbar {
+    top: 0;
+}
+
 .test {
-    background-color: blue;
+    background-color: white;
+    border-right: 1px solid black;
     width: 55%;
     height: 2000px;
+}
+
+.draggable {
+    background-color: blue;
+    width: 300px;
+    height: 150px;
 }

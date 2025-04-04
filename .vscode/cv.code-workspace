@@ -1,7 +1,12 @@
 {
     "folders": [
         {
-            "path": "."
+            "name": "Configuration",
+            "path": "../"
+        },
+        {
+            "name": "Website",
+            "path": "../www"
         }
     ],
     "settings": {
@@ -10,7 +15,10 @@
         "eslint.rules.customizations": [
             { "rule": "@typescript-eslint/no-explicit-any", "severity": "off" },
             { "rule": "@typescript-eslint/no-unused-vars", "severity": "info" },
-            { "rule": "@typescript-eslint/no-empty-object-type", "severity": "info" }
+            {
+                "rule": "@typescript-eslint/no-empty-object-type",
+                "severity": "info"
+            }
         ]
     }
 }

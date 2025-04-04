@@ -3,7 +3,7 @@
 import React, { forwardRef, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 import scss from "./Flap.module.scss";
-import { RelativeMouseCoordinates } from "../PassMouseCoordinates/PassMouseCoordinates";
+import { RelativeMouseCoordinates } from "../RelativeMouseCoordinatesContext/RelativeMouseCoordinatesContext";
 import { produce } from "immer";
 import { Coordinates } from "@/utils/types/types";
 import useClassName from "@/utils/hooks/useClassName";

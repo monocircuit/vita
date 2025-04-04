@@ -63,17 +63,6 @@ const SignIn: React.FunctionComponent = () => {
                     <div className={scss["signin__header__title__text"]}>sign in</div>
                 </div>
             </div>
-            {/* <div className={scss["signin__header"]}>
-                <Button
-                    className={scss.signin__header__logo}
-                    iconSize={30}
-                    onClick={() => router.push("/")}
-                >
-                    <Image src={Cross} alt="cross"></Image>
-                </Button>
-                <div className={scss["signin__header__divider"]}></div>
-                <div className={scss["signin__header__text"]}>sign in</div>
-            </div> */}
             <div className={scss["signin__body"]}>
                 <form className={scss["signin__body__form"]} onSubmit={handleSubmit(onSubmit)}>
                     <div className={scss["signin__body__form__divider__wrapper"]}>

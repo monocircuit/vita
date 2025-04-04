@@ -7,7 +7,7 @@ import scss from "@/utils/ui/Input/Input.module.scss";
 import Error from "@/assets/images/png/sharp_line/error.png";
 import useClassName from "@/utils/hooks/useClassName";
 import Flap from "../Flap/Flap";
-import PassRelativeMouseCoordinates from "@/utils/ui/PassMouseCoordinates/PassMouseCoordinates";
+import RelativeMouseCoordiantesContext from "@/utils/ui/RelativeMouseCoordinatesContext/RelativeMouseCoordinatesContext";
 import Image from "next/image";
 
 type Props<Data extends Record<string, unknown>> = {
@@ -66,7 +66,7 @@ const Input: React.ForwardRefExoticComponent<Props<Data> & React.RefAttributes<H
         };
 
         return (
-            <PassRelativeMouseCoordinates>
+            <RelativeMouseCoordiantesContext>
                 <div
                     className={inputWrapperClassNames}
                     style={inputWrapperState}
@@ -97,7 +97,7 @@ const Input: React.ForwardRefExoticComponent<Props<Data> & React.RefAttributes<H
                         <></>
                     )}
                 </div>
-            </PassRelativeMouseCoordinates>
+            </RelativeMouseCoordiantesContext>
         );
     });
 

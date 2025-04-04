@@ -11,7 +11,7 @@ export interface Props {
 
 export const RelativeMouseCoordinates = React.createContext({ x: 0, y: 0 });
 
-const PassRelativeMouseCoordinates: React.FunctionComponent<Props> = ({ children }) => {
+const RelativeMouseCoordiantesContext: React.FunctionComponent<Props> = ({ children }) => {
     /** ANCHOR: References */
     const ref = useRef<HTMLDivElement>(null);
 
@@ -62,4 +62,4 @@ const PassRelativeMouseCoordinates: React.FunctionComponent<Props> = ({ children
     );
 };
 
-export default PassRelativeMouseCoordinates;
+export default RelativeMouseCoordiantesContext;

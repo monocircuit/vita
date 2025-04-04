@@ -15,6 +15,10 @@
     scrollbar-width: none;
 }
 
+html {
+    overflow: hidden;
+}
+
 body {
     /**
      * LINK: https://stackoverflow.com/questions/52848856/100vh-height-when-address-bar-is-shown-chrome-mobile
