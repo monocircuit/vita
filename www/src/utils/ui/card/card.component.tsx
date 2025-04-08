@@ -1,5 +1,6 @@
 import React, { ReactNode } from "react";
 import { UniqueIdentifier, useDraggable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
 
 interface props {
     className?: string;
@@ -17,13 +18,14 @@ const Card: ({ className, title, children, onClick, id }: props) => ReactNode = 
     id,
 }: props) => {
     //need function to deactivate dragability
-    const { attributes, listeners, setNodeRef, transform } = useDraggable({
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
         id: id,
     });
 
     const style = transform
         ? {
               transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+              transition,
           }
         : undefined;
 

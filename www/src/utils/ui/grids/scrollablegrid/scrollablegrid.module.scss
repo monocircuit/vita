@@ -4,8 +4,7 @@ $padding: 12px;
 @import "@/app/tailwind.css";
 
 .scrollgrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive grid */
+    display: grid; /* Responsive grid */
     gap: 10;
     position: relative; /* Ensure it doesn't get clipped */
 }
