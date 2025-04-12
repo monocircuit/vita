@@ -2,14 +2,14 @@
 
 import React, { forwardRef, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
-import Flap from "../Flap/Flap";
-import FlapContainer from "../Flap/FlapContainer";
-import Tooltip from "@/utils/ui/Tooltip/Tooltip";
+import Flap from "../flap/flap";
+import FlapContainer from "../flap/flapContainer";
+import Tooltip from "@/utils/ui/tooltip/tooltip";
 
-import scss from "./Button.module.scss";
-import PassRelativeMouseCoordinates from "../PassMouseCoordinates/PassMouseCoordinates";
+import scss from "./button.module.scss";
+import PassRelativeMouseCoordinates from "../passMouseCoordinates/passMouseCoordinates";
 import useClassName from "@/utils/hooks/useClassName";
-import Drop from "../Drop/Drop";
+import Drop from "../drop/drop";
 
 export interface Props {
     /**

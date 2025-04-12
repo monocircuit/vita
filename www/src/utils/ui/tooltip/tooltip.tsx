@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import scss from "./Tooltip.module.scss";
+import scss from "./tooltip.module.scss";
 import { produce } from "immer";
 import createChildMutator from "@/utils/react/createChildMutator";
 

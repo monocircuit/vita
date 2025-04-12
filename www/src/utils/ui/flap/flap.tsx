@@ -2,8 +2,8 @@
 
 import React, { forwardRef, useCallback, useContext, useEffect, useRef, useState } from "react";
 
-import scss from "./Flap.module.scss";
-import { RelativeMouseCoordinates } from "../PassMouseCoordinates/PassMouseCoordinates";
+import scss from "./flap.module.scss";
+import { RelativeMouseCoordinates } from "../passMouseCoordinates/passMouseCoordinates";
 import { produce } from "immer";
 import { Coordinates } from "@/utils/types/types";
 import useClassName from "@/utils/hooks/useClassName";

@@ -17,7 +17,7 @@ import SignInGraphic from "@/assets/images/svg/login2.svg";
 import SignUpGraphic from "@/assets/images/svg/signup2.svg";
 import MonocircuitLogo from "@/assets/images/svg/monocircuit.svg";
 
-import Button from "@/utils/ui/Button/Button";
+import Button from "@/utils/ui/button/button";
 import { useRouter } from "next/navigation";
 import useOnScrollbarVisible from "@/utils/hooks/useOnScrollbarVisible";
 import Popover from "@/utils/ui/Popover/Popover";

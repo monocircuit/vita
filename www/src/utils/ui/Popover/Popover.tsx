@@ -12,8 +12,8 @@ import getClosestPointOnRect from "@/utils/functions/domrect/getClosestPointOnRe
 import getCenterOnRect from "@/utils/functions/domrect/getCenterOnRect";
 import getRelativeCoordinates from "@/utils/functions/domrect/getRelativeCoordinates";
 import getRectOrigin from "@/utils/functions/domrect/getRectOrigin";
-import PassRelativeMouseCoordinates from "../PassMouseCoordinates/PassMouseCoordinates";
-import Flap from "../Flap/Flap";
+import PassRelativeMouseCoordinates from "../passMouseCoordinates/passMouseCoordinates";
+import Flap from "../flap/flap";
 import { useStateWithCallbackLazy } from "use-state-with-callback";
 
 type Props = {
@@ -139,6 +139,7 @@ const Popover: React.ForwardRefExoticComponent<Props & React.RefAttributes<HTMLD
             connection.stroke = "#000";
             connection.linewidth = 1;
             connection.noFill();
+           
 
             /**  Define Dots */
             const childDot = new Two.Circle(

@@ -2,10 +2,10 @@
 
 import React, { forwardRef, useCallback, useContext, useEffect, useRef } from "react";
 
-import scss from "@/utils/ui/Drop/Drop.module.scss";
+import scss from "@/utils/ui/drop/drop.module.scss";
 import useClassName from "@/utils/hooks/useClassName";
 import getDiameterToFillParent from "@/utils/functions/getDiameterToFillContainer";
-import { RelativeMouseCoordinates } from "../PassMouseCoordinates/PassMouseCoordinates";
+import { RelativeMouseCoordinates } from "../passMouseCoordinates/passMouseCoordinates";
 import { Coordinates } from "@/utils/types/types";
 
 type Props = {
