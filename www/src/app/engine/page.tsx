@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import Two from "two.js";
 import scss from "./page.module.scss";
-import { Tree } from "@/utils/engine/treeAPI";
+import { Branch } from "@/utils/engine/treeAPI";
 import displayBezierControls from "@/utils/engine/displayBezierControls";
 
 const Engine = () => {
@@ -22,18 +22,19 @@ const Engine = () => {
             autostart: true,
         }).appendTo(engine.current);
 
-        const tree = new Tree(two, 50);
+        two.scene.translation.set(0, height / 2);
 
-        // Create main branch (vertical trunk)
-        tree.createMainBranch([
-            { x: 50, y: 200 }, // Top
-            { x: 350, y: 200 }, // Bottom
-        ]);
+        const tree = new Branch(two, 50, 450);
+        const branch1 = new Branch(two, 50, 200);
+        const branch2 = new Branch(two, 50, 200);
 
-        tree.addBranch(0, 100, "#000", false); // Add a branch to the top
-        console.log(tree.getBranches()[0]);
-        tree.getBranches()[0].addBranch(0, 50, "#000"); // Add a branch to the top of the first branch
-        console.log(tree.getBranches()[0].getBranches()[0]);
+        tree.addBranch(branch1, false);
+        branch1.addBranch(branch2);
+
+        
+
+        tree.render();
+        console.log(tree.getMainBranch());
 
         two.update();
     }, []);
