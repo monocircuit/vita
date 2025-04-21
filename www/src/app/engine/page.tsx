@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import Two from "two.js";
 import scss from "./page.module.scss";
 import { Tree } from "@/utils/engine/treeAPI";
+import displayBezierControls from "@/utils/engine/displayBezierControls";
 
 const Engine = () => {
     const engine = useRef<HTMLDivElement>(null);
@@ -29,10 +30,10 @@ const Engine = () => {
             { x: 350, y: 200 }, // Bottom
         ]);
 
-        tree.addBranchTop(0, 50); // Add a branch to the top
-        tree.addBranchTop(200, 150); // Add another branch to the top
-        tree.getBranches()[1].addBranchTop(0, 50); // Add a branch to the second branch
-
+        tree.addBranch(0, 100, "#000", false); // Add a branch to the top
+        console.log(tree.getBranches()[0]);
+        tree.getBranches()[0].addBranch(0, 50, "#000"); // Add a branch to the top of the first branch
+        console.log(tree.getBranches()[0].getBranches()[0]);
 
         two.update();
     }, []);
