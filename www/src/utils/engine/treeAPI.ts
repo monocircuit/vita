@@ -17,6 +17,8 @@ export class Branch {
     private orientation: boolean = true;
     private color: string = "#000";
 
+    /** You need to give the Two.js Enviroment, a start and end coordinate on the x-axis
+     * and if you want a seperate Layerwitdth if you want to lock it for a branch   */
     constructor(two: Two, start: number, end: number, layerWidth?: number) {
         this.two = two;
         this.start = start;
@@ -24,27 +26,22 @@ export class Branch {
         this.layerWidth = layerWidth ? layerWidth : 50;
     }
 
-    setParentBranch(parent: Branch) {
-        this.parentBranch = parent;
-    }
-
-    autoSetLayerWidth(layerWidth: number) {
-        this.layerWidth = layerWidth;
-        this.parentBranch?.autoSetLayerWidth(layerWidth *2);
-    }
-
-    getLayerWidth() {
-        return this.layerWidth;
-    }
-
-
-    
-    addBranch(branch: Branch, orientation?: boolean) {
+    /** With addBranch you can add a created Branch to an existing one */
+    addBranch(branch: Branch, orientation?: boolean, autoSetLayerWidth: boolean = true) {
         branch.setParentBranch(this);
-        orientation!=null ? branch.orientation = orientation! : null;
+        orientation != null ? (branch.orientation = orientation!) : null;
+
+        if (autoSetLayerWidth) {
+            console.log("Layers automatically Set");
+            branch.autoSetLayerWidth(branch.layerWidth);
+        } else {
+            console.log("Layers didn´t changed");
+        }
+
         this.branches.push(branch);
     }
 
+    /** This will render the Branch you created with all Subbranches */
     render(height?: number) {
         if (!this.parentBranch?.mainBranch) {
             this.mainBranch = this.two.makeLine(
@@ -60,9 +57,6 @@ export class Branch {
             this.mainBranch.stroke = "#000";
             this.mainBranch.linewidth = 4;
         } else {
-
-
-            
             const lengthBranch = this.end - this.start;
             this.mainBranch = this.two.makeLine(
                 this.parentBranch
@@ -104,13 +98,28 @@ export class Branch {
         }
 
         this.branches.forEach((branch) => {
-            console.log(branch.orientation)
+            console.log(branch.orientation);
             branch.render(
                 branch.orientation
-                    ? this.mainBranch.vertices[0].y - this.layerWidth
-                    : this.mainBranch.vertices[0].y + this.layerWidth
+                    ? this.mainBranch.vertices[0].y - branch.layerWidth
+                    : this.mainBranch.vertices[0].y + branch.layerWidth
             );
         });
+    }
+
+    private setParentBranch(parent: Branch) {
+        this.parentBranch = parent;
+    }
+
+    private autoSetLayerWidth(layerWidth: number) {
+        this.layerWidth = layerWidth;
+        if (
+            (this.orientation == false && this.parentBranch?.orientation == true) ||
+            (this.orientation == true && this.parentBranch?.orientation == false)
+        ) {
+            console.log("changed Layerwidth on: " + this);
+            this.parentBranch?.autoSetLayerWidth(layerWidth * 2);
+        }
     }
 
     getMainBranch() {
@@ -119,5 +128,9 @@ export class Branch {
 
     getBranches() {
         return this.branches;
+    }
+
+    getLayerWidth() {
+        return this.layerWidth;
     }
 }
