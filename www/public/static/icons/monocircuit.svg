@@ -1,0 +1,24 @@
+<svg
+    viewBox="0 0 809 809"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 2"
+>
+    <rect id="favicon" x="0" y="0" width="808.333" height="808.333" style="display: none" />
+    <g>
+        <path
+            d="M0,621.364l200.263,0l-0,155.738l-0,-155.738l-0,155.738l-200.263,0l200.263,0l-200.263,0l0,-155.738Z"
+            fill="black"
+        />
+        <path d="M0,487.108l808.333,-0l0,-155.142l-808.333,0" fill="black" />
+        <path d="M0,186.372l808.333,0l0,-155.141l-808.333,0" fill="black" />
+        <path
+            d="M608.071,621.364l200.134,0l0,155.738l0.128,-155.738l-0.128,155.738l-200.263,0l200.391,0l-200.262,0l-0,-155.738Z"
+            fill="black"
+        />
+        <path
+            d="M404.774,762.782l-1.214,-0l-89.815,-141.418l180.236,0l-89.207,141.418Z"
+            fill="black"
+        />
+    </g>
+</svg>

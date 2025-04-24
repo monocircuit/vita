@@ -5,20 +5,27 @@
             "path": "../"
         },
         {
-            "name": "Website",
+            "name": "Next",
             "path": "../www"
         }
     ],
     "settings": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "svg.preview.background": "editor",
-        "eslint.rules.customizations": [
-            { "rule": "@typescript-eslint/no-explicit-any", "severity": "off" },
-            { "rule": "@typescript-eslint/no-unused-vars", "severity": "info" },
-            {
-                "rule": "@typescript-eslint/no-empty-object-type",
-                "severity": "info"
-            }
-        ]
+        "files.exclude": {
+            "www": false
+        },
+        "editor.defaultFormatter": null,
+        "editor.formatOnPaste": true,
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.eslint": "always",
+            "source.fixAll.stylelint": "always"
+        },
+        "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+        "stylelint.validate": [
+            "css",
+            "scss"
+        ],
+        "json.validate.enable": false,
+        "svg.preview.background": "editor"
     }
 }

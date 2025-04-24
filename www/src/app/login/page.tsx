@@ -1,6 +1,6 @@
 import React from "react";
-import Login from "@/components/login/login";
-import auth from "@/utils/pbHelper/auth/auth";
+import Login from "@/components/Login/Login";
+import auth from "@/utilities/pocketbase/auth/auth";
 
 import scss from "@/app/login/page.module.scss";
 

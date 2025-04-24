@@ -1,0 +1,28 @@
+{
+  "name": "Curriculum Vitae",
+  "short_name": "CV",
+  "description": "A modern and interactive Progressive Web App (PWA) designed to showcase a professional curriculum vitae with a sleek and intuitive user interface.",
+  "icons": [
+    {
+      "src": "/static/icons/monocircuit-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icons/monocircuit-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icons/monocircuit-1024x1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0070f3",
+  "orientation": "portrait",
+  "lang": "en"
+}

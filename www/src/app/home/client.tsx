@@ -1,9 +1,9 @@
 "use client";
 
-import Card from "@/components/card/card.component";
+import Card from "@/components/Card/Card";
 import { CredentialModel } from "@/models/credential/credential.model";
-import auth from "@/utils/pbHelper/auth/auth";
-import credentialApi, { fetchData } from "@/utils/pbHelper/credentials/credentials";
+import auth from "@/utilities/pocketbase/auth/auth";
+import credentialApi, { fetchData } from "@/utilities/pocketbase/credentials/credentials";
 import { RecordModel } from "pocketbase";
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";

@@ -1,85 +1,81 @@
 // SECTION: Define global SCSS variables here.
-$primary-dark-color: #000000;
+$primary-dark-color: #000;
 $secondary-dark-color: #282828;
-$primary-bright-color: #ffffff;
+$primary-bright-color: #fff;
 $accent-color: #2573f6;
 $stroke-width: 1px;
 
 // SECTION: Define global SCSS mixins/functions here.
 
 @mixin size($width, $height: $width) {
-    width: $width;
-    height: $height;
+  width: $width;
+  height: $height;
 }
 
 /**
  * A basic grid that makes it easier to use divs as wrapping parents
  */
 @mixin createGridOverlay() {
-    display: grid;
-    grid-template-columns: [col0] 100% [col1];
-    grid-template-rows: [row0] 100% [row1];
+  display: grid;
+  grid-template-columns: [col0] 100% [col1];
+  grid-template-rows: [row0] 100% [row1];
 }
 
 @mixin attachToGridOverlay($zIndex) {
-    grid-area: row0 / col0 / row1 / col1;
-    z-index: $zIndex;
+  grid-area: row0 / col0 / row1 / col1;
+  z-index: $zIndex;
 }
 
 /**
  * Centers the content of a "grid" or "flex" type container
  */
 @mixin center($type) {
-    @if $type == "grid" {
-        align-items: center;
-        justify-items: center;
-    }
-    @if $type == "flex" {
-        align-content: center;
-        justify-content: center;
-    }
-    @if $type == "self" {
-        display: flex;
-        align-self: center;
-        justify-self: center;
-    }
+  @if $type == 'grid' {
+    place-items: center center;
+  }
+
+  @if $type == 'flex' {
+    place-content: center center;
+  }
+
+  @if $type == 'self' {
+    display: flex;
+    place-self: center center;
+  }
 }
 
 @mixin createFontFace($font-family, $src) {
-    @font-face {
-        font-family: $font-family;
-        src: url($src);
-    }
+  @font-face {
+    font-family: $font-family;
+    src: url($src);
+  }
 }
 
 @mixin polishDom() {
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 @mixin unselectable() {
-    -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-    -khtml-user-select: none; /* Konqueror HTML */
-    -moz-user-select: none; /* Old versions of Firefox */
-    -ms-user-select: none; /* Internet Explorer/Edge */
-    user-select: none; /* Non-prefixed version, currently
+  -webkit-touch-callout: none; /* iOS Safari */
+  user-select: none; /* Safari */
+  user-select: none; /* Konqueror HTML */
+  user-select: none; /* Old versions of Firefox */
+  user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently
                                         supported by Chrome, Edge, Opera and Firefox */
 }
 
 @mixin toTextContainer() {
-    display: inline-block;
-    box-sizing: content-box;
-
-    padding: 0;
-    margin: 0;
-
-    border: none;
-    outline: none;
-
-    font-size: inherit;
-    vertical-align: middle;
+  display: inline-block;
+  box-sizing: content-box;
+  padding: 0;
+  margin: 0;
+  border: none;
+  outline: none;
+  font-size: inherit;
+  vertical-align: middle;
 }

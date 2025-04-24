@@ -1,7 +1,7 @@
 /** React */
 import { FunctionComponent } from "react";
 /** Styles */
-import scss from "./infobar.module.scss";
+import scss from "./Infobar.module.scss";
 
 interface Props {
     children?: React.ReactNode[];
