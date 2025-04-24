@@ -2,54 +2,64 @@
 
 import React, { useEffect, useRef } from "react";
 import Two from "two.js";
-
 import scss from "./page.module.scss";
-import displayBezierControls from "@/utilities/engine/displayBezierControls";
+import displayBezierControls from "@/utils/engine/displayBezierControls";
 
 const Engine = () => {
-    const engine = useRef<HTMLDivElement>(null);
+  const engine = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (!engine.current) return;
-        const two = new Two({
-            fullscreen: true,
-            type: Two.Types.svg,
-        }).appendTo(engine.current);
+  useEffect(() => {
+    if (!engine.current) return;
 
-        const anchors = [
-            new Two.Anchor(
-                100,
-                300, // Startpunkt
-                0,
-                0, // Kontrollpunkt 1
-                400,
-                500, // Kontrollpunkt 2
-                Two.Commands.curve // Bezier-Befehl
-            ),
-            new Two.Anchor(
-                700,
-                30, // Endpunkt
-                0,
-                0, // Kontrollpunkt 1
-                0,
-                0, // Kontrollpunkt 2
-                Two.Commands.curve // Bezier-Befehl
-            ),
-        ];
+    // Set fixed dimensions for better coordinate control
+    const width = 800;
+    const height = 600;
 
-        anchors.forEach((anchor) => (anchor.relative = false));
+    const two = new Two({
+      width: width,
+      height: height,
+      autostart: true,
+    }).appendTo(engine.current);
 
-        const path = new Two.Path(anchors, false, false, true);
-        path.stroke = "#000";
-        path.linewidth = 2;
-        path.noFill();
-        displayBezierControls(two, path);
-        two.add(path);
+    two.scene.translation.set(0, height / 2);
 
-        two.update();
-    }, []);
+    const tree = new Branch(two, 50, 450);
+    const branch1 = new Branch(two, 50, 200);
+    const branch2 = new Branch(two, 50, 200);
+    const branch3 = new Branch(two, 20, 100);
 
-    return <div className={scss["engine"]} ref={engine}></div>;
+    const branchd1 = new Branch(two, 20, 100);
+    const branchd2 = new Branch(two, 20, 200);
+    const branchd3 = new Branch(two, 40, 300);
+
+    tree.addBranch(branch1);
+    branch1.addBranch(branch2);
+    branch2.addBranch(branch3);
+    tree.addBranch(branchd1, false);
+    branchd1.addBranch(branchd2, true);
+    branchd1.addBranch(branchd3, false);
+
+    console.log(branch1.getLayerWidth());
+    console.log(branch2.getLayerWidth());
+    console.log(branch3.getLayerWidth());
+
+    tree.render();
+    console.log(tree.getMainBranch());
+
+    two.update();
+  }, []);
+
+  return (
+    <div
+      className={scss["engine"]}
+      ref={engine}
+      style={{
+        width: "100%",
+        height: "100vh",
+        background: "#f0f0f0",
+      }}
+    ></div>
+  );
 };
 
 export default Engine;
