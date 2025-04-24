@@ -1,7 +1,7 @@
 {
     "folders": [
         {
-            "name": "Configuration",
+            "name": "Root",
             "path": "../"
         },
         {
@@ -11,7 +11,7 @@
     ],
     "settings": {
         "files.exclude": {
-            "www": false
+            "www": true
         },
         "editor.defaultFormatter": null,
         "editor.formatOnPaste": true,
