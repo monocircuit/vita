@@ -4,21 +4,15 @@ import React, { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import PocketBase from "pocketbase";
 
 import { Button, Input } from "@monolithium/next/components";
 
 import { auth } from "@/utilities/pocketbase/auth/auth";
 
 import Cross from "@/assets/images/png/sharp_line/delete.png";
-import scss from "@/components/login/login.module.scss";
-import Button from "@/utils/ui/Button/Button";
 import SigninGraphic from "@/assets/images/svg/login2.svg";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { SubmitHandler, useForm } from "react-hook-form";
-import Input from "@/utils/ui/Input/Input";
-import ElementMessage from "@/utils/ui/ElementMessage/ElementMessage";
+
+import styles from "./Login.module.scss";
 
 interface loginData {
   username: any;
@@ -30,7 +24,6 @@ const SignIn: React.FunctionComponent = () => {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<loginData>();
 

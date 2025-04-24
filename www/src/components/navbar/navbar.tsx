@@ -20,17 +20,9 @@ import SignInGraphic from "@/assets/images/svg/login2.svg";
 import SignUpGraphic from "@/assets/images/svg/signup2.svg";
 import MonocircuitLogo from "../../../public/static/icons/monocircuit.svg";
 
-<<<<<<< HEAD
 import useOnScrollbarVisible from "@hooks/useOnScrollbarVisible";
 
-import Login from "@components/Login";
-=======
-import Button from "@/utils/ui/button/button";
-import { useRouter } from "next/navigation";
-import useOnScrollbarVisible from "@/utils/hooks/useOnScrollbarVisible";
-import Popover from "@/utils/ui/Popover/Popover";
-import Login from "@/components/login/login";
->>>>>>> TreeAPI
+import Login from "@/components/Login";
 
 const Navbar: FunctionComponent = () => {
   /** ANCHOR: References */

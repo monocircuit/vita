@@ -2,8 +2,8 @@
 
 import { Scrollable } from "@monolithium/next/components";
 
-import Infobar from "@components/Infobar";
-import Navbar from "@components/Navbar";
+import Infobar from "@/components/Infobar";
+import Navbar from "@/components/Navbar";
 
 import styles from "./page.module.scss";
 
