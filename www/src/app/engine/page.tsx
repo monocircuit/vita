@@ -25,11 +25,11 @@ const Engine = () => {
         two.scene.translation.set(0, height / 2);
 
         const tree = new Branch(two, 50, 450);
-        const branch1 = new Branch(two, 50, 200);
-        const branch2 = new Branch(two, 50, 200);
+        const branch1 = new Branch(two, 50, 400);
+        const branch2 = new Branch(two, 100, 600);
 
-        const branchd1 = new Branch(two, 50, 200);
-        const branchd2 = new Branch(two, 30, 200);
+        const branchd1 = new Branch(two, 50, 400);
+        const branchd2 = new Branch(two, 100, 300);
 
         tree.addBranch(branch1);
         branch1.addBranch(branch2);
