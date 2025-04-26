@@ -1,9 +1,18 @@
 import Two from "two.js";
 import { Anchor } from "two.js/src/anchor";
+import { Path } from "two.js/src/path";
 
-interface Point {
-  x: number;
-  y: number;
+interface BranchOptions {
+  /**
+   * Is an identifier for the Branch, in order to better
+   * debug the network and enhance features.
+   */
+  id: string | null | undefined;
+  /**
+   * The `layerWidth` defines how far appart the branches
+   * are rendered.
+   */
+  layerWidth: number;
 }
 
 export class Branch {
@@ -12,77 +21,187 @@ export class Branch {
    */
   private DEFAULT_LAYERWIDTH = 50;
 
-  private two: Two;
   private layerWidth: number;
-  private path: Two.Path | null = null;
-  private parentBranch: Branch | null = null;
-  private branches: Branch[] = [];
-  private start: number = 0;
-  private end: number = 0;
+  private path: Path | null = null;
+
+  /**
+   * Parent branch of this branch object.
+   */
+  private parent: Branch | null = null;
+
+  /**
+   * Child branches that go off of this branch object.
+   */
+  private children: Branch[] = [];
+
+  /**
+   * Gives information about how deep the Branch is in the
+   * network.
+   *
+   * For example the stem has a depth of 0 and a first
+   * degree child branch of the stem has a depth of 1.
+   */
+  private depth: number = 0;
+
+  /**
+   * The `oriantation` of the branch tells to branch if it
+   * should render on top or below its parent branch.
+   */
   private orientation: boolean = true;
-  private length: number = 0;
+
+  // private length: number = 0;
   private color: string = "#000";
 
   /** You need to give the Two.js Enviroment, a start and end coordinate on the x-axis
    * and if you want a seperate Layerwitdth if you want to lock it for a branch   */
-  constructor(two: Two, start: number, end: number, layerWidth?: number) {
-    this.two = two;
-    this.start = start;
-    this.end = end;
-    this.layerWidth = layerWidth ? layerWidth : this.DEFAULT_LAYERWIDTH;
-    this.length = end - start;
+  constructor(
+    /**
+     * A TwoJS instance that will be used to render the branches
+     * on screen if `render()` is used.
+     */
+    private two: Two,
+    /**
+     * The `startX` value corresponds to the x-value in the
+     * local cartesian coordinates system, where the branch
+     * should start rendering.
+     */
+    private startX: number,
+    /**
+     * The `endX` value corresponds to the x-value in the
+     * local cartesian coordinates system, where the branch
+     * should stop rendering.
+     */
+    private endX: number,
+    /**
+     * An instance of optional BranchOptions that define how
+     * the `Branch` behaves.
+     */
+    private options: BranchOptions = {
+      /** ANCHOR: Default values for Partial */
+      id: "unset",
+      layerWidth: 50,
+    },
+  ) {}
+
+  /**
+   * ANCHOR: Getters
+   */
+  /**
+   * Yields a Two.Vector object, that holds information about
+   * the coordinates where the branch should start rendering.
+   *
+   * These coordinates correspond to the this.start value.
+   */
+  get isLongerThanParent() {
+    if (!this.parent) return;
+    return this.parent.endX < this.endX;
   }
 
-  /** With addBranch you can add a created Branch to an existing one */
-  addBranch(branch: Branch, orientation?: boolean, autoSetLayerWidth: boolean = true) {
+  private getStartVector() {
+    if (!this.parent?.path) return;
+    return this.parent.path.getPointAt(this.startX / this.parent.endX);
+  }
+
+  private getEndVector() {
+    if (!this.parent?.path) return;
+    return this.parent.path.getPointAt(this.endX / this.parent.endX);
+  }
+
+  private getHorizontalLength() {
+    return this.endX - this.startX;
+  }
+
+  private getHorizontalBezierLength() {
+    const horizontalLength = this.getHorizontalLength();
+  }
+
+  /**
+   * `appendBranch` appends a new Branch to an existing one
+   * and puts the new one above or below the parent branch.
+   */
+  appendBranch(
+    branch: Branch,
+    orientation?: boolean,
+    autoSetLayerWidth: boolean = true,
+  ) {
+    /** Keep track of branch depth */
+    branch.depth = this.depth + 1;
+
+    /** set parent branch */
     branch.setParentBranch(this);
     orientation != null ? (branch.orientation = orientation!) : null;
 
     if (autoSetLayerWidth) {
       console.log("Layers automatically Set");
-      branch.autoSetLayerWidth(branch.layerWidth);
+      branch.autoSetLayerWidth(this.options.layerWidth);
     } else {
       console.log("Layers didn´t change");
     }
 
-    this.branches.push(branch);
-  }
-
-  getStartCoordinates() {
-    const startCoordinates = this.parentBranch?.path.getPointAt(this.start / this.parentBranch.end);
-    return startCoordinates;
-  }
-  getEndCoordinates() {
-    const endCoordinates = this.parentBranch?.path.getPointAt(this.end / this.parentBranch.end);
-    return endCoordinates;
+    this.children.push(branch);
   }
 
   private renderBranch(height: number) {
-    //Start des ersten Anchorpunkts muss berechnet werden: start des Parentbranches + die start x auf dem Parentbranch - 1/4 der neuen Length wegen bezier curve
-    const startCoordinates = this.getStartCoordinates();
+    const startVector = this.getStartVector();
+    const endVector = this.getEndVector();
 
-    const endCoordinates = this.getEndCoordinates();
+    if (!startVector || !endVector) return;
 
-    const startX = startCoordinates.x;
-    const startY = startCoordinates.y;
-    const endX = endCoordinates.x;
-    const endY = endCoordinates.y;
+    const startX = startVector.x;
+    const startY = startVector.y;
+    const endX = endVector.x;
+    const endY = endVector.y;
 
-    const lengthtest = endX - startX;
+    const projectedXLength = this.getHorizontalLength();
 
-    const AnchorStartCurve1 = new Two.Anchor(startX, startY, 0, 0, (this.length * 1) / 5, 0);
+    const anchors: Anchor[] = [];
+
+    const startAnchors: Anchor[] = [];
+    startAnchors.push(
+      new Two.Anchor(
+        startVector.x,
+        startVector.y,
+        0,
+        0,
+        projectedXLength / 5,
+        0,
+      ),
+    );
+    startAnchors.push(
+      new Two.Anchor(
+        endVector.x - projectedXLength / 4,
+        startVector.y + height,
+        0,
+        0,
+        (projectedXLength * 1) / 5,
+        0,
+      ),
+    );
+
+    if (!this.isLongerThanParent) {
+      /** Child Branch is not longer than parent Branch */
+    }
+
+    const AnchorStartCurve1 = new Two.Anchor(
+      startX,
+      startY,
+      0,
+      0,
+      (projectedXLength * 1) / 5,
+      0,
+    );
 
     const AnchorStartCurve2 = new Two.Anchor(
-      startX + (lengthtest * 1) / 4,
+      startX + (projectedXLength * 1) / 4,
       startY + height,
-      (-lengthtest * 1) / 5,
+      (-projectedXLength * 1) / 5,
       0,
       0,
       0,
     );
 
     const AnchorStartStraight = new Two.Anchor(
-      startX + (lengthtest * 1) / 4,
+      startX + (projectedXLength * 1) / 4,
       startY + height,
       0,
       0,
@@ -90,25 +209,46 @@ export class Branch {
       0,
     );
 
-    const AnchorEndStraight = new Two.Anchor(endX - lengthtest / 4, startY + height, 0, 0, 0, 0);
+    const AnchorEndStraight = new Two.Anchor(
+      endX - projectedXLength / 4,
+      startY + height,
+      0,
+      0,
+      0,
+      0,
+    );
 
     const AnchorEndCurve1 = new Two.Anchor(
-      endX - lengthtest / 4,
+      endX - projectedXLength / 4,
       startY + height,
       0,
       0,
-      (lengthtest * 1) / 5,
+      (projectedXLength * 1) / 5,
       0,
     );
 
-    const AnchorEndCurve2 = new Two.Anchor(endX, startY, (-lengthtest * 1) / 5, 0, 0, 0);
+    const AnchorEndCurve2 = new Two.Anchor(
+      endX,
+      startY,
+      (-projectedXLength * 1) / 5,
+      0,
+      0,
+      0,
+    );
 
     const AnchorMidStraight = new Two.Anchor(endX, startY + height, 0, 0, 0, 0);
 
-    const AnchorMidCurve1 = new Two.Anchor(endX, startY + height, 0, 0, (lengthtest * 1) / 5, 0);
+    const AnchorMidCurve1 = new Two.Anchor(
+      endX,
+      startY + height,
+      0,
+      0,
+      (projectedXLength * 1) / 5,
+      0,
+    );
 
     const AnchorMidCurve2 = new Two.Anchor(
-      endX + lengthtest / 4,
+      endX + projectedXLength / 4,
       startY,
       (this.length * 1) / 5,
       0,
@@ -118,33 +258,37 @@ export class Branch {
 
     const AnchorEndBranchAfterTakeOver = new Two.Anchor(
       endX,
-      this.parentBranch?.getYAtX(startX),
+      this.parent?.getYAtX(startX),
       0,
       0,
       0,
       0,
     );
 
-    const AnchorArray: Anchor[] = [];
+    anchors.push(...startAnchors);
 
-    AnchorArray.push(AnchorStartCurve1);
-    AnchorArray.push(AnchorStartCurve2);
-    AnchorArray.push(AnchorStartStraight);
-    if (!this.checkBranchLongerThanParent()) {
-      AnchorArray.push(AnchorEndStraight);
-      AnchorArray.push(AnchorEndCurve1);
-      AnchorArray.push(AnchorEndCurve2);
+    anchors.push(AnchorStartCurve1);
+    anchors.push(AnchorStartCurve2);
+    anchors.push(AnchorStartStraight);
+    if (!this.isLongerThanParent) {
+      anchors.push(AnchorEndStraight);
+      anchors.push(AnchorEndCurve1);
+      anchors.push(AnchorEndCurve2);
     } else {
-      AnchorArray.push(AnchorMidStraight);
-      AnchorArray.push(AnchorMidCurve1);
-      AnchorArray.push(AnchorMidCurve2);
+      anchors.push(AnchorMidStraight);
+      anchors.push(AnchorMidCurve1);
+      anchors.push(AnchorMidCurve2);
     }
 
-    const branch = new Two.Path(AnchorArray, false, true, false);
+    const branch = new Two.Path(anchors, false, true, false);
 
     this.two.add(branch as any);
 
     return branch;
+  }
+
+  get length() {
+    return this.endX - this.startX;
   }
 
   /**
@@ -152,24 +296,29 @@ export class Branch {
    * If the x is not on the line, it returns null.
    */
   getYAtX(x: number): number | undefined {
-    const length = this.end - this.start;
-    const percentage = x / length;
+    const percentage = x / this.length;
     const y = this.path?.getPointAt(percentage)?.y;
     return y;
   }
 
   /** This will render the Branch you created with all Subbranches */
   render(height?: number) {
-    if (!this.parentBranch?.path) {
+    if (this.depth == 0) {
+      /* ANCHOR: Handle Stem Rendering */
+
       this.path = this.two.makeLine(
-        this.parentBranch ? this.parentBranch.path.vertices[0].x + this.start : this.start,
+        this.parent
+          ? this.parent.path.vertices[0].x + this.startX
+          : this.startX,
         height ? height : 0,
-        this.parentBranch ? this.parentBranch.path.vertices[0].x + this.end : this.end,
+        this.parent ? this.parent.path.vertices[0].x + this.endX : this.endX,
         height ? height : 0,
       );
       this.path.stroke = "#000";
       this.path.linewidth = 4;
     } else {
+      /* ANCHOR: Handle Branch Rendering */
+
       this.path = this.renderBranch(height ? height : 0);
       this.path.stroke = "#000";
 
@@ -216,38 +365,28 @@ export class Branch {
             this.two.add(startCurve as any); */
     }
 
-    this.branches.forEach(branch => {
+    this.children.forEach(branch => {
       console.log(branch.orientation);
       branch.render(
         branch.orientation
-          ? this.path.vertices[0].y - branch.layerWidth
-          : this.path.vertices[0].y + branch.layerWidth,
+          ? this.path.vertices[0].y - branch.options.layerWidth
+          : this.path.vertices[0].y + branch.options.layerWidth,
       );
     });
   }
 
-  private setParentBranch(parent: Branch) {
-    this.parentBranch = parent;
-  }
-
-  private checkBranchLongerThanParent() {
-    if (!this.parentBranch?.end) return;
-
-    if (this.parentBranch.end! > this.end) {
-      return false;
-    } else {
-      return true;
-    }
+  private setParentBranch(parentBranch: Branch) {
+    this.parent = parentBranch;
   }
 
   private autoSetLayerWidth(layerWidth: number) {
-    this.layerWidth = layerWidth;
+    this.options.layerWidth = layerWidth;
     if (
-      (this.orientation == false && this.parentBranch?.orientation == true) ||
-      (this.orientation == true && this.parentBranch?.orientation == false)
+      (this.orientation == false && this.parent?.orientation == true) ||
+      (this.orientation == true && this.parent?.orientation == false)
     ) {
       console.log("changed Layerwidth on: " + this);
-      this.parentBranch?.autoSetLayerWidth(layerWidth * 2);
+      this.parent?.autoSetLayerWidth(layerWidth * 2);
     }
   }
 
@@ -256,7 +395,7 @@ export class Branch {
   }
 
   getBranches() {
-    return this.branches;
+    return this.children;
   }
 
   getLayerWidth() {
