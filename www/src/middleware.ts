@@ -1,42 +1,47 @@
-/** @format */
+import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import PocketBase from "pocketbase";
-import { auth } from "./utilities/pocketbase/auth/auth";
+export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({
+    request,
+  });
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            request.cookies.set(name, value),
+          );
+          supabaseResponse = NextResponse.next({
+            request,
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options),
+          );
+        },
+      },
+    },
+  );
 
-// 1. Specify protected and public routes
-const protectedRoutes = ["/home"];
-const publicRoutes = ["/login", "/signup", "/"];
-
-export default async function middleware(req: NextRequest) {
-  const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL);
-
-  const token = req.cookies.get("pb_auth")?.value;
-
-  if (token) {
-    pb.authStore.save(token, null); // Restore auth
-  }
-
-  // 2. Check if the current route is protected or public
-  const path = req.nextUrl.pathname;
-  const isProtectedRoute = protectedRoutes.includes(path);
-  const isPublicRoute = publicRoutes.includes(path);
-  console.log(pb.authStore.record);
-  // 4. Redirect to /login if the user is not authenticated
-  if (isProtectedRoute && !pb.authStore.isValid) {
-    return NextResponse.redirect(new URL("/login", req.nextUrl));
-  }
-
-  // 5. Redirect to /dashboard if the user is authenticated
-  if (isPublicRoute && auth.isAuthenticated() && !req.nextUrl.pathname.startsWith("/home")) {
-    return NextResponse.redirect(new URL("/home", req.nextUrl));
-  }
-
-  return NextResponse.next();
+  // refreshing the auth token
+  await supabase.auth.getUser();
+  return supabaseResponse;
 }
 
-// Routes Middleware should not run on
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|.*\\.png$).*)"],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * Feel free to modify this pattern to include more paths.
+     */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 };

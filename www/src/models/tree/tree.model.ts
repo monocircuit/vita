@@ -3,5 +3,13 @@ import { CredentialModel } from "../credential/credential.model";
 interface TreeModel {
   id: string;
   user: string;
-  credentials: { credentialModelID: string; priority: number }[];
+  entryNode: string;
+  // credentials: { credentialModelID: string; priority: number }[];
+}
+
+interface TreeNode {
+  id: string;
+  orientation: boolean;
+  parent: TreeNode;
+  children: TreeNode[];
 }

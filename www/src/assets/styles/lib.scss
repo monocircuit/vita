@@ -60,11 +60,7 @@ $stroke-width: 1px;
 }
 
 @mixin unselectable() {
-  -webkit-touch-callout: none; /* iOS Safari */
-  user-select: none; /* Safari */
-  user-select: none; /* Konqueror HTML */
-  user-select: none; /* Old versions of Firefox */
-  user-select: none; /* Internet Explorer/Edge */
+  -webkit-touch-callout: none; /* iOS Safari */ /* Safari */ /* Konqueror HTML */ /* Old versions of Firefox */ /* Internet Explorer/Edge */
   user-select: none; /* Non-prefixed version, currently
                                         supported by Chrome, Edge, Opera and Firefox */
 }
@@ -78,4 +74,11 @@ $stroke-width: 1px;
   outline: none;
   font-size: inherit;
   vertical-align: middle;
+}
+
+@mixin source-sans-3($weight) {
+  font-family: 'Source Sans 3', sans-serif;
+  font-optical-sizing: auto;
+  font-weight: $weight;
+  font-style: normal;
 }

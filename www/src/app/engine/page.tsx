@@ -3,18 +3,23 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import { Application, extend } from "@pixi/react";
-import { Graphics, Container } from "pixi.js";
+import { Graphics } from "pixi.js";
 
-import { Orientation, Tree, TreeRenderer, useTree } from "@components/Tree";
+import { TreeRenderer } from "@components/Tree";
 
 import styles from "./page.module.scss";
+import Chronicle from "@/utils/models/Chronicle";
+import usePocketbase from "@/hooks/usePocketbase";
+import ChronicleRelation from "@/utils/models/ChronicleRelation";
 
 extend({ Graphics });
 
-const Engine = () => {
+const Engine: React.FunctionComponent = () => {
+  const CHRONICLE_TREE_NAME = "PogChamp";
+
   /** ANCHOR: References */
   const engine = useRef<HTMLDivElement>(null);
-  const tree = useRef<Tree>(null);
+  const pocketbase = usePocketbase();
 
   /** ANCHOR: State */
   const [scale, setScale] = useState<number>(1);
@@ -22,9 +27,17 @@ const Engine = () => {
 
   /** ANCHOR: Effects */
   useEffect(() => {
-    tree.current = new Tree(0, 10);
-    tree.current.addChild(10, 20, Orientation.ABOVE);
-  }, [tree]);
+    const fetchData = async () => {
+      const chronicles: ChronicleRelation[] = await pocketbase.current
+        .collection("chronicles_relations")
+        .getFullList({
+          filter: `name="${CHRONICLE_TREE_NAME}" && parent=NULL`,
+          expand: "user,chronicle,parent,children",
+        });
+      console.log(chronicles);
+    };
+    fetchData();
+  }, [pocketbase]);
 
   useEffect(() => {
     setDevicePixelRation(window.devicePixelRatio);
@@ -57,9 +70,7 @@ const Engine = () => {
           resolution={devicePixelRatio}
           antialias={true}
           autoDensity={true}
-        >
-          {new TreeRenderer(tree).render()}
-        </Application>
+        ></Application>
       )}
     </div>
   );

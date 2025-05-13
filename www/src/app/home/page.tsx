@@ -2,7 +2,7 @@
 
 import React from "react";
 import { CredentialModel } from "@/models/credential/credential.model";
-import { credentialApi, fetchData } from "../../utilities/pocketbase/credentials/credentials";
+import { credentialApi, fetchData } from "../../utils/pocketbase/credentials/credentials";
 import HomeClient from "./client";
 import PocketBase from "pocketbase";
 

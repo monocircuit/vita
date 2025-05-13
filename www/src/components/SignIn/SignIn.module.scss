@@ -44,6 +44,7 @@ $padding: 12px;
         display: inline-block;
         text-transform: uppercase;
         font-size: large;
+        font-family: 'Fira Code', sans-serif;
       }
     }
   }
@@ -55,14 +56,14 @@ $padding: 12px;
     overflow: hidden;
 
     .signin__body__form {
-      width: min(450px, 50%);
+      width: min(300px, 90%);
       overflow: hidden;
       display: flex;
       flex-direction: column;
       gap: 10px;
 
       input {
-        font-family: 'Fira Sans' !important;
+        font-size: 1.2em;
         font-size: 16px; /* Optional: adjust font size */
         padding: 8px; /* Optional: add padding for better readability */
       }
@@ -89,7 +90,7 @@ $padding: 12px;
         }
       }
 
-      $input-height: 50px;
+      $input-height: 40px;
 
       .signin__body__form__input__username {
         grid-area: row0 / col0 / row1 / col0;
@@ -142,18 +143,6 @@ $padding: 12px;
       text-transform: uppercase;
       font-size: 1.2em;
     }
-  }
-}
-
-.signin__body__form__input__field {
-  /** Testweise */
-  width: 200px;
-  height: 50px;
-
-  input {
-    font-family: 'Fira Code' !important;
-    padding: 1em;
-    font-size: 1.2em;
   }
 }
 

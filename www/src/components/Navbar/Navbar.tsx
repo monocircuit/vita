@@ -20,16 +20,17 @@ import SignInGraphic from "@/assets/images/svg/login2.svg";
 import SignUpGraphic from "@/assets/images/svg/signup2.svg";
 import MonocircuitLogo from "../../../public/static/icons/monocircuit.svg";
 
-import useOnScrollbarVisible from "@hooks/useOnScrollbarVisible";
+import useOnScrollbarVisible from "@/hooks/useOnScrollbarVisible";
 
-import Login from "@/components/Login";
+import Login from "@/components/SignIn";
 
 const Navbar: FunctionComponent = () => {
   /** ANCHOR: References */
   const signInButton = useRef<HTMLDivElement>(null);
 
   /** ANCHOR: State */
-  const [isSignInPopUpActive, setIsSignInPopupActive] = useState<boolean>(false);
+  const [isSignInPopUpActive, setIsSignInPopupActive] =
+    useState<boolean>(false);
 
   const router = useRouter();
 
@@ -76,17 +77,24 @@ const Navbar: FunctionComponent = () => {
               <div className={scss["navbar__account__container__options"]}>
                 <Popover
                   content={<Login />}
-                  className={scss["navbar__account__container__options__signin__popup"]}
+                  className={
+                    scss["navbar__account__container__options__signin__popup"]
+                  }
                   shouldRender={isSignInPopUpActive}
                   config={{
                     pushTo: "left",
                     isConnected: true,
                     isDraggable: true,
+                    isClosableByEmptyClick: true,
                   }}
                 >
                   <Button
                     ref={signInButton}
-                    className={scss["navbar__account__container__options__signin__button"]}
+                    className={
+                      scss[
+                        "navbar__account__container__options__signin__button"
+                      ]
+                    }
                     text="sign in"
                     onClick={() => setIsSignInPopupActive(!isSignInPopUpActive)}
                     capslock
@@ -95,9 +103,15 @@ const Navbar: FunctionComponent = () => {
                     <SignInGraphic />
                   </Button>
                 </Popover>
-                <div className={scss["navbar__account__container__options__divider"]}></div>
+                <div
+                  className={
+                    scss["navbar__account__container__options__divider"]
+                  }
+                ></div>
                 <Button
-                  className={scss["navbar__account__container__options__signup"]}
+                  className={
+                    scss["navbar__account__container__options__signup"]
+                  }
                   type="secondary"
                   text="sign up"
                   capslock
