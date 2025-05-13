@@ -22,7 +22,8 @@ import MonocircuitLogo from "../../../public/static/icons/monocircuit.svg";
 
 import useOnScrollbarVisible from "@/hooks/useOnScrollbarVisible";
 
-import Login from "@/components/SignIn";
+import SignIn from "@/components/SignIn";
+import SignUp from "@/components/SignUp";
 
 const Navbar: FunctionComponent = () => {
   /** ANCHOR: References */
@@ -30,6 +31,8 @@ const Navbar: FunctionComponent = () => {
 
   /** ANCHOR: State */
   const [isSignInPopUpActive, setIsSignInPopupActive] =
+    useState<boolean>(false);
+  const [isSignUpPopUpActive, setIsSignUpPopupActive] =
     useState<boolean>(false);
 
   const router = useRouter();
@@ -76,7 +79,7 @@ const Navbar: FunctionComponent = () => {
             ) : (
               <div className={scss["navbar__account__container__options"]}>
                 <Popover
-                  content={<Login />}
+                  content={<SignIn />}
                   className={
                     scss["navbar__account__container__options__signin__popup"]
                   }
@@ -108,17 +111,32 @@ const Navbar: FunctionComponent = () => {
                     scss["navbar__account__container__options__divider"]
                   }
                 ></div>
-                <Button
+                <Popover
+                  content={<SignUp />}
                   className={
-                    scss["navbar__account__container__options__signup"]
+                    scss["navbar__account__container__options__signin__popup"]
                   }
-                  type="secondary"
-                  text="sign up"
-                  capslock
-                  vibrate
+                  shouldRender={isSignUpPopUpActive}
+                  config={{
+                    pushTo: "left",
+                    isConnected: true,
+                    isDraggable: true,
+                    isClosableByEmptyClick: true,
+                  }}
                 >
-                  <SignUpGraphic />
-                </Button>
+                  <Button
+                    className={
+                      scss["navbar__account__container__options__signup"]
+                    }
+                    onClick={() => setIsSignUpPopupActive(!isSignUpPopUpActive)}
+                    type="secondary"
+                    text="sign up"
+                    capslock
+                    vibrate
+                  >
+                    <SignUpGraphic />
+                  </Button>
+                </Popover>
               </div>
             )}
           </div>

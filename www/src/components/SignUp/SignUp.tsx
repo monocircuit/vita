@@ -1,49 +1,25 @@
 "use client";
 
-import React, { useEffect, useState, useActionState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import React, { useActionState } from "react";
 
 import { Button, Input } from "@monolithium/next/components";
-import { useClassName } from "@monolithium/next/hooks";
 
-import Cross from "@/assets/images/png/sharp_line/delete.png";
 import SigninGraphic from "@/assets/images/svg/login2.svg";
-
-import { signIn } from "./SignIn.actions";
-
 import { SourceSans3 } from "@/utils/fonts";
-import styles from "./SignIn.module.scss";
 
-interface loginData {
-  username: any;
-  password: string;
-}
+import { signup, SignInFormData } from "./SignUp.actions";
+import styles from "./SignUp.module.scss";
+import { useForm } from "react-hook-form";
 
-const SignIn: React.FunctionComponent = () => {
+const SignUp: React.FunctionComponent = () => {
   /** ANCHOR: Actions */
-  const [signInState, signInAction] = useActionState(signIn);
+  const [signUpState, signUpAction] = useActionState(signup);
 
   /** ANCHOR: Forms */
   const {
     register,
-    handleSubmit: handleSubmitWrapper,
     formState: { errors },
-  } = useForm<loginData>();
-
-  const router = useRouter();
-
-  const [input, setInput] = useState<loginData>({
-    username: "",
-    password: "",
-  });
-  const [shouldRegister, setShouldRegister] = useState<boolean>(false);
-
-  useEffect(() => {
-    const c = register("username", { required: true });
-    // console.log(c);
-  }, []);
+  } = useForm<SignInFormData>();
 
   return (
     <div className={styles["signin"]}>
@@ -52,12 +28,12 @@ const SignIn: React.FunctionComponent = () => {
           <div className={styles["signin__header__title__icon"]}>
             <SigninGraphic />
           </div>
-          <div className={styles["signin__header__title__text"]}>sign in</div>
+          <div className={styles["signin__header__title__text"]}>sign up</div>
         </div>
       </div>
       <div className={styles["signin__body"]}>
         <div className={styles["signin__body__account"]}></div>
-        <form className={styles["signin__body__form"]} action={signInAction}>
+        <form className={styles["signin__body__form"]} action={signUpAction}>
           <Input
             placeholder="Username"
             type="text"
@@ -90,4 +66,4 @@ const SignIn: React.FunctionComponent = () => {
   );
 };
 
-export default SignIn;
+export default SignUp;
