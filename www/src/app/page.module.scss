@@ -1,5 +1,6 @@
-@use '@/assets/styles/lib';
+@use "@/assets/styles/lib";
 
+@import './tailwind.css';
 .page {
   display: inline-block;
   width: 100%;

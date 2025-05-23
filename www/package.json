@@ -42,17 +42,17 @@
     "@types/two.js": "^0.7.9",
     "@typescript-eslint/eslint-plugin": "^8.28.0",
     "@typescript-eslint/parser": "^8.28.0",
-    "autoprefixer": "^10.4.20",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "^15.2.4",
     "immer": "^10.1.1",
-    "postcss": "^8.4.49",
+    "postcss": "^8.5.3",
     "sass": "^1.83.0",
     "stylelint": "^16.19.0",
     "stylelint-config-standard": "^38.0.0",
     "stylelint-config-standard-scss": "^14.0.0",
     "stylelint-prettier": "^5.0.3",
-    "tailwindcss": "^4.1.2",
+    "tailwindcss": "^4.1.7",
     "typescript": "^5"
   }
 }
