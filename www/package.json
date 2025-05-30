@@ -15,6 +15,7 @@
     "@pixi/react": "^8.0.1",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.4",
+    "@tailwindcss/postcss": "^4.1.7",
     "cookie": "^1.0.2",
     "jwt-decode": "^4.0.0",
     "next": "^15.2.4",
@@ -29,11 +30,12 @@
     "two.js": "^0.8.17",
     "use-state-with-callback": "^3.0.2",
     "usehooks-ts": "^3.1.1",
+    "zod": "^3.24.4",
     "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@monocircuit/eslint-config": "^1.0.8",
+    "@monocircuit/eslint-config": "^1.0.9",
     "@svgr/webpack": "^8.1.0",
     "@types/node": "^22.14.0",
     "@types/react": "^19",
@@ -46,13 +48,13 @@
     "eslint": "^9",
     "eslint-config-next": "^15.2.4",
     "immer": "^10.1.1",
-    "postcss": "^8.4.49",
+    "postcss": "^8.5.3",
     "sass": "^1.83.0",
     "stylelint": "^16.19.0",
     "stylelint-config-standard": "^38.0.0",
     "stylelint-config-standard-scss": "^14.0.0",
     "stylelint-prettier": "^5.0.3",
-    "tailwindcss": "^4.1.2",
+    "tailwindcss": "^4.1.7",
     "typescript": "^5"
   }
 }

@@ -1,3 +1,21 @@
-@tailwind base;
-@tailwind components;
+/** Loads the @monolithium tailwind classes */
+@import "@monolithium/next/tailwind";
+/** Scans the @monolithium codebase for Tailwind classes. */
+@source "../../node_modules/@monolithium/next/.dist/";
+
 @tailwind utilities;
+
+@theme {
+  --color-primary: #FFFFFF;
+  --color-secondary: #000000;
+  
+  --color-highlight: #FFD100;
+  --color-text-highlight: #333333;
+
+  --color-success: #28A745;
+  --color-error: #DC3545;
+  --color-warning: #FFC107;
+  --color-info: #17A2B8;
+
+  --stroke: 1px;
+}

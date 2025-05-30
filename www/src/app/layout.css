@@ -1,0 +1,36 @@
+/**
+ * Loads all custom tailwind classes and themes into the project.
+ */
+@import './tailwind.css';
+
+/**
+ * Adds all Tailwind classes to the globally available classes.
+ * 
+ * It also does the DOM-CleanUp, so adding * {} padding 0 and margin 0
+ * is already done through the base layer of Tailwind.
+ */
+@import 'tailwindcss';
+
+* {
+    scrollbar-width: none;
+}
+  
+::selection {
+    color: var(--color-secondary);
+    background: var(--color-highlight);
+}
+  
+html {
+    overflow: hidden;
+}
+  
+body {
+    /**
+      * LINK: https://stackoverflow.com/questions/52848856/100vh-height-when-address-bar-is-shown-chrome-mobile
+      */
+    /** TODO: @apply directive not working */ 
+    @apply w-dvw h-dvh bg-primary overflow-hidden;
+  
+    font-family: 'Fira Code', sans-serif;
+}
+  

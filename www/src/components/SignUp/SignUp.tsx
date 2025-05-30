@@ -7,7 +7,7 @@ import { Button, Input } from "@monolithium/next/components";
 import SigninGraphic from "@/assets/images/svg/login2.svg";
 import { SourceSans3 } from "@/utils/fonts";
 
-import { signup, SignInFormData } from "./SignUp.actions";
+import { signup, SignInFormData } from "./actions";
 import styles from "./SignUp.module.scss";
 import { useForm } from "react-hook-form";
 

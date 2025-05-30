@@ -24,6 +24,7 @@ import useOnScrollbarVisible from "@/hooks/useOnScrollbarVisible";
 
 import SignIn from "@/components/SignIn";
 import SignUp from "@/components/SignUp";
+import Sign from "../Sign/Sign";
 
 const Navbar: FunctionComponent = () => {
   /** ANCHOR: References */
@@ -112,7 +113,7 @@ const Navbar: FunctionComponent = () => {
                   }
                 ></div>
                 <Popover
-                  content={<SignUp />}
+                  content={<Sign signUp />}
                   className={
                     scss["navbar__account__container__options__signin__popup"]
                   }

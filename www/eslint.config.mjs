@@ -9,4 +9,7 @@ const flatConfig = await new FlatConfigLoader({
   json: true,
 }).load();
 
-export default defineConfig([{ ignores: ["node_modules", ".next"] }, { extends: [flatConfig] }]);
+export default defineConfig([
+  { ignores: ["node_modules", ".next"] },
+  { extends: [flatConfig] },
+]);
