@@ -11,39 +11,29 @@ import { useClassName } from "@monolithium/next/hooks";
 import Cross from "@/assets/images/png/sharp_line/delete.png";
 import SigninGraphic from "@/assets/images/svg/login2.svg";
 
-import { signIn } from "./SignIn.actions";
 
 import { SourceSans3 } from "@/utils/fonts";
 import styles from "./SignIn.module.scss";
+import { signIn, signInFormData, signInSchema } from "./functions/signIn";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-interface loginData {
-  username: any;
-  password: string;
-}
 
 const SignIn: React.FunctionComponent = () => {
-  /** ANCHOR: Actions */
-  const [signInState, signInAction] = useActionState(signIn);
 
   /** ANCHOR: Forms */
   const {
     register,
-    handleSubmit: handleSubmitWrapper,
+    handleSubmit,
     formState: { errors },
-  } = useForm<loginData>();
+  } = useForm<signInFormData>(
+    {
+      resolver: zodResolver(signInSchema)
+    }
+  );
 
   const router = useRouter();
 
-  const [input, setInput] = useState<loginData>({
-    username: "",
-    password: "",
-  });
-  const [shouldRegister, setShouldRegister] = useState<boolean>(false);
 
-  useEffect(() => {
-    const c = register("username", { required: true });
-    // console.log(c);
-  }, []);
 
   return (
     <div className={styles["signin"]}>
@@ -57,14 +47,14 @@ const SignIn: React.FunctionComponent = () => {
       </div>
       <div className={styles["signin__body"]}>
         <div className={styles["signin__body__account"]}></div>
-        <form className={styles["signin__body__form"]} action={signInAction}>
+        <form className={styles["signin__body__form"]} onSubmit={handleSubmit((e) => signIn(e))}>
           <Input
-            placeholder="Username"
-            type="text"
+            placeholder="Email"
+            type="email"
             className={styles["signin__body__form__input__username"]}
             inputClassName={SourceSans3.className}
-            register={register("username", { required: true })}
-            error={!!errors.username ? "This field is required" : undefined}
+            register={register("email", { required: true })}
+            error={errors.email?.message}
           />
           <Input
             placeholder="Password"
@@ -72,7 +62,7 @@ const SignIn: React.FunctionComponent = () => {
             className={styles["signin__body__form__input__password"]}
             inputClassName={SourceSans3.className}
             register={register("password", { required: true })}
-            error={!!errors.password ? "This field is required" : undefined}
+            error={errors.password?.message}
           />
           <Button
             className={styles["signin__body__form__submit"]}
