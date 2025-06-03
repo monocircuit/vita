@@ -1,8 +1,8 @@
-import React from "react";
+"use client";
 
 interface Props {}
 
-const Page = (props: Props) => {
+const Page = () => {
   return <div className="size-full">Dashboard</div>;
 };
 
