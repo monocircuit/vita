@@ -128,14 +128,10 @@ const Navbar: FunctionComponent = () => {
                   }
                 ></div>
                 <Popover
-<<<<<<< HEAD
                   content={<SignUp ButtonFunction={() => {
                     setIsSignUpPopupActive(false)
                     setIsSignInPopupActive(true)
                   }} />}
-=======
-                  content={<Sign signUp />}
->>>>>>> 95a55134bbab7214730005f3d6566cfe6bf9b342
                   className={
                     scss["navbar__account__container__options__signin__popup"]
                   }
