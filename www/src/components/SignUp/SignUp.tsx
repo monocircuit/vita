@@ -9,7 +9,11 @@ import { SourceSans3 } from "@/utils/fonts";
 
 import styles from "./SignUp.module.scss";
 import { useForm } from "react-hook-form";
-import { signUp, signUpFormData, signUpSchema } from "@/components/SignUp/functions/signup";
+import {
+  signUp,
+  signUpFormData,
+  signUpSchema,
+} from "@/components/SignUp/functions/signup";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 const SignUp: React.FunctionComponent<{ ButtonFunction?: () => void }> = ({ ButtonFunction }) => {
@@ -19,14 +23,10 @@ const SignUp: React.FunctionComponent<{ ButtonFunction?: () => void }> = ({ Butt
   const {
     register,
     formState: { errors },
-    handleSubmit
-  } = useForm<signUpFormData>(
-    {
-      resolver: zodResolver(signUpSchema)
-    }
-  );
-
-
+    handleSubmit,
+  } = useForm<signUpFormData>({
+    resolver: zodResolver(signUpSchema),
+  });
 
   return (
     <div className={styles["signin"]}>
@@ -40,7 +40,10 @@ const SignUp: React.FunctionComponent<{ ButtonFunction?: () => void }> = ({ Butt
       </div>
       <div className={styles["signin__body"]}>
         <div className={styles["signin__body__account"]}></div>
-        <form className={styles["signin__body__form"]} onSubmit={handleSubmit((e) => signUp(e))}>
+        <form
+          className={styles["signin__body__form"]}
+          onSubmit={handleSubmit(e => signUp(e))}
+        >
           <Input
             placeholder="Email"
             type="email"
