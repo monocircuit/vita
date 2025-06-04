@@ -20,7 +20,6 @@ export const signIn = async (formData: signInFormData) => {
 
     const email = formData.email;
     const password = formData.password;
-    console.log("twst")
     if (email && password ) {
         try {
             const { data, error } = await supabase.auth.signInWithPassword({
