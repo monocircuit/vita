@@ -1,7 +1,14 @@
 import zod from "zod";
-import MaritalStatus from "./enumerated-types/MaritalStatus";
+import $MaritalStatus from "./enumerated-types/MaritalStatus";
 
-const Profile = zod.object({
+/** Schemas */
+export const $ProfileOverhead = zod.object({
+  id: zod
+    .string({ required_error: "ID is required" })
+    .describe("unique identifier of the user profile"),
+});
+
+const $Profile = zod.object({
   id: zod
     .string({ required_error: "ID is requiered" })
     .describe("unique identifier of the user profile"),
@@ -10,7 +17,7 @@ const Profile = zod.object({
   lastName: zod.string().describe("last name of the user").optional(),
 
   dayOfBirth: zod.date().describe("date of birth of the user").optional(),
-  maritalStatus: MaritalStatus.optional(),
+  maritalStatus: $MaritalStatus.optional(),
 
   avatarUrl: zod
     .string()
@@ -18,4 +25,8 @@ const Profile = zod.object({
     .optional(),
 });
 
-export default Profile;
+export default $Profile;
+
+/** Types */
+export type Profile = zod.infer<typeof $Profile>;
+export type ProfileOverhead = zod.infer<typeof $ProfileOverhead>;

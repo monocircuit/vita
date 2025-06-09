@@ -23,11 +23,9 @@ import SignIn from "@/components/SignIn";
 import SignUp from "@/components/SignUp";
 import { createClient } from "@/utils/supabase/client";
 
-
 import Sign from "../Sign/Sign";
 
 const Navbar: FunctionComponent = () => {
-
   /** ANCHOR: References */
   const signInButton = useRef<HTMLDivElement>(null);
 
@@ -41,7 +39,9 @@ const Navbar: FunctionComponent = () => {
   useEffect(() => {
     const getUser = async () => {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setIsSignedIn(!!user);
     };
     getUser();
@@ -49,12 +49,9 @@ const Navbar: FunctionComponent = () => {
 
   const router = useRouter();
 
-
   useOnScrollbarVisible(() => {
     console.log("scollbar visible");
   }, []);
-
-
 
   return (
     <>
@@ -92,10 +89,14 @@ const Navbar: FunctionComponent = () => {
             ) : (
               <div className={scss["navbar__account__container__options"]}>
                 <Popover
-                  content={<SignIn ButtonFunction={() => {
-                    setIsSignInPopupActive(false)
-                    setIsSignUpPopupActive(true)
-                  }} />}
+                  content={
+                    <SignIn
+                      ButtonFunction={() => {
+                        setIsSignInPopupActive(false);
+                        setIsSignUpPopupActive(true);
+                      }}
+                    />
+                  }
                   className={
                     scss["navbar__account__container__options__signin__popup"]
                   }
@@ -111,7 +112,7 @@ const Navbar: FunctionComponent = () => {
                     ref={signInButton}
                     className={
                       scss[
-                      "navbar__account__container__options__signin__button"
+                        "navbar__account__container__options__signin__button"
                       ]
                     }
                     text="sign in"
@@ -128,10 +129,14 @@ const Navbar: FunctionComponent = () => {
                   }
                 ></div>
                 <Popover
-                  content={<SignUp ButtonFunction={() => {
-                    setIsSignUpPopupActive(false)
-                    setIsSignInPopupActive(true)
-                  }} />}
+                  content={
+                    <SignUp
+                      ButtonFunction={() => {
+                        setIsSignUpPopupActive(false);
+                        setIsSignInPopupActive(true);
+                      }}
+                    />
+                  }
                   className={
                     scss["navbar__account__container__options__signin__popup"]
                   }

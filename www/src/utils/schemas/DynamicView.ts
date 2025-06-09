@@ -1,5 +1,5 @@
 import zod from "zod";
-import Scope from "./enumerated-types/Scope";
+import $Scope from "./enumerated-types/Scope";
 
 const DynamicView = zod.object({
   id: zod.number({ required_error: "ID is required" }),
@@ -7,7 +7,7 @@ const DynamicView = zod.object({
   name: zod.string(),
   chronicle_relation_id: zod.string(),
 
-  scope: Scope,
+  scope: $Scope,
 
   created_at: zod.date(),
   updated_at: zod.date(),

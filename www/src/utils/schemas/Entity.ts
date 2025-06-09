@@ -1,8 +1,12 @@
 import zod from "zod";
 
-const Entity = zod.object({
+/** Schemas */
+export const $EntityOverhead = zod.object({
+  /** BigInt: int8 */
   id: zod.number({ required_error: "ID is required" }),
+});
 
+const $Entity = zod.object({
   name: zod.string(),
   address_id: zod.string(),
 
@@ -12,4 +16,8 @@ const Entity = zod.object({
   updated_at: zod.date(),
 });
 
-export default Entity;
+export default $Entity;
+
+/** Types */
+export type Entity = zod.infer<typeof $Entity>;
+export type EntityOverhead = zod.infer<typeof $EntityOverhead>;

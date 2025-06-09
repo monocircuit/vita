@@ -11,29 +11,24 @@ import { useClassName } from "@monolithium/next/hooks";
 import Cross from "@/assets/images/png/sharp_line/delete.png";
 import SigninGraphic from "@/assets/images/svg/login2.svg";
 
-
 import { SourceSans3 } from "@/utils/fonts";
 import styles from "./SignIn.module.scss";
 import { signIn, signInFormData, signInSchema } from "./functions/signIn";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-
-const SignIn: React.FunctionComponent<{ ButtonFunction?: () => void }> = ({ ButtonFunction }) => {
-
+const SignIn: React.FunctionComponent<{ ButtonFunction?: () => void }> = ({
+  ButtonFunction,
+}) => {
   /** ANCHOR: Forms */
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<signInFormData>(
-    {
-      resolver: zodResolver(signInSchema)
-    }
-  );
+  } = useForm<signInFormData>({
+    resolver: zodResolver(signInSchema),
+  });
 
   const router = useRouter();
-
-
 
   return (
     <div className={styles["signin"]}>
@@ -47,7 +42,10 @@ const SignIn: React.FunctionComponent<{ ButtonFunction?: () => void }> = ({ Butt
       </div>
       <div className={styles["signin__body"]}>
         <div className={styles["signin__body__account"]}></div>
-        <form className={styles["signin__body__form"]} onSubmit={handleSubmit((e) => signIn(e))}>
+        <form
+          className={styles["signin__body__form"]}
+          onSubmit={handleSubmit(e => signIn(e))}
+        >
           <Input
             placeholder="Email"
             type="email"

@@ -1,16 +1,27 @@
 import zod from "zod";
-import ChronicleOrientation from "./enumerated-types/ChronicleOrientation";
+import $ChronicleOrientation from "./enumerated-types/ChronicleOrientation";
 
-zod.object({
-  id: zod.number({ required_error: "ID is required" }),
+/** Schemas */
+export const $ChronicleRelationOverhead = zod.object({
+  id: zod.string({ required_error: "ID is required" }),
+});
 
+const $ChronicleRelation = zod.object({
   ancestor_id: zod.string({
     description:
       "The ancestor or parent ChronicleRelation of this ChronicleRelation.",
   }),
 
-  orientation: ChronicleOrientation,
+  orientation: $ChronicleOrientation,
 
   created_at: zod.date(),
   updated_at: zod.date(),
 });
+
+export default $ChronicleRelation;
+
+/** Types */
+export type ChronicleRelation = zod.infer<typeof $ChronicleRelation>;
+export type ChronicleRelationOverhead = zod.infer<
+  typeof $ChronicleRelationOverhead
+>;

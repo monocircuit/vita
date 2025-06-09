@@ -1,9 +1,13 @@
 import zod from "zod";
 
-const ChronicleCategory = zod.enum([
+/** Schemas */
+const $ChronicleCategory = zod.enum([
   "education",
   "internship",
   "work experience",
 ]);
 
-export default ChronicleCategory;
+export default $ChronicleCategory;
+
+/** Types */
+export type ChronicleCategory = zod.infer<typeof $ChronicleCategory>;
