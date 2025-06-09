@@ -6,8 +6,6 @@ async function createChronicle(data: Chronicle) {
 
   const user_id = (await supabase.auth.getUser()).data.user?.id;
 
-  console.log(data);
-
   if (!user_id) {
     throw new Error("User not authenticated");
   }

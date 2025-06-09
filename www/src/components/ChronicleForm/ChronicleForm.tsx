@@ -1,5 +1,5 @@
 import $Chroncile, { Chronicle } from "@/utils/schemas/Chronicle";
-import createChronicle from "@/utils/supabase/api/create/createChronicle";
+import createChronicle from "@/utils/supabase/api/chronicle/createChronicle";
 import { createClient } from "@/utils/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input } from "@monolithium/next/components";
