@@ -1,9 +1,9 @@
 import zod from "zod";
 
-const chronicle_category = zod.enum([
+const ChronicleCategory = zod.enum([
   "education",
   "internship",
   "work experience",
 ]);
 
-export default chronicle_category;
+export default ChronicleCategory;

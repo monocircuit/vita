@@ -1,18 +1,16 @@
-import { RecordModel } from "pocketbase";
+import zod from "zod";
+import ChronicleOrientation from "./enumerated-types/ChronicleOrientation";
 
-interface ChronicleRelation extends RecordModel {
-  user: string;
-  chronicle: string;
+zod.object({
+  id: zod.number({ required_error: "ID is required" }),
 
-  name: string;
+  ancestor_id: zod.string({
+    description:
+      "The ancestor or parent ChronicleRelation of this ChronicleRelation.",
+  }),
 
-  parent: string;
-  children: string[];
+  orientation: ChronicleOrientation,
 
-  orientation: boolean;
-
-  created: Date;
-  updated: Date;
-}
-
-export default ChronicleRelation;
+  created_at: zod.date(),
+  updated_at: zod.date(),
+});
