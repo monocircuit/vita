@@ -1,61 +1,21 @@
 "use client";
 
-import ChronicleForm from "@/components/ChronicleForm/ChronicleForm";
-import { Profile } from "@/utils/schemas/Profile";
-import { createClient } from "@/utils/supabase/client";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import { Button } from "@monolithium/next/components";
 import { SourceSans3 } from "@monolithium/next/fonts";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import ChronicleTab from "./tabs/ChronicleTab";
 
-const loadProfile = async () => {
-  const supabase = createClient();
+import { useOwnProfileData } from "@/utils/supabase/api/profiles/getOwnProfile";
 
-  const userId = (await supabase.auth.getUser()).data.user?.id;
-
-  if (!userId) {
-    console.error("User not authenticated");
-  }
-
-  const { data, error } = await supabase
-    .from("profiles")
-    .select()
-    .eq("id", userId)
-    .single();
-
-  if (error) {
-    console.error(error);
-  }
-
-  return {
-    id: data.id,
-    avatarUrl: data.avatar_url,
-    dayOfBirth: data.date_of_birth,
-    firstName: data.first_name,
-    lastName: data.last_name,
-    maritalStatus: data.marital_status,
-  } as Profile;
-};
+import ChronicleView from "@/components/features/dashboard/ChronicleView";
+import DashboardHeader from "@/components/features/dashboard/DashboardHeader";
 
 const Page = () => {
-  /** ANCHOR: State */
-  const [profile, setProfile] = useState<Profile>({ id: "Not loaded yet" });
-
   /** ANCHOR: Router */
   const router = useRouter();
 
   /** ANCHOR: SearchParams */
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-    (async () => {
-      const profile = await loadProfile();
-
-      console.log(profile);
-      setProfile(profile);
-    })();
-  });
 
   return (
     <div
@@ -64,9 +24,9 @@ const Page = () => {
     >
       <div
         id="dashboard__header"
-        className="w-full border-secondary border-solid border-b-(length:--stroke) flex items-center justify-center"
+        className={`w-full border-secondary border-solid border-b-(length:--stroke) flex items-center justify-center`}
       >
-        {`${profile.firstName} ${profile.lastName} | uuid: ${profile.id}`}
+        <DashboardHeader />
       </div>
       <div
         id="dashboard__body"
@@ -95,7 +55,7 @@ const Page = () => {
             }}
           />
         </div>
-        {searchParams.get("tab") == "chronicles" && <ChronicleTab />}
+        {searchParams.get("tab") == "chronicles" && <ChronicleView />}
       </div>
     </div>
   );

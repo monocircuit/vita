@@ -1,4 +1,4 @@
-/** Loads the @monolithium tailwind classes */
+/** Loads the @monolithium tailwind layer */
 @import "@monolithium/next/tailwind";
 /** Scans the @monolithium codebase for Tailwind classes. */
 @source "../../node_modules/@monolithium/next/.dist/";

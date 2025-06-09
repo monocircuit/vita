@@ -1,27 +1,52 @@
+import { Profile } from "@/utils/schemas/Profile";
 import { createClient } from "../../client";
+import useSWR from "swr";
 
 export async function getOwnProfile() {
-    const supabase = await createClient();
+  const supabase = createClient();
 
-    const {
-        data: { user },
-        error: userError
-    } = await supabase.auth.getUser();
+  console.log("fetch own profile");
 
-    if (userError) {
-        console.error('Error fetching user:', userError);
-        return null;
-    }
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-    const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id);
+  if (userError) {
+    console.error("Error fetching user:", userError);
+    return null;
+  }
 
-    if (profileError) {
-        console.error('Error fetching profile:', profileError);
-        return null;
-    }
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user?.id)
+    .single();
 
-    return profiles;
+  if (profileError) {
+    console.error("Error fetching profile:", profileError);
+    return null;
+  }
+
+  return {
+    /**
+     * Maps the profile fields to the Profile schema.
+     */
+    id: profile.id,
+    firstName: profile.first_name,
+    lastName: profile.last_name,
+    avatarUrl: profile.avatar_url,
+    dayOfBirth: profile.day_of_birth,
+    maritalStatus: profile.marital_status,
+  } as Profile;
 }
+
+export const useOwnProfileData = () => {
+  const { data, error, isLoading } = useSWR("own_profile", getOwnProfile);
+
+  return {
+    ownProfile: data,
+    ownProfileError: error,
+    isOwnProfileLoading: isLoading,
+  };
+};

@@ -1,15 +1,15 @@
 /**
- * Loads all custom tailwind classes and themes into the project.
- */
-@import './tailwind.css';
-
-/**
  * Adds all Tailwind classes to the globally available classes.
  * 
  * It also does the DOM-CleanUp, so adding * {} padding 0 and margin 0
  * is already done through the base layer of Tailwind.
  */
 @import 'tailwindcss';
+
+/**
+ * Loads all custom tailwind classes and themes into the project.
+ */
+@import './tailwind.css';
 
 * {
     scrollbar-width: none;
