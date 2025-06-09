@@ -16,7 +16,7 @@ import {
 } from "@/components/SignUp/functions/signup";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-const SignUp: React.FunctionComponent = () => {
+const SignUp: React.FunctionComponent<{ ButtonFunction?: () => void }> = ({ ButtonFunction }) => {
   /** ANCHOR: Actions */
 
   /** ANCHOR: Forms */
@@ -77,6 +77,7 @@ const SignUp: React.FunctionComponent = () => {
         </form>
       </div>
       <Button
+        onClick={() => ButtonFunction?.()}
         className={styles["signin__alt"]}
         text="Have an Account?"
       ></Button>

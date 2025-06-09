@@ -1,5 +1,6 @@
 "use client"
 
+import { redirect } from 'next/navigation'
 import { createClient } from "../../../utils/supabase/client";
 import { z, ZodType } from "zod";
 
@@ -20,9 +21,9 @@ export const signIn = async (formData: signInFormData) => {
 
     const email = formData.email;
     const password = formData.password;
-    console.log("twst")
-    if (email && password ) {
+    if (email && password) {
         try {
+
             const { data, error } = await supabase.auth.signInWithPassword({
                 email: email as string,
                 password: password as string,
@@ -30,9 +31,15 @@ export const signIn = async (formData: signInFormData) => {
 
             console.log(data);
 
-            throw error;
+            if (error) {
+                throw error;
+            }
+
         } catch (error) {
             console.log(error);
+        }
+        if (!!(await supabase.auth.getUser()).data.user) {
+            redirect('/dashboard')
         }
     }
 }

@@ -18,7 +18,7 @@ import { signIn, signInFormData, signInSchema } from "./functions/signIn";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 
-const SignIn: React.FunctionComponent = () => {
+const SignIn: React.FunctionComponent<{ ButtonFunction?: () => void }> = ({ ButtonFunction }) => {
 
   /** ANCHOR: Forms */
   const {
@@ -73,6 +73,7 @@ const SignIn: React.FunctionComponent = () => {
         </form>
       </div>
       <Button
+        onClick={() => ButtonFunction?.()}
         className={styles["signin__alt"]}
         text="Dont have an account?"
       ></Button>

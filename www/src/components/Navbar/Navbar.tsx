@@ -6,13 +6,11 @@
  */
 
 "use client";
-
-import { FunctionComponent, useRef, useState } from "react";
+import { FunctionComponent, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { Button, Popover } from "@monolithium/next/components";
-
 import scss from "./Navbar.module.scss";
 
 import profilePic from "@/assets/images/profilepic.jpg";
@@ -21,12 +19,15 @@ import SignUpGraphic from "@/assets/images/svg/signup2.svg";
 import MonocircuitLogo from "../../../public/static/icons/monocircuit.svg";
 
 import useOnScrollbarVisible from "@/hooks/useOnScrollbarVisible";
-
 import SignIn from "@/components/SignIn";
 import SignUp from "@/components/SignUp";
+import { createClient } from "@/utils/supabase/client";
+
+
 import Sign from "../Sign/Sign";
 
 const Navbar: FunctionComponent = () => {
+
   /** ANCHOR: References */
   const signInButton = useRef<HTMLDivElement>(null);
 
@@ -35,14 +36,25 @@ const Navbar: FunctionComponent = () => {
     useState<boolean>(false);
   const [isSignUpPopUpActive, setIsSignUpPopupActive] =
     useState<boolean>(false);
+  const [isSignedIn, setIsSignedIn] = useState<boolean | null>(null); // null = unknown
+
+  useEffect(() => {
+    const getUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsSignedIn(!!user);
+    };
+    getUser();
+  }, []);
 
   const router = useRouter();
 
-  const isSignedIn = false;
 
   useOnScrollbarVisible(() => {
     console.log("scollbar visible");
   }, []);
+
+
 
   return (
     <>
@@ -80,7 +92,10 @@ const Navbar: FunctionComponent = () => {
             ) : (
               <div className={scss["navbar__account__container__options"]}>
                 <Popover
-                  content={<SignIn />}
+                  content={<SignIn ButtonFunction={() => {
+                    setIsSignInPopupActive(false)
+                    setIsSignUpPopupActive(true)
+                  }} />}
                   className={
                     scss["navbar__account__container__options__signin__popup"]
                   }
@@ -96,7 +111,7 @@ const Navbar: FunctionComponent = () => {
                     ref={signInButton}
                     className={
                       scss[
-                        "navbar__account__container__options__signin__button"
+                      "navbar__account__container__options__signin__button"
                       ]
                     }
                     text="sign in"
@@ -113,7 +128,10 @@ const Navbar: FunctionComponent = () => {
                   }
                 ></div>
                 <Popover
-                  content={<Sign signUp />}
+                  content={<SignUp ButtonFunction={() => {
+                    setIsSignUpPopupActive(false)
+                    setIsSignInPopupActive(true)
+                  }} />}
                   className={
                     scss["navbar__account__container__options__signin__popup"]
                   }

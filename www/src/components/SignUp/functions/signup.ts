@@ -12,12 +12,12 @@ export interface signUpFormData {
 export const signUpSchema: ZodType<signUpFormData> = z.object({
     email: z.string({
         required_error: 'Email is required!',
-    }).email({ message: "Email no Email!" }),
+    }).email( { message: "Email no Email!" }),
     password: z.string({ required_error: 'Password is required!' }).min(8, { message: "Too Short" }).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, { message: "One LowerCase, One UpperCase, one Number, one Special Character" }),
     passwordconfirm: z.string({ required_error: 'Password is required!' })
 }).refine((data) => data.password === data.passwordconfirm, {
     message: "Passwords do not match",
-    path: ["confirmPassword"],
+    path: ["passwordconfirm"],
 });
 
 
