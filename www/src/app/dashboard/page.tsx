@@ -18,6 +18,9 @@ const loadProfile = async () => {
     console.error("User not authenticated");
   }
 
+
+
+
   const { data, error } = await supabase
     .from("profiles")
     .select()

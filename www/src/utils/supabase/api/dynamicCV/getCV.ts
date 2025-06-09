@@ -1,14 +1,14 @@
 import { createClient } from "../../client";
 
-export async function getChronicles() {
-    const supabase = createClient();
+export async function getCV(id: string) {
+    const supabase = await createClient();
 
     const { data: chronicles, error } = await supabase
-        .from('chronicles')
+        .from('dynamic_views')
         .select('*');
 
     if (error) {
-        console.error('Error fetching Chronicles:', error);
+        console.error('Error fetching profiles:', error);
         return [];
     }
 
