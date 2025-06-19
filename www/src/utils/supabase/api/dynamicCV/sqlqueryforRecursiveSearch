@@ -1,0 +1,76 @@
+create or replace function getCV(name text, userid uuid)
+returns json
+language sql
+as $$
+
+WITH RECURSIVE ancestor_tree AS (
+
+  SELECT
+    cr.id AS relation_id,
+    cr.ancestor,
+    cr.orientation,
+    cr.created_at AS relation_created_at,
+    cr.updated_at AS relation_updated_at,
+
+    c.id AS chronicle_id,
+    c.title,
+    c.description,
+    c.category,
+    c.scope,
+    c.entity_id,
+    c.knots,
+    c.created_at AS chronicle_created_at,
+    c.updated_at AS chronicle_updated_at
+  FROM dynamic_views dv
+  JOIN chronicles_relations cr ON cr.id = dv.chronicle_relation
+  JOIN chronicles c ON c.id = cr.chronicle_id
+  WHERE dv.name = name
+    AND dv.user_id = userid
+
+  UNION ALL
+
+
+  SELECT
+    cr_prev.id AS relation_id,
+    cr_prev.ancestor,
+    cr_prev.orientation,
+    cr_prev.created_at AS relation_created_at,
+    cr_prev.updated_at AS relation_updated_at,
+
+    c_prev.id AS chronicle_id,
+    c_prev.title,
+    c_prev.description,
+    c_prev.category,
+    c_prev.scope,
+    c_prev.entity_id,
+    c_prev.knots,
+    c_prev.created_at AS chronicle_created_at,
+    c_prev.updated_at AS chronicle_updated_at
+  FROM chronicles_relations cr_prev
+  JOIN ancestor_tree at ON cr_prev.id = at.ancestor
+  JOIN chronicles c_prev ON c_prev.id = cr_prev.chronicle_id
+)
+
+SELECT json_agg(
+  json_build_object(
+    'relation_id', at.relation_id,
+    'ancestor', at.ancestor,
+    'orientation', at.orientation,
+    'created_at', at.relation_created_at,
+    'updated_at', at.relation_updated_at,
+    'chronicle', json_build_object(
+      'id', at.chronicle_id,
+      'title', at.title,
+      'description', at.description,
+      'category', at.category,
+      'scope', at.scope,
+      'entity_id', at.entity_id,
+      'knots', at.knots,
+      'created_at', at.chronicle_created_at,
+      'updated_at', at.chronicle_updated_at
+    )
+  )
+)
+
+FROM ancestor_tree at;
+$$;

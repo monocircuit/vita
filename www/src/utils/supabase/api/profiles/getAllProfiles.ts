@@ -1,3 +1,4 @@
+import useSWR from "swr";
 import { createClient } from "../../client";
 
 export async function getAllProfiles() {
@@ -10,5 +11,18 @@ export async function getAllProfiles() {
     return [];
   }
 
+
   return profiles;
 }
+
+
+export const useAllProfiles = () => {
+  const { data, error, isLoading } = useSWR("all_profile", getAllProfiles);
+
+  return {
+    allProfile: data,
+    allProfileError: error,
+    isAllProfileLoading: isLoading,
+  };
+};
+
