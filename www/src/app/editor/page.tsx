@@ -19,7 +19,7 @@ const Page = (props: Props) => {
 
   return (
     <div className="size-full">
-      <ChronicleSelect submitFunction={() => { }}></ChronicleSelect>
+      <ChronicleSelect submitFunction={() => {}}></ChronicleSelect>
     </div>
   );
 };
