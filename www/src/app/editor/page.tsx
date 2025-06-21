@@ -1,5 +1,6 @@
 "use client";
 
+import ChronicleSelect from "@/components/ChronicleSelect/chronicleSelect";
 import DynamicView from "@/components/DynamicView/DynamicView";
 import { createClient } from "@/utils/supabase/client";
 import React, { useEffect } from "react";
@@ -18,7 +19,7 @@ const Page = (props: Props) => {
 
   return (
     <div className="size-full">
-      <DynamicView></DynamicView>
+      <ChronicleSelect></ChronicleSelect>
     </div>
   );
 };

@@ -14,6 +14,10 @@ export const $ChronicleOverhead = zod.object({
 });
 
 const $Chroncile = zod.object({
+  id: zod.number({
+    description:
+      "Unique identifier for the Chronicle. Automatically generated.",
+  }),
   entity_id: zod.string({
     description:
       "The entity this Chronicle is connected with or was achieved with.",
