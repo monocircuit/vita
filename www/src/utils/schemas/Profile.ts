@@ -1,5 +1,5 @@
 import zod from "zod";
-import $MaritalStatus from "./enumerated-types/MaritalStatus";
+import { $MaritalStatus } from "./enumerated-types/MaritalStatus";
 
 /** Schemas */
 export const $ProfileOverhead = zod.object({
@@ -8,7 +8,7 @@ export const $ProfileOverhead = zod.object({
     .describe("unique identifier of the user profile"),
 });
 
-const $Profile = zod.object({
+export const $Profile = zod.object({
   id: zod
     .string({ required_error: "ID is requiered" })
     .describe("unique identifier of the user profile"),
@@ -24,8 +24,6 @@ const $Profile = zod.object({
     .describe("URL to the profile picture of the user")
     .optional(),
 });
-
-export default $Profile;
 
 /** Types */
 export type Profile = zod.infer<typeof $Profile>;

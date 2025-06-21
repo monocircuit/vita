@@ -1,6 +1,6 @@
 import zod from "zod";
-import $ChronicleCategory from "@/utils/schemas/enumerated-types/ChronicleCategory";
-import $Scope from "./enumerated-types/Scope";
+import { $ChronicleCategory } from "@/utils/schemas/enumerated-types/ChronicleCategory";
+import { $Scope } from "./enumerated-types/Scope";
 
 /** Schemas */
 export const $ChronicleOverhead = zod.object({
@@ -13,11 +13,7 @@ export const $ChronicleOverhead = zod.object({
   }),
 });
 
-const $Chroncile = zod.object({
-  id: zod.number({
-    description:
-      "Unique identifier for the Chronicle. Automatically generated.",
-  }),
+export const $Chroncile = zod.object({
   entity_id: zod.string({
     description:
       "The entity this Chronicle is connected with or was achieved with.",
@@ -39,8 +35,6 @@ const $Chroncile = zod.object({
   category: $ChronicleCategory,
   scope: $Scope,
 });
-
-export default $Chroncile;
 
 /** Types */
 export type Chronicle = zod.infer<typeof $Chroncile>;

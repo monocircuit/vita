@@ -1,3 +1,4 @@
+import { SourceSans3 } from "@monolithium/next/fonts";
 import React from "react";
 
 interface CardTextProps {
@@ -5,7 +6,7 @@ interface CardTextProps {
 }
 
 const CardText = (props: CardTextProps) => {
-  return <div id="card-text">{props.children}</div>;
+  return <div id={`card-text ${SourceSans3.className}`}>{props.children}</div>;
 };
 
 export default CardText;

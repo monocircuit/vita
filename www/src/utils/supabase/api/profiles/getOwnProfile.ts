@@ -5,8 +5,6 @@ import useSWR from "swr";
 export async function getOwnProfile() {
   const supabase = createClient();
 
-  console.log("fetch own profile");
-
   const {
     data: { user },
     error: userError,

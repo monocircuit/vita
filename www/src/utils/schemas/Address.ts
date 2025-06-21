@@ -1,7 +1,11 @@
 import zod from "zod";
 
-const Address = zod.object({
+/** Schemas */
+export const $AddressOverhead = zod.object({
   id: zod.number({ required_error: "ID is required" }),
+});
+
+export const $Address = zod.object({
   street_name: zod.string(),
   house_number: zod.string(),
   postal_code: zod.string(),
@@ -12,4 +16,6 @@ const Address = zod.object({
   updated_at: zod.date(),
 });
 
-export default Address;
+/** Types */
+export type Address = zod.infer<typeof $Address>;
+export type AddressOverhead = zod.infer<typeof $AddressOverhead>;

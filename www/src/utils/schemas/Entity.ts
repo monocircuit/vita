@@ -6,7 +6,7 @@ export const $EntityOverhead = zod.object({
   id: zod.number({ required_error: "ID is required" }),
 });
 
-const $Entity = zod.object({
+export const $Entity = zod.object({
   name: zod.string(),
   address_id: zod.string(),
 
@@ -15,8 +15,6 @@ const $Entity = zod.object({
   created_at: zod.date(),
   updated_at: zod.date(),
 });
-
-export default $Entity;
 
 /** Types */
 export type Entity = zod.infer<typeof $Entity>;

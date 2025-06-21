@@ -1,16 +1,13 @@
 import { createClient } from "../../client";
 
-export async function getCV(id: string) {
+export async function getCV(name: string, Userid: string) {
     const supabase = await createClient();
-
-    const { data: chronicles, error } = await supabase
-        .from('dynamic_views')
-        .select('*');
+    const { data: cv, error } = await supabase.rpc("getcv", { inputname: name, inputuserid: id })
 
     if (error) {
-        console.error('Error fetching profiles:', error);
+        console.error('Error fetching cv:', error);
         return [];
     }
 
-    return chronicles;
+    return cv;
 }

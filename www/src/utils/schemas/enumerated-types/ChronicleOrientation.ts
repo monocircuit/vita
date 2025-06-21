@@ -1,9 +1,7 @@
 import zod from "zod";
 
 /** Schemas */
-const $ChronicleOrientation = zod.enum(["above", "below", "neutral"]);
-
-export default $ChronicleOrientation;
+export const $ChronicleOrientation = zod.enum(["above", "below", "neutral"]);
 
 /** Types */
 export type ChronicleOrientation = zod.infer<typeof $ChronicleOrientation>;

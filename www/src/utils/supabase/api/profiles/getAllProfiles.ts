@@ -1,7 +1,8 @@
+import useSWR from "swr";
 import { createClient } from "../../client";
 
 export async function getAllProfiles() {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data: profiles, error } = await supabase.from("profiles").select("*");
 
@@ -10,5 +11,18 @@ export async function getAllProfiles() {
     return [];
   }
 
+
   return profiles;
 }
+
+
+export const useAllProfiles = () => {
+  const { data, error, isLoading } = useSWR("all_profile", getAllProfiles);
+
+  return {
+    allProfile: data,
+    allProfileError: error,
+    isAllProfileLoading: isLoading,
+  };
+};
+

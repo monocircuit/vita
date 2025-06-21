@@ -4,14 +4,14 @@ import { createClient } from "@/utils/supabase/client";
 async function createChronicle(data: Chronicle) {
   const supabase = createClient();
 
-  const user_id = (await supabase.auth.getUser()).data.user?.id;
+  const userId = (await supabase.auth.getUser()).data.user?.id;
 
-  if (!user_id) {
+  if (!userId) {
     throw new Error("User not authenticated");
   }
 
   await supabase.from("chronicles").insert({
-    user_id,
+    user_id: userId,
     ...data,
   });
 }
