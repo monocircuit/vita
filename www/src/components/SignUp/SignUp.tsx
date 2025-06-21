@@ -5,7 +5,7 @@ import React, { useActionState } from "react";
 import { Button, Input } from "@monolithium/next/components";
 
 import SigninGraphic from "@/assets/images/svg/login2.svg";
-import { SourceSans3 } from "@/utils/fonts";
+import { SourceSans3 } from "@monolithium/next/fonts";
 
 import styles from "./SignUp.module.scss";
 import { useForm } from "react-hook-form";
@@ -16,7 +16,9 @@ import {
 } from "@/components/SignUp/functions/signup";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-const SignUp: React.FunctionComponent<{ ButtonFunction?: () => void }> = ({ ButtonFunction }) => {
+const SignUp: React.FunctionComponent<{ ButtonFunction?: () => void }> = ({
+  ButtonFunction,
+}) => {
   /** ANCHOR: Actions */
 
   /** ANCHOR: Forms */

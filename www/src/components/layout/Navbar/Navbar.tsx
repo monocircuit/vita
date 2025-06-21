@@ -16,14 +16,14 @@ import scss from "./Navbar.module.scss";
 import profilePic from "@/assets/images/profilepic.jpg";
 import SignInGraphic from "@/assets/images/svg/login2.svg";
 import SignUpGraphic from "@/assets/images/svg/signup2.svg";
-import MonocircuitLogo from "../../../public/static/icons/monocircuit.svg";
+import MonocircuitLogo from "../../../../public/static/icons/monocircuit.svg";
 
 import useOnScrollbarVisible from "@/hooks/useOnScrollbarVisible";
 import SignIn from "@/components/SignIn";
 import SignUp from "@/components/SignUp";
 import { createClient } from "@/utils/supabase/client";
 
-import Sign from "../Sign/Sign";
+import Sign from "../../Sign/Sign";
 
 const Navbar: FunctionComponent = () => {
   /** ANCHOR: References */

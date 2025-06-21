@@ -11,7 +11,7 @@ import { useClassName } from "@monolithium/next/hooks";
 import Cross from "@/assets/images/png/sharp_line/delete.png";
 import SigninGraphic from "@/assets/images/svg/login2.svg";
 
-import { SourceSans3 } from "@/utils/fonts";
+import { SourceSans3 } from "@monolithium/next/fonts";
 import styles from "./SignIn.module.scss";
 import { signIn, signInFormData, signInSchema } from "./functions/signIn";
 import { zodResolver } from "@hookform/resolvers/zod";

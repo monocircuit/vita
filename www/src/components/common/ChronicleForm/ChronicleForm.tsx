@@ -1,11 +1,9 @@
-import $Chroncile, { Chronicle } from "@/utils/schemas/Chronicle";
+import { $Chroncile, Chronicle } from "@/utils/schemas/Chronicle";
 import createChronicle from "@/utils/supabase/api/chronicle/createChronicle";
-import { createClient } from "@/utils/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input } from "@monolithium/next/components";
 import React from "react";
 import { useForm } from "react-hook-form";
-import zod from "zod";
 
 const ChronicleForm = () => {
   /** ANCHOR: Forms */

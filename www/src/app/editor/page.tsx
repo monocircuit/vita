@@ -1,6 +1,6 @@
 "use client";
 
-import DynamicView from "@/components/DynamicView/DynamicView";
+import DynamicView from "@/components/features/editor/DynamicView/DynamicView";
 import { createClient } from "@/utils/supabase/client";
 import React, { useEffect } from "react";
 
