@@ -1,20 +1,19 @@
 "use client";
 
 import DynamicView from "@/components/features/editor/DynamicView/DynamicView";
+import { useOwnChroniclesData } from "@/utils/supabase/api/chronicle/readOwnChronicles";
+import inferDynamicVita from "@/utils/supabase/api/vitas/dynamic/inferDynamicVita";
 import { createClient } from "@/utils/supabase/client";
 import React, { useEffect } from "react";
 
 interface Props {}
 
 const Page = (props: Props) => {
-  useEffect(() => {
-    const getUser = async () => {
-      const client = createClient();
-      console.log(await client.auth.getSession());
-    };
+  const { ownChronicles } = useOwnChroniclesData();
 
-    getUser();
-  }, []);
+  useEffect(() => {
+    if (ownChronicles) inferDynamicVita(ownChronicles);
+  }, [ownChronicles]);
 
   return (
     <div className="size-full">

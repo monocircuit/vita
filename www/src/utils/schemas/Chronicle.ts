@@ -26,16 +26,23 @@ export const $Chroncile = zod.object({
       "Detailed description or additional information about the Chronicle.",
   }),
   knots: zod
-    .date()
+    .array(zod.number())
     .describe(
       "List of dates representing anchor points for the rendering of the Chronicle.",
-    )
-    .optional(),
-
+    ),
   category: $ChronicleCategory,
   scope: $Scope,
+});
+
+export const $LinearChronicle = $Chroncile.extend({
+  knots: zod.object({
+    start: zod.number(),
+    end: zod.number(),
+  }),
 });
 
 /** Types */
 export type Chronicle = zod.infer<typeof $Chroncile>;
 export type ChronicleOverhead = zod.infer<typeof $ChronicleOverhead>;
+
+export type LinearChronicle = zod.infer<typeof $LinearChronicle>;

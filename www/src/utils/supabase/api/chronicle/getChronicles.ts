@@ -1,16 +1,16 @@
 import { createClient } from "../../client";
 
 export async function getChronicles() {
-    const supabase = createClient();
+  const supabase = createClient();
 
-    const { data: chronicles, error } = await supabase
-        .from('chronicles')
-        .select('*');
+  const { data: chronicles, error } = await supabase
+    .from("chronicles")
+    .select("*");
 
-    if (error) {
-        console.error('Error fetching Chronicles:', error);
-        return [];
-    }
+  if (error) {
+    console.error("Error fetching Chronicles:", error);
+    return [];
+  }
 
-    return chronicles;
+  return chronicles;
 }

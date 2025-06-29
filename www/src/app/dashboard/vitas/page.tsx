@@ -1,7 +1,7 @@
 "use client";
 
 import VitaForm from "@/components/common/VitaForm";
-import { useOwnDynamicVitas } from "@/utils/supabase/api/vitas/readOwnDynamicVitas";
+import { useOwnDynamicVitas } from "@/utils/supabase/api/vitas/dynamic/readOwnDynamicVitas";
 import { Button, Popover } from "@monolithium/next/components";
 import React, { useEffect, useState } from "react";
 import {

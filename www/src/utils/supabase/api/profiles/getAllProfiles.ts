@@ -11,10 +11,8 @@ export async function getAllProfiles() {
     return [];
   }
 
-
   return profiles;
 }
-
 
 export const useAllProfiles = () => {
   const { data, error, isLoading } = useSWR("all_profile", getAllProfiles);
@@ -25,4 +23,3 @@ export const useAllProfiles = () => {
     isAllProfileLoading: isLoading,
   };
 };
-
