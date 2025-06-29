@@ -1,0 +1,255 @@
+{
+  "main": {
+    "id": "05f0eee06ea573a3",
+    "type": "split",
+    "children": [
+      {
+        "id": "9b52f863358fcff2",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "dd654cd3aea2c072",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Vita/Chronicle.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Chronicle"
+            }
+          },
+          {
+            "id": "c4d153f5cf4128d4",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Vita/Dynamic/Integrating Chronicle Paths into Supabase.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Integrating Chronicle Paths into Supabase"
+            }
+          },
+          {
+            "id": "c5b89ac916b40f45",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Vita/Dynamic/Integrating Chronicle Paths into Supabase.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Integrating Chronicle Paths into Supabase"
+            }
+          },
+          {
+            "id": "dc3889a0293f9d93",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Vita/Dynamic/ChroniclePath.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ChroniclePath"
+            }
+          },
+          {
+            "id": "209753ad96f9fc28",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Vita/Dynamic/Integrating Chronicle Paths into Supabase.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Integrating Chronicle Paths into Supabase"
+            }
+          }
+        ],
+        "currentTab": 4
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "4735fdf164844c3b",
+    "type": "split",
+    "children": [
+      {
+        "id": "69a0f49d8166eb95",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a9ac5f7133afec96",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "2f29e9cfe4447d4d",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "887d4f313c0d9aa1",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 338.5
+  },
+  "right": {
+    "id": "38067fc3af3abedf",
+    "type": "split",
+    "children": [
+      {
+        "id": "1c9ef21e8af4fde0",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "359e088afb1ed7b8",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Vita/ChronicleRelation.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for ChronicleRelation"
+            }
+          },
+          {
+            "id": "4e0ee75de4d67e15",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Vita/ChronicleRelation.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from ChronicleRelation"
+            }
+          },
+          {
+            "id": "8a43b5ec1afba8dd",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "2fff679fe5f57a8a",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Untitled.canvas",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of Untitled"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "obsidian-excalidraw-plugin:New drawing": false
+    }
+  },
+  "active": "209753ad96f9fc28",
+  "lastOpenFiles": [
+    "Vita/Chronicle.md",
+    "Vita/Dynamic/ChronicleKnot.md",
+    "Vita/Dynamic/ChroniclePath.md",
+    "Vita/Dynamic/DynamicVita.md",
+    "Vita/ChronicleRelation.md",
+    "Vita/Vita.md",
+    "Excalidraw/Drawing 2025-06-22 23.58.01.excalidraw.md",
+    "Excalidraw/Drawing 2025-06-22 23.59.00.excalidraw.md",
+    "Excalidraw/Drawing 2025-06-22 23.58.56.excalidraw.md",
+    "Excalidraw",
+    "Untitled.canvas",
+    "Untitled",
+    "Vita/Dynamic/Integrating Chronicle Paths into Supabase.md",
+    "Vita/Dynamic/Maneuvers.md",
+    "Vita/Static/StaticVita.md",
+    "Vita/Dynamic/Maneuvers/TakeOver.md",
+    "Vita/Dynamic/Maneuvers",
+    "Chronicles.md",
+    "Vita/Static",
+    "Vita/ChronicleCategory.md",
+    "Welcome.md",
+    "Vita/Dynamic",
+    "Vita"
+  ]
+}
