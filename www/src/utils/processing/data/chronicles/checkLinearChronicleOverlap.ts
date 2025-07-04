@@ -1,6 +1,6 @@
 import { LinearChronicle } from "@/utils/schemas/Chronicle";
 
-const checkOverlapOnLinearChronicles = (
+const checkLinearChronicleOverlap = (
   linearChronicleA: LinearChronicle,
   linearChronicleB: LinearChronicle,
 ) => {
@@ -18,4 +18,4 @@ const checkOverlapOnLinearChronicles = (
   );
 };
 
-export default checkOverlapOnLinearChronicles;
+export default checkLinearChronicleOverlap;

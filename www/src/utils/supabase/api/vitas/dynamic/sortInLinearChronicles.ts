@@ -1,7 +1,7 @@
 import { LinearChronicle } from "@/utils/schemas/Chronicle";
-import sortLinearChronicles from "../../chronicle/sortLinearChronicles";
+import alignLinearChronicles from "../../../../processing/data/chronicles/alignLinearChronicles";
 import LayeredTree from "@/utils/structures/LayeredTree";
-import getLaneDeltas from "./getLaneDeltas";
+import getLinearChronicleDeltas from "../../../../processing/data/chronicles/getLinearChronicleDeltas";
 
 const findLatestChronicle = (layeredTrees: LayeredTree<LinearChronicle>[]) => {
   let latestChronicle = layeredTrees[0].lastValue;
@@ -16,19 +16,30 @@ const findLatestChronicle = (layeredTrees: LayeredTree<LinearChronicle>[]) => {
 };
 
 const sortInLinearChronicle = (linearChronicles: LinearChronicle[]) => {
-  const sortedLinearChronicles = sortLinearChronicles(linearChronicles);
+  const sortedLinearChronicles = alignLinearChronicles(linearChronicles);
 
   const layeredTree = new LayeredTree<LinearChronicle>({
     embeddedSortIn: (context, chronicle, comparator) => {
       const flattened = context.flattened;
       let cachedIndex = 0;
 
+      for (let i = 0; i < flattened.length; i++) {
+        const currentDeltas = getLinearChronicleDeltas(
+          chronicle,
+          flattened[i].lastValue,
+        );
+        const winningDeltas = getLinearChronicleDeltas(
+          chronicle,
+          flattened[cachedIndex].lastValue,
+        );
+      }
+
       flattened.forEach((currentLayeredTree, i) => {
-        const currentDeltas = getLaneDeltas(
+        const currentDeltas = getLinearChronicleDeltas(
           chronicle,
           currentLayeredTree.lastValue,
         );
-        const winningDeltas = getLaneDeltas(
+        const winningDeltas = getLinearChronicleDeltas(
           chronicle,
           flattened[cachedIndex].lastValue,
         );
@@ -54,3 +65,5 @@ const sortInLinearChronicle = (linearChronicles: LinearChronicle[]) => {
     },
   });
 };
+
+export default alignLinearChronicles;

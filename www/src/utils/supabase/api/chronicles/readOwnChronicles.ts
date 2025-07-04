@@ -1,5 +1,4 @@
 import { Chronicle, ChronicleOverhead } from "@/utils/schemas/Chronicle";
-import { Chronicle, ChronicleOverhead } from "@/utils/schemas/Chronicle";
 import { createClient } from "@/utils/supabase/client";
 import useSWR from "swr";
 

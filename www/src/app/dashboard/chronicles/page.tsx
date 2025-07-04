@@ -3,7 +3,7 @@
 import ChronicleForm from "@/components/common/ChronicleForm/ChronicleForm";
 import Card from "@/components/common/Card";
 import CardText from "@/components/common/Card/CardText";
-import { useOwnChroniclesData } from "@/utils/supabase/api/chronicle/readOwnChronicles";
+import { useOwnChroniclesData } from "@/utils/supabase/api/chronicles/readOwnChronicles";
 import { Button, Popover, Scrollable } from "@monolithium/next/components";
 import React, { useState } from "react";
 

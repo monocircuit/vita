@@ -1,17 +1,13 @@
-import {
-  Chronicle,
-  ChronicleOverhead,
-  LinearChronicle,
-} from "@/utils/schemas/Chronicle";
+import { Chronicle, LinearChronicle } from "../../../schemas/Chronicle";
 
-const getLinearChronicles = (chronicles: (Chronicle & ChronicleOverhead)[]) => {
-  const linearChronicles: (LinearChronicle & ChronicleOverhead)[] = [];
-  const staticChronicles: (Chronicle & ChronicleOverhead)[] = [];
+const filterChronicles = (chronicles: Chronicle[]) => {
+  const linearChronicles: LinearChronicle[] = [];
+  const staticChronicles: Chronicle[] = [];
 
   chronicles.forEach(chronicle => {
-    if (!chronicle.knots) {
+    if (chronicle.knots.length == 0) {
       /** Sort out all StaticChronicles */
-      staticChronicles.push(chronicle as Chronicle & ChronicleOverhead);
+      staticChronicles.push(chronicle as Chronicle);
     } else if (chronicle.knots.length == 2) {
       /** Linearize all Chronicles, that is make them definable by two knots, if they have more */
       /** The readOwnChronicle() function guarantees that there will be at least two knots */
@@ -40,13 +36,25 @@ const getLinearChronicles = (chronicles: (Chronicle & ChronicleOverhead)[]) => {
 
         i += 2;
       }
+
+      /** If there is an even number of knots add the last knot */
+      if (i == chronicle.knots.length - 1) {
+        linearChronicles.push({
+          ...chronicle,
+          knots: {
+            /** In order to make the timestamps of the Chronicles comparable, they need to be called with .getTime() */
+            start: chronicle.knots[i],
+            end: Infinity,
+          },
+        });
+      }
     }
   });
 
   return {
-    linearChronicles,
-    staticChronicles,
+    linear: linearChronicles,
+    static: staticChronicles,
   };
 };
 
-export default getLinearChronicles;
+export default filterChronicles;

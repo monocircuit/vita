@@ -4,7 +4,7 @@ import {
   LinearChronicle,
 } from "@/utils/schemas/Chronicle";
 import { createClient } from "@/utils/supabase/client";
-import getLinearChronicles from "../chronicle/getLinearChronicles";
+import getLinearChronicles from "../vitas/dynamic/algorithm/getLinearChronicles";
 import LayeredTree from "@/utils/structures/LayeredTree";
 
 const sortLinearlyTiedChronicles = (

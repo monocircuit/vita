@@ -1,16 +1,16 @@
 import { ChronicleOverhead, LinearChronicle } from "@/utils/schemas/Chronicle";
-import sortLinearChronicles from "./sortLinearChronicles";
+import alignLinearChronicles from "./alignLinearChronicles";
 import LayeredTree, {
   LayeredTreeOrientation,
 } from "@/utils/structures/LayeredTree";
-import checkOverlapOnLinearChronicles from "./checkOverlapOnLinearChronicles";
-import getLaneDeltas from "../vitas/dynamic/getLaneDeltas";
-import { VITA_DYNAMIC_MANEUVERS_TAKEOVER_MIN_SPACE } from "../vitas/dynamic/dynamicVitaConstants";
+import checkLinearChronicleOverlap from "./checkLinearChronicleOverlap";
+import getLinearChronicleDeltas from "./getLinearChronicleDeltas";
+import { VITA_DYNAMIC_MANEUVERS_TAKEOVER_MIN_SPACE } from "../../../supabase/api/vitas/dynamic/dynamicVitaConstants";
 
 const sortInLinearChronicle = (
   linearChronicles: (LinearChronicle & ChronicleOverhead)[],
 ) => {
-  const sortedLinearChronicles = sortLinearChronicles(linearChronicles);
+  const sortedLinearChronicles = alignLinearChronicles(linearChronicles);
 
   const layeredTree = new LayeredTree<LinearChronicle & ChronicleOverhead>({
     embeddedSortIn(context, value, comparator) {
@@ -26,7 +26,7 @@ const sortInLinearChronicle = (
         } else {
           /** Both current and previous Chronicles are finite */
           if (currentLayeredValue.knots.end && previousLayeredValue.knots.end) {
-            const laneDeltas = getLaneDeltas(
+            const laneDeltas = getLinearChronicleDeltas(
               currentLayeredValue,
               previousLayeredValue,
             );
