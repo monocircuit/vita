@@ -9,7 +9,7 @@ class ButterflyStack<Value> {
   private positiveLayers: Value[][] = [];
   private negativeLayers: Value[][] = [];
 
-  constructor() {}
+  constructor() { }
 
   public getLatestPoints() {
     const points: ButterflyStackPoint<Value>[] = [];
