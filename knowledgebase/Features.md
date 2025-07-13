@@ -1,0 +1,2 @@
+- Enabling easy CV translation via AI
+- The Dynamic Engine can also be used for timetables
