@@ -11,196 +11,14 @@
             "id": "dd654cd3aea2c072",
             "type": "leaf",
             "state": {
-              "type": "excalidraw",
+              "type": "split-diff-view",
               "state": {
-                "file": "Vita/Dynamic/Maneuvers/TakeOver_Sketch.md"
+                "aFile": "knowledgebase/.obsidian/community-plugins.json",
+                "bFile": "knowledgebase/.obsidian/community-plugins.json",
+                "aRef": ""
               },
-              "icon": "excalidraw-icon",
-              "title": "TakeOver_Sketch"
-            }
-          },
-          {
-            "id": "c4d153f5cf4128d4",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Vita/Dynamic/Integrating Chronicle Paths into Supabase.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Integrating Chronicle Paths into Supabase"
-            }
-          },
-          {
-            "id": "c5b89ac916b40f45",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Vita/Dynamic/Integrating Chronicle Paths into Supabase.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Integrating Chronicle Paths into Supabase"
-            }
-          },
-          {
-            "id": "209753ad96f9fc28",
-            "type": "leaf",
-            "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
-            }
-          },
-          {
-            "id": "0047adb703e81daa",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Supabase/Integrating Chronicle Paths into Supabase.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Integrating Chronicle Paths into Supabase"
-            }
-          },
-          {
-            "id": "dfc6694cfcbe5b57",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Features.md",
-                "mode": "preview",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Features"
-            }
-          },
-          {
-            "id": "9c6e458378bc266d",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Vita/Vita.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Vita"
-            }
-          },
-          {
-            "id": "59ba364eff5216f3",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Vita/Different Forms of Vitas.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Different Forms of Vitas"
-            }
-          },
-          {
-            "id": "30bbdcc7f739df86",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Vita/Dynamic/Inferring the Dynamic Vita.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Inferring the Dynamic Vita"
-            }
-          },
-          {
-            "id": "657ab66338592397",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Vita/Chronicle.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Chronicle"
-            }
-          },
-          {
-            "id": "4a1918dceea9c271",
-            "type": "leaf",
-            "state": {
-              "type": "excalidraw",
-              "state": {
-                "file": "Vita/ChronicleRelation_Sketch.md"
-              },
-              "icon": "excalidraw-icon",
-              "title": "ChronicleRelation_Sketch"
-            }
-          },
-          {
-            "id": "08e238e3e14f4ee1",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Vita/Dynamic/Maneuvers/TakeOver.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "TakeOver"
-            }
-          },
-          {
-            "id": "9a50d24a756052a6",
-            "type": "leaf",
-            "state": {
-              "type": "excalidraw",
-              "state": {
-                "file": "Vita/Dynamic/Maneuvers/TakeOver_Sketch.md"
-              },
-              "icon": "excalidraw-icon",
-              "title": "TakeOver_Sketch"
-            }
-          },
-          {
-            "id": "f3b13e93c69ba557",
-            "type": "leaf",
-            "state": {
-              "type": "excalidraw",
-              "state": {
-                "file": "Vita/Dynamic/Elements/Lane.md"
-              },
-              "icon": "excalidraw-icon",
-              "title": "Lane"
-            }
-          },
-          {
-            "id": "ba968bdb5992a7d3",
-            "type": "leaf",
-            "state": {
-              "type": "excalidraw",
-              "state": {
-                "file": "Vita/Dynamic/Inferring the Dynamic Vita_Sketch.md"
-              },
-              "icon": "excalidraw-icon",
-              "title": "Inferring the Dynamic Vita_Sketch"
+              "icon": "diff",
+              "title": "Diff: community-plugins.json"
             }
           }
         ]
@@ -332,13 +150,23 @@
               "icon": "lucide-list",
               "title": "Outline of Untitled"
             }
+          },
+          {
+            "id": "ac61af9166ae1a0d",
+            "type": "leaf",
+            "state": {
+              "type": "git-view",
+              "state": {},
+              "icon": "git-pull-request",
+              "title": "Source Control"
+            }
           }
-        ]
+        ],
+        "currentTab": 4
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -348,39 +176,41 @@
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "obsidian-excalidraw-plugin:New drawing": false
+      "obsidian-excalidraw-plugin:New drawing": false,
+      "obsidian-git:Open Git source control": false
     }
   },
-  "active": "e67e81afd12aa080",
+  "active": "dd654cd3aea2c072",
   "lastOpenFiles": [
-    "Vita/Dynamic/Maneuvers/TakeOver_Sketch.md",
-    "Vita/Dynamic/Maneuvers/TakeOver.md",
+    "Excalidraw/normalize() 2025-08-04 14.15.48.excalidraw.md",
+    "Vita/Dynamic/Engine/normalize().md",
     "Vita/Dynamic/Engine/Inferring the Dynamic Vita_Sketch.md",
     "Vita/Dynamic/Engine/Inferring the Dynamic Vita.md",
+    "Vita/Dynamic/Engine/getLaneDeltas().md",
+    "Features.md",
+    "Vita/Vita.md",
+    "Vita/Different Forms of Vitas.md",
+    "Vita/Chronicle.md",
+    "Vita/ChronicleRelation_Sketch.md",
+    "Vita/ChronicleRelation.md",
+    "Vita/Dynamic/Maneuvers/TakeOver.md",
+    "Vita/Dynamic/Maneuvers/TakeOver_Sketch.md",
     "Vita/Dynamic/Elements/Lane.md",
+    "Supabase/Integrating Chronicle Paths into Supabase.md",
+    "Vita/Dynamic/Integrating Chronicle Paths into Supabase.md",
+    "Excalidraw/Drawing 2025-06-22 23.58.01.excalidraw.md",
     "Vita/Dynamic/Elements/Layer.md",
     "Vita/Dynamic/LinearChronicle Diagramm.md",
     "Vita/Dynamic/LinearChronicle.md",
     "Vita/Dynamic/Dynamic Vita.md",
     "Vita/Dynamic/Maneuvers/Secession_Sketch.md",
     "Vita/Dynamic/Maneuvers/Secession.md",
-    "Vita/Dynamic/Engine/getLaneDeltas().md",
-    "Features.md",
     "Ideaboard.md",
     "Vita/Dynamic/Engine",
     "Vita/Dynamic/Structures/ButterlyStack.md",
     "Vita/Dynamic/Structures",
-    "Vita/Chronicle.md",
     "Vita/Dynamic/Maneuvers.md",
-    "Vita/Vita.md",
-    "Vita/Different Forms of Vitas.md",
-    "Vita/ChronicleCategory.md",
     "Vita/Dynamic/Elements",
-    "Vita/Dynamic/ChroniclePathKnot.md",
-    "Vita/Comparing Linear Chronicles.md",
-    "Vita/ChronicleRelation_Sketch.md",
-    "Vita/ChronicleRelation.md",
-    "Vita/Dynamic/ChroniclePath.md",
     "Untitled",
     "Supabase",
     "Excalidraw",
