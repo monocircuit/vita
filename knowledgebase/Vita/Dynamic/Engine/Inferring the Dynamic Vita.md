@@ -1,0 +1,1 @@
+Inferring [[Dynamic Vita]] means creating a first draft of an [[Dynamic Vita]] based on the chronical data stored in the [[Chronicle|Chronicles]].

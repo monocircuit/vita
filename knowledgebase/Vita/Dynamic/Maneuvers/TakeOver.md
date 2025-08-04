@@ -1,0 +1,1 @@
+A [[TakeOver]] happens whenever a ancestor [[Chronicle]] ends and a child [[Chronicle]] needs to take over the ancestor's branch in order to keep the tree nice and clean. 
