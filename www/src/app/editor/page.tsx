@@ -1,16 +1,10 @@
 "use client";
 
-import ChronicleSelect from "@/components/ChronicleSelect/chronicleSelect";
-import DynamicView from "@/components/features/editor/DynamicView/DynamicView";
 import RenderBranch from "@/utils/drawing/renderBranch";
 import ButterflyStack from "@/utils/structures/ButterflyStack";
-import { useOwnChroniclesData } from "@/utils/supabase/api/chronicles/readOwnChronicles";
-import inferDynamicVita from "@/utils/supabase/api/vitas/dynamic/inferDynamicVita";
-import { createClient } from "@/utils/supabase/client";
-import { Button, Popover } from "@monolithium/next/components";
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Sprite } from "pixi.js";
-import React, { useEffect, useRef, useState } from "react";
+import React, { JSX, useEffect, useRef, useState } from "react";
 
 interface Props { }
 
@@ -21,6 +15,8 @@ extend({
 });
 
 const Page = (props: Props) => {
+
+
   const stack = new ButterflyStack<{ id: string, label: string, knots: number[] }>()
   stack.addValue({ id: 'root', label: 'Root', knots: [0, 1000] }, 0); // Neutral layer
 
@@ -34,20 +30,59 @@ const Page = (props: Props) => {
 
   stack.addValue({ id: 'neg-grandchild-1', label: 'Grandchild B1.1', knots: [600, 900] }, -2);
 
-
-
   const positiveLayerHeight = stack.getLayerHeight().positive
   const negativeLayerHeight = stack.getLayerHeight().negative
-  console.log(stack.getLayerHeight().positive)
   const parentRef = useRef(null);
-  console.log(useOwnChroniclesData())
-  return <div ref={parentRef} className="size-full">
 
+
+  let aknot = 0;
+  let distance = 0;
+
+
+  // Check if Data exists
+  if (stack.getLayer(0) != null || undefined) {
+
+
+    //get Variables for Normalization
+    aknot = stack.getLayer(0)[0].knots[0];
+    distance = stack.getLayer(0).findLast(e => e)!.knots[1] - aknot // subract last knot with first one to get the complete distance
+
+
+
+  }
+
+
+
+
+  return <div ref={parentRef} className="size-full">
     <Application backgroundColor={"#ffffff"} resizeTo={parentRef} >
 
       {
         // Render Layer 0
-        stack.getLayer(0).map((e) => <RenderBranch key={e.id} start={e.knots[0]} end={e.knots[1]} shift={0} ></RenderBranch>)
+        stack.getLayer(0).map((e) => {
+          // Check if multpiple elements is in Layer 0
+          if (stack.getLayer(0).length == 1) {
+            return <RenderBranch key={e.id} start={0} end={screen.width} shift={0} ></RenderBranch>
+          }
+
+          //set first elements first knot to 0 and normalize second knot
+          else if (stack.getLayer(0)[0] == e) {
+            const nknots = normalize(e.knots, aknot, distance)
+            return <RenderBranch key={e.id} start={0} end={nknots[1] * screen.width} shift={0} ></RenderBranch>
+          }
+
+          //normalize elements first knot and set last elements last knot to wished width
+          else if (stack.getLayer(0).findLast(e => e) == e) {
+            const nknots = normalize(e.knots, aknot, distance)
+            return <RenderBranch key={e.id} start={nknots[0] * screen.width} end={screen.width} shift={0} ></RenderBranch>
+          }
+
+          else {
+            const nknots = normalize(e.knots, aknot, distance)
+            return <RenderBranch key={e.id} start={nknots[0] * screen.width} end={nknots[1] * screen.width} shift={0} ></RenderBranch>
+          }
+
+        })
       }
 
       {
@@ -56,15 +91,21 @@ const Page = (props: Props) => {
           const layerIndex = i + 1; // positive layers: 1, 2, 3...
           const layer = stack.getLayer(layerIndex);
 
-          return layer.map((e) => (
-            <RenderBranch
+          return layer.map(e => {
+            const nknots = normalize(e.knots, aknot, distance);
+            return <RenderBranch
               key={e.id}
-              start={e.knots[0]}
-              end={e.knots[1]}
-              shift={-1 * layerIndex * 50} // positive shift (e.g. +1, +2)
+
+              start={nknots[0] * screen.width}
+              end={nknots[1] * screen.width}
+              shift={- 1 * layerIndex * 50} // positive shift (e.g. +1, +2)
             />
-          ));
+          })
+
+
         })
+
+
 
       }
 
@@ -73,9 +114,11 @@ const Page = (props: Props) => {
         // Render negative Layers
         Array.from({ length: negativeLayerHeight }, (_, i) => {
           const layerIndex = i + 1;
-          return stack.getLayer(-layerIndex).map((e) => (
-            <RenderBranch key={e.id} start={e.knots[0]} end={e.knots[1]} shift={layerIndex*50} />
-          ));
+          return stack.getLayer(-layerIndex).map((e) => {
+            const nknots = normalize(e.knots, aknot, distance);
+            return <RenderBranch key={e.id} start={nknots[0] * screen.width} end={nknots[1] * screen.width} shift={layerIndex * 50} />
+          }
+          );
         })
       }
 
@@ -83,5 +126,13 @@ const Page = (props: Props) => {
     </Application>
   </div>;
 };
+
+const normalize = (knots: number[], aKnot: number, distance: number) => {
+  const normalizedKnots = [0, 0];
+  normalizedKnots[0] = (knots[0] - aKnot) / distance;
+  normalizedKnots[1] = (knots[1] - aKnot) / distance;
+
+  return normalizedKnots;
+}
 
 export default Page;

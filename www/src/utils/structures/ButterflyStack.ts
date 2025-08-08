@@ -91,6 +91,34 @@ class ButterflyStack<Value> {
     }
   }
 
+
+  //dachte schreibe die Value nach der Normalisierung um, mache das aber doch bei rendering jedes mal neu --> Vielleicht brauchen wir das noch deshalb bleibt das  
+  public setValue(verticalDepth: number, horizontalDepth: number, value: Value){
+    const layer = this.getLayer(verticalDepth);
+
+    if (layer.length <= horizontalDepth)
+      throw new Error("Invalid horizontal Depth");
+
+
+    //write to positiv Layer
+    if (verticalDepth > 0) {
+      if (this.positiveLayers.length <= this.depthToIndex(verticalDepth))
+        throw new Error("Invalid vertical Depth");
+      this.positiveLayers[this.depthToIndex(verticalDepth)][horizontalDepth] = value;
+    }
+
+    //write to negativ Layer
+    if (verticalDepth < 0) {
+      if (this.negativeLayers.length <= this.depthToIndex(verticalDepth))
+        throw new Error("Invalid vertical Depth");
+      this.negativeLayers[this.depthToIndex(verticalDepth)][horizontalDepth] = value;
+    }
+
+    //write to neutralLayer
+    this.neutralLayer[horizontalDepth] = value;
+
+  }
+
   public getValue(verticalDepth: number, horizontalDepth: number) {
     const layer = this.getLayer(verticalDepth);
 
@@ -121,6 +149,8 @@ class ButterflyStack<Value> {
   }
 
   public getLayer(verticalDepth: number) {
+    console.log("Verticla Tiefen: " +verticalDepth)
+    console.log(verticalDepth > 0 ? "Positiv: " + this.positiveLayers.length : verticalDepth < 0 ? "negative: " + this.negativeLayers.length : "" )
     if (verticalDepth > 0) {
       if (this.positiveLayers.length <= this.depthToIndex(verticalDepth))
         throw new Error("Invalid vertical Depth");
