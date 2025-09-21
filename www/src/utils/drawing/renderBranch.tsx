@@ -13,14 +13,13 @@ type renderBranchProps = {
 const RenderBranch: React.FC<renderBranchProps> = ({ start, end, shift, thickness = 2, color = 0x00000 }) => {
 
     const width = window.innerWidth;
-    const y = window.innerHeight / 2;
 
 
     const draw = React.useCallback((g: PIXI.Graphics) => {
         g.clear()
-        g.moveTo(start, y + shift)
-        g.lineTo(start, y + shift);
-        g.lineTo(end, y + shift);
+        g.moveTo(start,  shift)
+        g.lineTo(start, shift);
+        g.lineTo(end,  shift);
         g.stroke({ width: 2, color: 0x00000 })
     }, [start, end, shift, thickness, color]);
 

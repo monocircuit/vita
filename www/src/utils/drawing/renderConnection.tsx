@@ -21,8 +21,11 @@ const RenderConnection: React.FC<RenderConnectionProps> = ({ startPoint, endPoin
         g.clear();
         g.moveTo(startPoint.x, startPoint.y);
 
-        const cp1 = { x: startPoint.x, y: startPoint.y + (endPoint.y - startPoint.y) / 2 };
-        const cp2 = { x: endPoint.x, y: startPoint.y + (endPoint.y - startPoint.y) / 2 };
+        
+        // Control points for a horizontal S-curve from left to right
+        const midX = startPoint.x + (endPoint.x - startPoint.x) / 2;
+        const cp1 = { x: midX, y: startPoint.y };
+        const cp2 = { x: midX, y: endPoint.y };
 
         g.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, endPoint.x, endPoint.y);
         g.stroke({ width: thickness, color: color });
