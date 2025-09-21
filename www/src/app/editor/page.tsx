@@ -1,6 +1,7 @@
 "use client";
 
 import RenderBranch from "@/utils/drawing/renderBranch";
+import RenderConnection from "@/utils/drawing/renderConnection";
 import ButterflyStack from "@/utils/structures/ButterflyStack";
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Sprite } from "pixi.js";
@@ -106,9 +107,9 @@ const Page = (props: Props) => {
         })
 
 
-
       }
 
+      <RenderConnection startPoint={{ x: 100, y: 100 }} endPoint={{ x: 400, y: 400 }} thickness={4} color={0xff0000} />
 
       {
         // Render negative Layers
