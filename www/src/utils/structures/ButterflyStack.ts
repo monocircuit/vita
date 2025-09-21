@@ -149,9 +149,7 @@ class ButterflyStack<Value> {
   }
 
   public getLayer(verticalDepth: number) {
-    console.log("Verticla Tiefen: " +verticalDepth)
-    console.log(verticalDepth > 0 ? "Positiv: " + this.positiveLayers.length : verticalDepth < 0 ? "negative: " + this.negativeLayers.length : "" )
-    if (verticalDepth > 0) {
+  if (verticalDepth > 0) {
       if (this.positiveLayers.length <= this.depthToIndex(verticalDepth))
         throw new Error("Invalid vertical Depth");
       return this.positiveLayers[this.depthToIndex(verticalDepth)];

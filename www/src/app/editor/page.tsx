@@ -62,24 +62,24 @@ const Page = (props: Props) => {
         stack.getLayer(0).map((e) => {
           // Check if multpiple elements is in Layer 0
           if (stack.getLayer(0).length == 1) {
-            return <RenderBranch key={e.id} start={0} end={screen.width} shift={0} ></RenderBranch>
+            return <RenderBranch key={e.id} start={0} end={window.window.innerWidth} shift={0} ></RenderBranch>
           }
 
           //set first elements first knot to 0 and normalize second knot
           else if (stack.getLayer(0)[0] == e) {
             const nknots = normalize(e.knots, aknot, distance)
-            return <RenderBranch key={e.id} start={0} end={nknots[1] * screen.width} shift={0} ></RenderBranch>
+            return <RenderBranch key={e.id} start={0} end={nknots[1] * window.window.innerWidth} shift={0} ></RenderBranch>
           }
 
           //normalize elements first knot and set last elements last knot to wished width
           else if (stack.getLayer(0).findLast(e => e) == e) {
             const nknots = normalize(e.knots, aknot, distance)
-            return <RenderBranch key={e.id} start={nknots[0] * screen.width} end={screen.width} shift={0} ></RenderBranch>
+            return <RenderBranch key={e.id} start={nknots[0] * window.window.innerWidth} end={window.window.innerWidth} shift={0} ></RenderBranch>
           }
 
           else {
             const nknots = normalize(e.knots, aknot, distance)
-            return <RenderBranch key={e.id} start={nknots[0] * screen.width} end={nknots[1] * screen.width} shift={0} ></RenderBranch>
+            return <RenderBranch key={e.id} start={nknots[0] * window.window.innerWidth} end={nknots[1] * window.window.innerWidth} shift={0} ></RenderBranch>
           }
 
         })
@@ -96,8 +96,8 @@ const Page = (props: Props) => {
             return <RenderBranch
               key={e.id}
 
-              start={nknots[0] * screen.width}
-              end={nknots[1] * screen.width}
+              start={nknots[0] * window.window.innerWidth}
+              end={nknots[1] * window.window.innerWidth}
               shift={- 1 * layerIndex * 50} // positive shift (e.g. +1, +2)
             />
           })
@@ -116,7 +116,7 @@ const Page = (props: Props) => {
           const layerIndex = i + 1;
           return stack.getLayer(-layerIndex).map((e) => {
             const nknots = normalize(e.knots, aknot, distance);
-            return <RenderBranch key={e.id} start={nknots[0] * screen.width} end={nknots[1] * screen.width} shift={layerIndex * 50} />
+            return <RenderBranch key={e.id} start={nknots[0] * window.window.innerWidth} end={nknots[1] * window.window.innerWidth} shift={layerIndex * 50} />
           }
           );
         })
