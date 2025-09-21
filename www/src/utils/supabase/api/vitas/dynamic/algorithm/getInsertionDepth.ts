@@ -18,7 +18,7 @@ function getInsertionDepth(
   insertionChronicle: LinearChronicle,
   butterflyStack: ButterflyStack<LinearChronicle>,
 ) {
-  const latestPoints = butterflyStack.getLatestPoints();
+  const latestPoints = butterflyStack.getLastPoints();
   let insertionDepth: ButterflyStackDepth | null = null;
 
   /** Find insertion point 
@@ -41,9 +41,9 @@ function getInsertionDepth(
         const currentVerticalDepth = ButterflyStack.alternateVerticalDepth(k);
 
         if (
-          butterflyStack.getWeight(
+          butterflyStack.getLayerWeight(
             (insertionDepth as ButterflyStackDepth).vertical,
-          ) < butterflyStack.getWeight(currentVerticalDepth)
+          ) < butterflyStack.getLayerWeight(currentVerticalDepth)
         ) {
           insertionDepth = {
             vertical: currentVerticalDepth,

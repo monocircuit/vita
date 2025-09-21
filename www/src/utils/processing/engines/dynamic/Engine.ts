@@ -1,6 +1,8 @@
 import { Chronicle, LinearChronicle } from "@/utils/schemas/Chronicle";
-import ButterflyStack from "@/utils/structures/ButterflyStack";
-import { ButterflyStackDepth } from "@/utils/structures/ButterflyStack.d";
+import ButterflyStack, {
+  ButterflyStackField,
+  ButterflyStackDepth,
+} from "@/utils/structures/ButterflyStack";
 import filterChronicles from "../../data/chronicles/filterChronicles";
 import {
   getLinearChronicleLeftDelta,
@@ -8,7 +10,7 @@ import {
 } from "../../data/chronicles/getLinearChronicleDeltas";
 import alignLinearChronicles from "../../data/chronicles/alignLinearChronicles";
 import { produce } from "immer";
-import daysToMs from "../../data/chronicles/daysToMs";
+import daysToMs from "@/utils/processing/data/chronicles/daysToMs";
 
 class Engine extends ButterflyStack<LinearChronicle> {
   /**
@@ -39,7 +41,7 @@ class Engine extends ButterflyStack<LinearChronicle> {
     /** The .getLatestPoints() function already ensures we get minimal depth */
     for (let i = 1; i < this.chronicles.linear.length; i++) {
       const insertionChronicle = this.chronicles.linear[i];
-      const latestPoints = this.getLatestPoints();
+      const latestPoints = this.getLastPoints();
 
       console.warn(insertionChronicle.title);
       console.log("latestPoints", latestPoints);
@@ -50,21 +52,33 @@ class Engine extends ButterflyStack<LinearChronicle> {
       console.log("insertionDepth", insertionDepth);
 
       /** Find `takeoverLeapVerticalDepth` */
-      const takeoverPath = this.getTakeoverPath(
-        insertionChronicle,
-        insertionDepth,
-      );
+      // const takeoverPath = this.getTakeoverPath(
+      //   insertionChronicle,
+      //   insertionDepth,
+      // );
 
-      console.log("takeoverDepths", takeoverPath);
+      // console.log("takeoverDepths", takeoverPath);
+
+      this.addValue(insertionChronicle, insertionDepth.vertical);
     }
   }
 
+  /**
+   * Calculates the insertion depth, i.e. the coordinates in the ButterflyStack, where
+   * the Chronicle should start, before its split up and vice versa. It does this following
+   * the principles of minimal depth and minimal duration weight, to ensure the best
+   * possible display of the information.
+   */
   private getInsertionDepth(insertionChronicle: LinearChronicle) {
-    const latestPoints = this.getLatestPoints();
+    const latestPoints = this.getLastPoints();
     let insertionDepth: ButterflyStackDepth | null = null;
 
-    /** Find insertion point 
-      (A point where the linear Chronicle fits in, into a layer with minimal depth) */
+    /**
+     * Find insertion point
+     * (A point where the linear Chronicle fits in, into a layer with minimal depth)
+     *
+     * Depth > Weight (Depth is prioritized)
+     */
     for (let j = 0; j < latestPoints.length; j++) {
       const latestPoint = latestPoints[j];
 
@@ -72,48 +86,91 @@ class Engine extends ButterflyStack<LinearChronicle> {
       if (
         getLinearChronicleLeftDelta(insertionChronicle, latestPoint.value) < 0
       ) {
-        /** Do weight check */
-        /** For the weight check we do not need points, depth is sufficient */
-        insertionDepth = this.pointToDepth(latestPoint);
-        for (
-          let k = j;
-          k < j + Math.pow(2, (insertionDepth as ButterflyStackDepth).vertical);
-          k++
-        ) {
-          const currentVerticalDepth = ButterflyStack.alternateVerticalDepth(k);
+        /**
+         * Should the found space be in the neutral layer, the insertion point is found
+         * and the algorithm can break out of the loop.
+         */
+        if (latestPoint.depth.vertical == 0) {
+          insertionDepth = {
+            vertical: 0,
+            horizontal: latestPoint.depth.horizontal + 1,
+          };
+          break;
+        }
 
+        /**
+         * At this point the algorithm hast the absolute value of the vertical insertion
+         * depth. However, in order to find if the vertical depth should be positive or negative,
+         * the weight will be compared between `-verticalDepth` and `+verticalDepth`. Then the
+         * sign will be placed in a way that ensures the least weight on the flaps of the stack.
+         */
+
+        /**
+         * In order to save calculation power it is easier and quicker to precheck if the opposite
+         * side has enough space to put the `insertionChronicle` in, because if not it has to be
+         * put into the layer where the `latestPoint` current is in.
+         *
+         * This needs to happen in two steps: check if the opposite layer is empty, if not, check
+         * the left delta to the latest point in this specific layer.
+         */
+        if (this.checkLayerExistance(-latestPoint.depth.vertical)) {
+          /**
+           * The layer exists, thus the algorithm needs to check if there is enough space for the
+           * `insertionChronicle`.
+           */
           if (
-            this.getWeight((insertionDepth as ButterflyStackDepth).vertical) <
-            this.getWeight(currentVerticalDepth)
+            getLinearChronicleLeftDelta(
+              insertionChronicle,
+              this.getLastPoint(latestPoint.depth.vertical).value,
+            )
           ) {
-            insertionDepth = {
-              vertical: currentVerticalDepth,
-              horizontal: this.getLayer(currentVerticalDepth).length,
-            };
+            /**
+             * Now the algorithm has checked that there is in fact enough space to insert the
+             * `insertionChronicle`, meaning now it makes sense to make a weight check, to see
+             * in which area the `insertionChronicle` should be put.
+             */
+            const positiveAreaDurationWeight = this.getAreaDurationWeight(
+              ButterflyStackField.Positive,
+            );
+            const negativeAreaDurationWeight = this.getAreaDurationWeight(
+              ButterflyStackField.Negative,
+            );
+
+            /** Weight Check, put the Chronicle in the Area with less DurationWeight */
+            if (positiveAreaDurationWeight > negativeAreaDurationWeight) {
+              /** PUT THE CHRONICLE IN THE NEGATIVE AREA */
+              return {
+                vertical: -Math.abs(latestPoint.depth.vertical),
+                horizontal: latestPoint.depth.horizontal + 1,
+              };
+            } else {
+              /** PUT THE CHRONICLE IN THE POSITIVE AREA */
+              return {
+                vertical: +Math.abs(latestPoint.depth.vertical),
+                horizontal: latestPoint.depth.horizontal + 1,
+              };
+            }
           }
         }
-
-        /** Cancel the outer loop, because the algorithm found an insertion point */
-        break;
       }
+    }
 
-      if (!insertionDepth) {
-        /** In case there was no insertion point found, create a new layer */
-        const layerHeight = this.getLayerHeight();
+    /** In case there was no insertion point found, create a new layer */
+    if (!insertionDepth) {
+      const layerHeight = this.getLayerHeight();
 
-        if (layerHeight.positive > layerHeight.negative) {
-          /** Only insert into the negative layer if the postive layer is actually greater than the negative one */
-          insertionDepth = {
-            vertical: layerHeight.negative - 1,
-            horizontal: 0,
-          };
-        } else {
-          /** Insert into the positive layer if the negative layer is greater or equal to the positive height */
-          insertionDepth = {
-            vertical: layerHeight.positive + 1,
-            horizontal: 0,
-          };
-        }
+      if (layerHeight.positive > layerHeight.negative) {
+        /** Only insert into the negative layer if the postive layer is actually greater than the negative one */
+        insertionDepth = {
+          vertical: layerHeight.negative - 1,
+          horizontal: 0,
+        };
+      } else {
+        /** Insert into the positive layer if the negative layer is greater or equal to the positive height */
+        insertionDepth = {
+          vertical: layerHeight.positive + 1,
+          horizontal: 0,
+        };
       }
     }
 
@@ -200,6 +257,31 @@ class Engine extends ButterflyStack<LinearChronicle> {
 
     if (!rests) {
       this.addValue(insertionChronicle, insertionDepth.vertical);
+    }
+  }
+
+  private getLayerDurationWeight(verticalDepth: number) {
+    return this.getLayer(verticalDepth).reduce(
+      (acc, chronicle) => acc + (chronicle.knots.end - chronicle.knots.start),
+      0,
+    );
+  }
+
+  private getAreaDurationWeight(area: ButterflyStackField) {
+    switch (area) {
+      case ButterflyStackField.Positive:
+        return this.positiveLayers.reduce(
+          (acc, _layer, idx) => acc + this.getLayerDurationWeight(idx + 1),
+          0,
+        );
+      case ButterflyStackField.Negative:
+        return this.negativeLayers.reduce(
+          (acc, _layer, idx) =>
+            acc + this.getLayerDurationWeight(-1 * (idx + 1)),
+          0,
+        );
+      case ButterflyStackField.Neutral:
+        return this.getLayerDurationWeight(0);
     }
   }
 }

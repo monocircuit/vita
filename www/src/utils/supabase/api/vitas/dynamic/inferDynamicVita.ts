@@ -95,7 +95,7 @@ const storeLinearChronicles = (linearChronicles: LinearChronicle[]) => {
   /** The .getLatestPoints() function already ensures we get minimal depth */
   for (let i = 1; i < sortedLinearChronicles.length; i++) {
     const insertionChronicle = sortedLinearChronicles[i];
-    const latestPoints = butterflyStack.getLatestPoints();
+    const latestPoints = butterflyStack.getLastPoints();
 
     console.warn(insertionChronicle.title);
     console.log("latestPoints", latestPoints);

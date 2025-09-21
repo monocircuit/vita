@@ -1,19 +1,54 @@
-import {
-  ButterflyStackDepth,
-  ButterflyStackPoint,
-  ButterflyStackVerticalDepth,
-} from "./ButterflyStack.d";
+/**
+ * Types for the ButterflyStack
+ */
+export type ButterflyStackVerticalDepth = number;
+export type ButterflyStackHorizontalDepth = number;
 
+export interface ButterflyStackDepth {
+  vertical: ButterflyStackVerticalDepth;
+  horizontal: ButterflyStackHorizontalDepth;
+}
+
+export interface ButterflyStackVector<Value> {
+  depth: ButterflyStackDepth;
+  value: Value;
+}
+
+export enum ButterflyStackField {
+  Positive = 1,
+  Neutral = 0,
+  Negative = -1,
+}
+
+/**
+ * A Butterfly Stack behaves like a two-dimensional stack, that is abstracted to fit
+ * the needs of layering elements in a timeline.
+ *
+ * The stack consists of three areas, a neutral area (0), a positive area (>0) and a negative area (<0).
+ *
+ * Each element in the stack can be addressed by its vertical and horizontal depth. The
+ * behaves like an index, meaning a vertical depth of 0 means the neutral layer, and with
+ * each increment you step up one layer in the stack. The horizontal depth behaves no
+ * different than a normal array index.
+ */
 class ButterflyStack<Value> {
-  private neutralLayer: Value[] = [];
-  private positiveLayers: Value[][] = [];
-  private negativeLayers: Value[][] = [];
+  protected neutralLayer: Value[] = [];
+  protected positiveLayers: Value[][] = [];
+  protected negativeLayers: Value[][] = [];
 
   constructor() {}
 
-  public getLatestPoints() {
-    const points: ButterflyStackPoint<Value>[] = [];
+  /**
+   * Return the latest points of each layer in the stack, i.e. the points at the right end of each layer
+   *
+   * The order of the points is:
+   * 1. The latest point of the neutral layer (if it exists)
+   * 2. The latest points of the positive and negative layers, alternating between positive and negative,
+   */
+  public getLastPoints() {
+    const points: ButterflyStackVector<Value>[] = [];
 
+    /** Pushing in the latest neutral layer item first */
     if (this.neutralLayer.length) {
       points.push({
         value: this.neutralLayer[this.neutralLayer.length - 1],
@@ -71,8 +106,25 @@ class ButterflyStack<Value> {
     return Math.abs(depth) - 1;
   }
 
-  public getWeight(verticalDepth: number) {
+  public getLayerWeight(verticalDepth: number) {
     return this.getLayer(verticalDepth).length;
+  }
+
+  public getFieldWeight(area: ButterflyStackField) {
+    switch (area) {
+      case ButterflyStackField.Positive:
+        return this.positiveLayers.reduce(
+          (acc, layer) => acc + layer.length,
+          0,
+        );
+      case ButterflyStackField.Negative:
+        return this.negativeLayers.reduce(
+          (acc, layer) => acc + layer.length,
+          0,
+        );
+      case ButterflyStackField.Neutral:
+        return this.neutralLayer.length;
+    }
   }
 
   public addValue(value: Value, verticalDepth: number) {
@@ -140,14 +192,14 @@ class ButterflyStack<Value> {
     return this.neutralLayer;
   }
 
-  public pointToDepth(point: ButterflyStackPoint<Value>): ButterflyStackDepth {
+  public pointToDepth(point: ButterflyStackVector<Value>): ButterflyStackDepth {
     return {
       vertical: point.depth.vertical,
       horizontal: point.depth.horizontal,
     };
   }
 
-  public getLastPoint(verticalDepth: number): ButterflyStackPoint<Value> {
+  public getLastPoint(verticalDepth: number): ButterflyStackVector<Value> {
     const layer = this.getLayer(verticalDepth);
 
     return {
@@ -165,6 +217,16 @@ class ButterflyStack<Value> {
       positive: this.positiveLayers,
       negative: this.negativeLayers,
     };
+  }
+
+  public checkLayerExistance(verticalDepth: number) {
+    if (verticalDepth == 0) return true;
+    if (verticalDepth > 0) {
+      return this.positiveLayers.length > verticalDepth;
+    }
+    if (verticalDepth < 0) {
+      return this.negativeLayers.length > -verticalDepth;
+    }
   }
 
   static alternateVerticalDepth(index: number) {
