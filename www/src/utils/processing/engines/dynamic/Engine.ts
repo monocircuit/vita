@@ -1,9 +1,6 @@
 import { Chronicle, LinearChronicle } from "@/utils/schemas/Chronicle";
 import ButterflyStack from "@/utils/structures/ButterflyStack";
-import {
-  ButterflyStackDepth,
-  ButterflyStackVerticalDepth,
-} from "@/utils/structures/ButterflyStack.d";
+import { ButterflyStackDepth } from "@/utils/structures/ButterflyStack.d";
 import filterChronicles from "../../data/chronicles/filterChronicles";
 import {
   getLinearChronicleLeftDelta,
@@ -28,7 +25,9 @@ class Engine extends ButterflyStack<LinearChronicle> {
   constructor(chronicles: Chronicle[]) {
     super();
 
+    /** (1) remove all chronicles without knots */
     this.chronicles = filterChronicles(chronicles);
+    /** (2) sort chronicles linearly by start knot */
     this.chronicles.linear = alignLinearChronicles(this.chronicles.linear);
 
     console.log("sortedLinearChronicles", this.chronicles.linear);
@@ -65,7 +64,7 @@ class Engine extends ButterflyStack<LinearChronicle> {
     let insertionDepth: ButterflyStackDepth | null = null;
 
     /** Find insertion point 
-      (A point where the linear Chronicle fits in, is closest to the center and into a layer with minimal depth) */
+      (A point where the linear Chronicle fits in, into a layer with minimal depth) */
     for (let j = 0; j < latestPoints.length; j++) {
       const latestPoint = latestPoints[j];
 
@@ -126,6 +125,14 @@ class Engine extends ButterflyStack<LinearChronicle> {
     insertionDepth: ButterflyStackDepth,
   ) {
     /**
+     * If the `insertionDepth` is `0` (neutral) then just add the Chronicle to the neutral layer, without any
+     * more calculations.
+     */
+    if (insertionDepth.vertical === 0) {
+      console.log("insertionDepth is neutral");
+      return;
+    }
+    /**
      * If the `insertionDepth` has a positive `verticalDepth`, then subtract from the `verticalDepth` until
      * the `neutralLayer` is reached. If the insertion point has a negative vertical depth, add to the
      * `verticalDepth` until the `neutralLayer` is reached.
@@ -142,7 +149,7 @@ class Engine extends ButterflyStack<LinearChronicle> {
 
     let rests = 0;
 
-    while (iteratingVerticalDepth > 0) {
+    do {
       const iteratingChronicle = this.getLastValue(iteratingVerticalDepth);
 
       const rightDelta = getLinearChronicleRightDelta(
@@ -189,7 +196,7 @@ class Engine extends ButterflyStack<LinearChronicle> {
       }
 
       iteratingVerticalDepth = operator(iteratingVerticalDepth);
-    }
+    } while (iteratingVerticalDepth !== 0);
 
     if (!rests) {
       this.addValue(insertionChronicle, insertionDepth.vertical);

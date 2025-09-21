@@ -123,13 +123,17 @@ class ButterflyStack<Value> {
   public getLayer(verticalDepth: number) {
     if (verticalDepth > 0) {
       if (this.positiveLayers.length <= this.depthToIndex(verticalDepth))
-        throw new Error("Invalid vertical Depth");
+        throw new Error(
+          `${verticalDepth} is an invalid vertical Depth (positive layers, too big)`,
+        );
       return this.positiveLayers[this.depthToIndex(verticalDepth)];
     }
 
     if (verticalDepth < 0) {
       if (this.negativeLayers.length <= this.depthToIndex(verticalDepth))
-        throw new Error("Invalid vertical Depth");
+        throw new Error(
+          `${verticalDepth} is an invalid vertical Depth (negative layers, too big)`,
+        );
       return this.negativeLayers[this.depthToIndex(verticalDepth)];
     }
 
@@ -152,6 +156,14 @@ class ButterflyStack<Value> {
         vertical: verticalDepth,
         horizontal: layer.length - 1,
       },
+    };
+  }
+
+  public getFullStack() {
+    return {
+      neutral: this.neutralLayer,
+      positive: this.positiveLayers,
+      negative: this.negativeLayers,
     };
   }
 
