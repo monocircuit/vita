@@ -1,0 +1,1 @@
+![[normalize() 2025-08-04 14.15.48.excalidraw]]
