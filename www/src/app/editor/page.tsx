@@ -7,7 +7,7 @@ import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Sprite } from "pixi.js";
 import React, { JSX, useEffect, useRef, useState } from "react";
 
-interface Props {}
+interface Props { }
 
 extend({
   Container,
@@ -120,8 +120,24 @@ const Page = (props: Props) => {
             const layerIndex = i + 1; // positive layers: 1, 2, 3...
             const layer = stack.getLayer(layerIndex);
 
-            return layer.map(e => {
+            return layer.map((e, elementIndex) => {
               const nknots = normalize(e.knots, aknot, distance);
+              const overtakeWidth = calculateOvertakeWidth(nknots[1] - nknots[0]);
+              
+              // Find the next element on the same layer
+              const nextElement = layer[elementIndex + 1];
+
+              // Determine where the end of the current branch should connect to
+              const endPoint = determineConnectionEndPoint(
+                e.knots, // Use original knots for distance calculation
+                nextElement,
+                layerIndex,
+                overtakeWidth
+              );
+
+              // We need to normalize the x coordinate for rendering
+              const normalizedEndPointX = (endPoint.x - aknot) / distance * window.innerWidth;
+
               return (
                 <React.Fragment key={e.id}>
                   <RenderConnection
@@ -130,7 +146,7 @@ const Page = (props: Props) => {
                       y: window.innerHeight / 2 - i * 50,
                     }}
                     endPoint={{
-                      x: nknots[0] * window.window.innerWidth + 50,
+                      x: nknots[0] * window.window.innerWidth + overtakeWidth,
                       y: window.innerHeight / 2 + -1 * layerIndex * 50,
                     }}
                     thickness={2}
@@ -138,9 +154,21 @@ const Page = (props: Props) => {
                   />
                   <RenderBranch
                     key={e.id}
-                    start={nknots[0] * window.window.innerWidth}
+                    start={nknots[0] * window.window.innerWidth + overtakeWidth}
                     end={nknots[1] * window.window.innerWidth}
                     shift={window.innerHeight / 2 + -1 * layerIndex * 50} // positive shift (e.g. +1, +2)
+                  />
+                  <RenderConnection
+                    startPoint={{
+                      x: nknots[1] * window.window.innerWidth,
+                      y: window.innerHeight / 2 + -1 * layerIndex * 50,
+                    }}
+                    endPoint={{
+                      x: nknots[1] * window.window.innerWidth + overtakeWidth,
+                      y: window.innerHeight / 2 - i * 50,
+                    }}
+                    thickness={2}
+                    color={0xff0000}
                   />
                 </React.Fragment>
               );
@@ -151,16 +179,45 @@ const Page = (props: Props) => {
         {
           // Render negative Layers
           Array.from({ length: negativeLayerHeight }, (_, i) => {
+
             const layerIndex = i + 1;
             return stack.getLayer(-layerIndex).map(e => {
               const nknots = normalize(e.knots, aknot, distance);
-              return (
+              console.log(" nknots " + nknots);
+              const overtakeWidth = calculateOvertakeWidth(nknots[1] - nknots[0]);
+              console.log(" overtakeWidth " + overtakeWidth)
+              return (<React.Fragment key={e.id}>
+                <RenderConnection
+                  startPoint={{
+                    x: nknots[0] * window.window.innerWidth,
+                    y: window.innerHeight / 2 + i * 50,
+                  }}
+                  endPoint={{
+                    x: nknots[0] * window.window.innerWidth + overtakeWidth,
+                    y: window.innerHeight / 2 + layerIndex * 50,
+                  }}
+                  thickness={2}
+                  color={0xff0000}
+                />
                 <RenderBranch
                   key={e.id}
-                  start={nknots[0] * window.window.innerWidth}
+                  start={nknots[0] * window.window.innerWidth + overtakeWidth}
                   end={nknots[1] * window.window.innerWidth}
                   shift={window.innerHeight / 2 + layerIndex * 50}
                 />
+                <RenderConnection
+                  startPoint={{
+                    x: nknots[1] * window.window.innerWidth,
+                    y: window.innerHeight / 2 + layerIndex * 50,
+                  }}
+                  endPoint={{
+                    x: nknots[1] * window.window.innerWidth + overtakeWidth,
+                    y: window.innerHeight / 2 + i * 50,
+                  }}
+                  thickness={2}
+                  color={0xff0000}
+                />
+              </React.Fragment>
               );
             });
           })
@@ -170,6 +227,14 @@ const Page = (props: Props) => {
   );
 };
 
+
+// Calculate the overtake width based on the length of the branch (But with normalized Values (0-1))
+const calculateOvertakeWidth = (lengthOfBranch: number) => {
+  if (lengthOfBranch < 0.2) return lengthOfBranch * (1 / 2) * window.window.innerWidth;
+  else return 100;
+}
+
+//normalize knots based on aknot and distance --> for make rendering responsive
 const normalize = (knots: number[], aKnot: number, distance: number) => {
   const normalizedKnots = [0, 0];
   normalizedKnots[0] = (knots[0] - aKnot) / distance;
@@ -177,5 +242,40 @@ const normalize = (knots: number[], aKnot: number, distance: number) => {
 
   return normalizedKnots;
 };
+
+/**
+ * Determines the end point for a connection based on the next element in the layer.
+ * @param currentKnots - The knots of the current element.
+ * @param nextElement - The next element in the same layer, or undefined if it's the last.
+ * @param layerIndex - The numerical index of the current layer (e.g., 1, 2, -1, -2).
+ * @param overtakeWidth - The horizontal width of the connection curve.
+ * @param threshold - The maximum gap between knots to be considered "small".
+ * @returns The {x, y} coordinates for the end point of the connection.
+ */
+const determineConnectionEndPoint = (
+  currentKnots: number[],
+  nextElement: { knots: number[] } | undefined,
+  layerIndex: number,
+  overtakeWidth: number,
+  threshold: number = 50 // e.g., if gap is less than 50 units on the timeline
+) => {
+  const isPositiveLayer = layerIndex > 0;
+  const parentLayerIndex = isPositiveLayer ? layerIndex - 1 : layerIndex + 1;
+
+  // If it's the last element or the next element is too far, connect to the parent layer.
+  if (!nextElement || (nextElement.knots[0] - currentKnots[1] > threshold)) {
+    return {
+      x: currentKnots[1] + overtakeWidth,
+      y: window.innerHeight / 2 + parentLayerIndex * 50,
+    };
+  }
+
+  // Otherwise, connect to the start of the next element on the same layer.
+  return {
+    x: nextElement.knots[0],
+    y: window.innerHeight / 2 + layerIndex * 50,
+  };
+};
+
 
 export default Page;
