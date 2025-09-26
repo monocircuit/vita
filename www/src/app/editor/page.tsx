@@ -1,146 +1,142 @@
 "use client";
 
-import RenderBranch from "@/utils/drawing/renderBranch";
-import RenderConnection from "@/utils/drawing/renderConnection";
-import ButterflyStack from "@/utils/structures/ButterflyStack";
-import { Application, extend } from "@pixi/react";
-import { Container, Graphics, Sprite } from "pixi.js";
+import Branch from "@/utils/drawing/dynamic/Branch";
+import Connection from "@/utils/drawing/dynamic/Connection";
+import Engine from "@/utils/processing/engines/dynamic/Engine";
+import useEngine from "@/utils/processing/engines/dynamic/useEngine";
+import Butterfly from "@/utils/structures/ButterflyStack";
+import { useOwnChroniclesData } from "@/utils/supabase/api/chronicles/readOwnChronicles";
+import { Application, extend, useExtend } from "@pixi/react";
+import { Container, Graphics, Sprite, v8_0_0 } from "pixi.js";
 import React, { JSX, useEffect, useRef, useState } from "react";
+import { Viewport } from "pixi-viewport";
+import ViewportWrapper from "@/components/ViewportWrapper";
 
-interface Props {}
+const Page: React.FunctionComponent = () => {
+  /** ANCHOR: PixiJS Extensions */
+  useExtend({ Container, Graphics, Viewport });
 
-extend({
-  Container,
-  Graphics,
-});
-
-const Page = (props: Props) => {
-  const stack = new ButterflyStack<{
-    id: string;
-    label: string;
-    knots: number[];
-  }>();
-  stack.addValue({ id: "root", label: "Root", knots: [0, 1000] }, 0); // Neutral layer
-
-  stack.addValue({ id: "child-1", label: "Child A1", knots: [200, 600] }, 1);
-  stack.addValue({ id: "child-2", label: "Child A2", knots: [650, 900] }, 1);
-
-  stack.addValue(
-    { id: "grandchild-1", label: "Grandchild A1.1", knots: [400, 520] },
-    2,
-  );
-
-  stack.addValue(
-    { id: "neg-child-1", label: "Child B1", knots: [350, 800] },
-    -1,
-  );
-  stack.addValue(
-    { id: "neg-child-2", label: "Child B2", knots: [900, 1000] },
-    -1,
-  );
-
-  stack.addValue(
-    { id: "neg-grandchild-1", label: "Grandchild B1.1", knots: [600, 900] },
-    -2,
-  );
-
-  const positiveLayerHeight = stack.getLayerHeight().positive;
-  const negativeLayerHeight = stack.getLayerHeight().negative;
+  /** ANCHOR: References */
   const parentRef = useRef(null);
+  const applicationRef = useRef(null);
+
+  /** ANCHOR: Fetched Data */
+  const { ownChronicles } = useOwnChroniclesData();
+
+  /** ANCHOR: Engines */
+  const { init, engine } = useEngine();
+
+  useEffect(() => {
+    if (ownChronicles) {
+      console.warn("activated");
+      init(ownChronicles);
+    }
+  }, [ownChronicles]);
+
+  console.log("Engine isLoaded", engine.current.isLoaded());
+  if (!engine.current.isLoaded()) return <></>;
+
+  const positiveLayerHeight = engine.current.yDimensions.positive;
+  const negativeLayerHeight = engine.current.yDimensions.negative;
 
   let aknot = 0;
   let distance = 0;
 
   // Check if Data exists
-  if (stack.getLayer(0) != null || undefined) {
+  if (engine.current.getLevel(0) != null || undefined) {
     //get Variables for Normalization
-    aknot = stack.getLayer(0)[0].knots[0];
-    distance = stack.getLayer(0).findLast(e => e)!.knots[1] - aknot; // subract last knot with first one to get the complete distance
+    aknot = engine.current.get(0, 0)?.knots.start as any;
+    distance =
+      (engine.current.getLastVector(0)?.value.knots.end as number) - aknot; // subract last knot with first one to get the complete distance
   }
 
   return (
     <div ref={parentRef} className="size-full">
-      <Application backgroundColor={"#ffffff"} resizeTo={parentRef}>
+      <Application
+        ref={applicationRef}
+        backgroundColor={"#ffffff"}
+        resizeTo={parentRef}
+      >
+        <ViewportWrapper></ViewportWrapper>
         {
-          // Render Layer 0
-          stack.getLayer(0).map(e => {
+          /** Render level 0 */
+          engine.current.getLevel(0)?.forEach((chronicle, i, list) => {
+            /** At this point level 0 exists */
+
             // Check if multpiple elements is in Layer 0
-            if (stack.getLayer(0).length == 1) {
+            if (engine.current.getLevel(0)?.length == 1) {
               return (
-                <RenderBranch
-                  key={e.id}
+                <Branch
+                  key={chronicle.id}
                   start={0}
                   end={window.window.innerWidth}
                   shift={window.innerHeight / 2}
-                ></RenderBranch>
+                  title={chronicle.title}
+                ></Branch>
               );
-            }
-
-            //set first elements first knot to 0 and normalize second knot
-            else if (stack.getLayer(0)[0] == e) {
-              const nknots = normalize(e.knots, aknot, distance);
+            } else if (
+              /** Validate that this is currently the first element */
+              engine.current.get(0, 0) &&
+              engine.current.get(0, 0) == chronicle
+            ) {
+              /** set first elements first knot to 0 and normalize second knot */
+              const nknots = normalize(chronicle.knots, aknot, distance);
               return (
-                <RenderBranch
-                  key={e.id}
+                <Branch
+                  key={chronicle.id}
                   start={0}
                   end={nknots[1] * window.window.innerWidth}
                   shift={window.innerHeight / 2}
-                ></RenderBranch>
+                  title={chronicle.title}
+                ></Branch>
               );
             }
 
             //normalize elements first knot and set last elements last knot to wished width
-            else if (stack.getLayer(0).findLast(e => e) == e) {
-              const nknots = normalize(e.knots, aknot, distance);
+            else if (
+              engine.current.getLast(0) &&
+              engine.current.getLast(0) == chronicle
+            ) {
+              const nknots = normalize(chronicle.knots, aknot, distance);
               return (
-                <RenderBranch
-                  key={e.id}
+                <Branch
+                  key={chronicle.id}
                   start={nknots[0] * window.window.innerWidth}
                   end={window.window.innerWidth}
                   shift={window.innerHeight / 2}
-                ></RenderBranch>
+                  title={chronicle.title}
+                ></Branch>
               );
             } else {
-              const nknots = normalize(e.knots, aknot, distance);
+              const nknots = normalize(chronicle.knots, aknot, distance);
               return (
-                <RenderBranch
-                  key={e.id}
+                <Branch
+                  key={chronicle.id}
                   start={nknots[0] * window.window.innerWidth}
                   end={nknots[1] * window.window.innerWidth}
                   shift={window.innerHeight / 2}
-                ></RenderBranch>
+                  title={chronicle.title}
+                ></Branch>
               );
             }
-          })
+          }) ?? <></>
         }
-
         {
           // Render positiv Layers
           Array.from({ length: positiveLayerHeight }, (_, i) => {
             const layerIndex = i + 1; // positive layers: 1, 2, 3...
-            const layer = stack.getLayer(layerIndex);
+            const layer = engine.current.getLayer(layerIndex);
 
             return layer.map(e => {
               const nknots = normalize(e.knots, aknot, distance);
               return (
                 <React.Fragment key={e.id}>
-                  <RenderConnection
-                    startPoint={{
-                      x: nknots[0] * window.window.innerWidth,
-                      y: window.innerHeight / 2 - i * 50,
-                    }}
-                    endPoint={{
-                      x: nknots[0] * window.window.innerWidth + 50,
-                      y: window.innerHeight / 2 + -1 * layerIndex * 50,
-                    }}
-                    thickness={2}
-                    color={0xff0000}
-                  />
-                  <RenderBranch
+                  <Branch
                     key={e.id}
                     start={nknots[0] * window.window.innerWidth}
                     end={nknots[1] * window.window.innerWidth}
                     shift={window.innerHeight / 2 + -1 * layerIndex * 50} // positive shift (e.g. +1, +2)
+                    title={e.title}
                   />
                 </React.Fragment>
               );
@@ -152,14 +148,15 @@ const Page = (props: Props) => {
           // Render negative Layers
           Array.from({ length: negativeLayerHeight }, (_, i) => {
             const layerIndex = i + 1;
-            return stack.getLayer(-layerIndex).map(e => {
+            return engine.current.getLayer(-layerIndex).map(e => {
               const nknots = normalize(e.knots, aknot, distance);
               return (
-                <RenderBranch
+                <Branch
                   key={e.id}
                   start={nknots[0] * window.window.innerWidth}
                   end={nknots[1] * window.window.innerWidth}
                   shift={window.innerHeight / 2 + layerIndex * 50}
+                  title={e.title}
                 />
               );
             });
@@ -170,10 +167,14 @@ const Page = (props: Props) => {
   );
 };
 
-const normalize = (knots: number[], aKnot: number, distance: number) => {
+const normalize = (
+  knots: { start: number; end: number },
+  aKnot: number,
+  distance: number,
+) => {
   const normalizedKnots = [0, 0];
-  normalizedKnots[0] = (knots[0] - aKnot) / distance;
-  normalizedKnots[1] = (knots[1] - aKnot) / distance;
+  normalizedKnots[0] = (knots.start - aKnot) / distance;
+  normalizedKnots[1] = (knots.end - aKnot) / distance;
 
   return normalizedKnots;
 };
