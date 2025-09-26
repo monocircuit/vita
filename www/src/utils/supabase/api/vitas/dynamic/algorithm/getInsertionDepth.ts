@@ -1,5 +1,5 @@
 import { LinearChronicle } from "@/utils/schemas/Chronicle";
-import ButterflyStack from "@/utils/structures/ButterflyStack";
+import Butterfly from "@/utils/structures/ButterflyStack";
 import { ButterflyStackDepth } from "@/utils/structures/ButterflyStack.d";
 import { getLinearChronicleLeftDelta } from "../../../../../processing/data/chronicles/getLinearChronicleDeltas";
 
@@ -16,7 +16,7 @@ import { getLinearChronicleLeftDelta } from "../../../../../processing/data/chro
  */
 function getInsertionDepth(
   insertionChronicle: LinearChronicle,
-  butterflyStack: ButterflyStack<LinearChronicle>,
+  butterflyStack: Butterfly<LinearChronicle>,
 ) {
   const latestPoints = butterflyStack.getLastPoints();
   let insertionDepth: ButterflyStackDepth | null = null;
@@ -38,7 +38,7 @@ function getInsertionDepth(
         k < j + Math.pow(2, (insertionDepth as ButterflyStackDepth).vertical);
         k++
       ) {
-        const currentVerticalDepth = ButterflyStack.alternateVerticalDepth(k);
+        const currentVerticalDepth = Butterfly.alternateVerticalDepth(k);
 
         if (
           butterflyStack.getLayerWeight(
@@ -58,7 +58,7 @@ function getInsertionDepth(
 
     if (!insertionDepth) {
       /** In case there was no insertion point found, create a new layer */
-      const layerHeight = butterflyStack.getLayerHeight();
+      const layerHeight = butterflyStack.getDimensions();
 
       if (layerHeight.positive > layerHeight.negative) {
         /** Only insert into the negative layer if the postive layer is actually greater than the negative one */

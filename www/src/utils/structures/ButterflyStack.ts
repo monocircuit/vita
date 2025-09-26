@@ -1,8 +1,15 @@
+/** @author Lukas Diegelmann */
+
 /**
  * Types for the ButterflyStack
  */
 export type ButterflyStackVerticalDepth = number;
 export type ButterflyStackHorizontalDepth = number;
+
+export interface ButterflyStackDimensions {
+  positive: number;
+  negative: number;
+}
 
 export interface ButterflyStackDepth {
   vertical: ButterflyStackVerticalDepth;
@@ -36,7 +43,19 @@ class ButterflyStack<Value> {
   protected positiveLayers: Value[][] = [];
   protected negativeLayers: Value[][] = [];
 
-  constructor() { }
+  constructor() {}
+
+  public getNeutralLayer() {
+    return this.neutralLayer;
+  }
+
+  public getPositiveLayers() {
+    return this.positiveLayers;
+  }
+
+  public getNegativeLayers() {
+    return this.negativeLayers;
+  }
 
   /**
    * Return the latest points of each layer in the stack, i.e. the points at the right end of each layer
@@ -59,41 +78,30 @@ class ButterflyStack<Value> {
       });
     }
 
-    let i = 1;
+    /** Alternating between positive and negative layers and pushing points in */
+    let i = 0;
+    console.log(this.positiveLayers.length, this.negativeLayers.length);
     while (i < this.positiveLayers.length + this.negativeLayers.length) {
-      const verticalDepth = ButterflyStack.alternateVerticalDepth(i);
-      const layer = this.getLayer(verticalDepth);
+      const verticalDepth = ButterflyStack.alternateVerticalDepth(
+        this.indexToDepth(i),
+      );
 
-      points.push({
-        value: layer[layer.length - 1],
-        depth: {
-          vertical: verticalDepth,
-          horizontal: layer.length - 1,
-        },
-      });
+      console.log("i", this.indexToDepth(i), "verticalDepth", verticalDepth);
+
+      if (this.checkLayerExistance(verticalDepth)) {
+        const layer = this.getLayer(verticalDepth);
+
+        points.push({
+          value: layer[layer.length - 1],
+          depth: {
+            vertical: verticalDepth,
+            horizontal: layer.length - 1,
+          },
+        });
+      }
 
       i++;
     }
-
-    this.positiveLayers.forEach((layer, i) =>
-      points.push({
-        value: layer[layer.length - 1],
-        depth: {
-          vertical: this.indexToDepth(i),
-          horizontal: layer.length - 1,
-        },
-      }),
-    );
-
-    this.negativeLayers.forEach((layer, i) =>
-      points.push({
-        value: layer[layer.length - 1],
-        depth: {
-          vertical: -1 * this.indexToDepth(i),
-          horizontal: layer.length - 1,
-        },
-      }),
-    );
 
     return points;
   }
@@ -143,32 +151,35 @@ class ButterflyStack<Value> {
     }
   }
 
-
-  //dachte schreibe die Value nach der Normalisierung um, mache das aber doch bei rendering jedes mal neu --> Vielleicht brauchen wir das noch deshalb bleibt das  
-  public setValue(verticalDepth: number, horizontalDepth: number, value: Value){
+  //dachte schreibe die Value nach der Normalisierung um, mache das aber doch bei rendering jedes mal neu --> Vielleicht brauchen wir das noch deshalb bleibt das
+  public setValue(
+    verticalDepth: number,
+    horizontalDepth: number,
+    value: Value,
+  ) {
     const layer = this.getLayer(verticalDepth);
 
     if (layer.length <= horizontalDepth)
       throw new Error("Invalid horizontal Depth");
 
-
-    //write to positiv Layer
+    //write to positive Layer
     if (verticalDepth > 0) {
       if (this.positiveLayers.length <= this.depthToIndex(verticalDepth))
         throw new Error("Invalid vertical Depth");
-      this.positiveLayers[this.depthToIndex(verticalDepth)][horizontalDepth] = value;
+      this.positiveLayers[this.depthToIndex(verticalDepth)][horizontalDepth] =
+        value;
     }
 
     //write to negativ Layer
     if (verticalDepth < 0) {
       if (this.negativeLayers.length <= this.depthToIndex(verticalDepth))
         throw new Error("Invalid vertical Depth");
-      this.negativeLayers[this.depthToIndex(verticalDepth)][horizontalDepth] = value;
+      this.negativeLayers[this.depthToIndex(verticalDepth)][horizontalDepth] =
+        value;
     }
 
     //write to neutralLayer
     this.neutralLayer[horizontalDepth] = value;
-
   }
 
   public getValue(verticalDepth: number, horizontalDepth: number) {
@@ -185,35 +196,46 @@ class ButterflyStack<Value> {
     return layer[layer.length - 1];
   }
 
-  public getPositiveLayerHeight() {
+  public getPositiveDimension() {
     return this.positiveLayers.length;
   }
 
-  public getNegativeLayerHeight() {
+  public getNegativeDimension() {
     return this.negativeLayers.length;
   }
 
-  public getLayerHeight() {
+  public getDimensions(): ButterflyStackDimensions {
     return {
-      positive: this.getPositiveLayerHeight(),
-      negative: this.getNegativeLayerHeight(),
+      positive: this.getPositiveDimension(),
+      negative: this.getNegativeDimension(),
     };
   }
 
+  /**
+   * Retrieves the layer at the given vertical depth.
+   *
+   * Positive depths are looked up in `positiveLayers`, negative depths
+   * in `negativeLayers`, and depth `0` returns the `neutralLayer`.
+   *
+   * If no layer exists at the requested depth (e.g. the index is out of
+   * bounds for the corresponding array), the method returns `null`.
+   *
+   * @param verticalDepth - The depth of the desired layer.
+   *                        Positive values refer to layers above neutral,
+   *                        negative values to layers below neutral,
+   *                        and `0` refers to the neutral layer itself.
+   * @returns The layer at the given vertical depth, or `null` if none exists.
+   */
   public getLayer(verticalDepth: number) {
-  if (verticalDepth > 0) {
+    if (verticalDepth > 0) {
       if (this.positiveLayers.length <= this.depthToIndex(verticalDepth))
-        throw new Error(
-          `${verticalDepth} is an invalid vertical Depth (positive layers, too big)`,
-        );
+        return null;
       return this.positiveLayers[this.depthToIndex(verticalDepth)];
     }
 
     if (verticalDepth < 0) {
       if (this.negativeLayers.length <= this.depthToIndex(verticalDepth))
-        throw new Error(
-          `${verticalDepth} is an invalid vertical Depth (negative layers, too big)`,
-        );
+        return null;
       return this.negativeLayers[this.depthToIndex(verticalDepth)];
     }
 
@@ -227,7 +249,15 @@ class ButterflyStack<Value> {
     };
   }
 
-  public getLastPoint(verticalDepth: number): ButterflyStackVector<Value> {
+  public getLastPoint(
+    verticalDepth: number,
+  ): ButterflyStackVector<Value | null> {
+    if (!this.checkLayerExistance(verticalDepth))
+      return {
+        value: null,
+        depth: { vertical: verticalDepth, horizontal: null },
+      };
+
     const layer = this.getLayer(verticalDepth);
 
     return {
@@ -250,15 +280,104 @@ class ButterflyStack<Value> {
   public checkLayerExistance(verticalDepth: number) {
     if (verticalDepth == 0) return true;
     if (verticalDepth > 0) {
-      return this.positiveLayers.length > verticalDepth;
+      return this.positiveLayers.length > verticalDepth - 1;
     }
     if (verticalDepth < 0) {
-      return this.negativeLayers.length > -verticalDepth;
+      return this.negativeLayers.length > Math.abs(verticalDepth) - 1;
+    }
+  }
+
+  public logLastPoints() {
+    const lastPoints = this.getLastPoints();
+
+    lastPoints.forEach((lastPoint, i) =>
+      console.log(`${i}: ${JSON.stringify(lastPoint.value)}`),
+    );
+  }
+
+  public logPoints() {
+    console.log("[POSITIVE LEVELS]");
+    this.positiveLayers.forEach((array, i) => {
+      console.log(`[LEVEL ${this.indexToDepth(i)}]:`);
+      array.forEach((value, i) =>
+        console.log(`[X: ${i}] ${JSON.stringify(value)}`),
+      );
+    });
+
+    console.log("[NEUTRAL LEVEL]");
+    this.neutralLayer.forEach((value, i) => {
+      console.log(`[X: ${i}] ${JSON.stringify(value)}`);
+    });
+
+    console.log("[NEGATIVE LEVELS]");
+    this.negativeLayers.forEach((array, i) => {
+      console.log(`[LEVEL ${this.indexToDepth(i)}]:`);
+      array.forEach((value, i) =>
+        console.log(`[X: ${i}] ${JSON.stringify(value)}`),
+      );
+    });
+  }
+
+  /**
+   * This function iterates from the initial positive layers (initial)
+   * positive vertical depth, to the neutral layer. Should there be no
+   * positive layers in the `ButterflyStack`, then there will still be a
+   * function call for the neutral layer.
+   */
+  private iteratePositiveToNeutral(
+    initialVerticalDepth: number,
+    f: (vector: ButterflyStackVector<Value>) => void,
+  ) {
+    for (let i = initialVerticalDepth; i <= 0; i--) {
+      f(this.getLastPoint(i));
+    }
+  }
+
+  /**
+   * This function iterates from the initial negative layers (initial)
+   * vertical depth, to the neutral layer. Should there be no negative
+   * layers in the `ButterflyStack`, then there will still be a function
+   * call for the neutral layer.
+   */
+  private iterateNegativeToNeutral(
+    initialVerticalDepth: number,
+    f: (vector: ButterflyStackVector<Value>) => void,
+  ) {
+    for (let i = initialVerticalDepth; i <= 0; i++) {
+      console.log("iterateNegativeToNeutral", i);
+      f(this.getLastPoint(i));
+    }
+  }
+
+  /**
+   * Iterates from the given initial vertical depth back to the neutral layer (0).
+   * Depending on the sign of `initialVerticalDepth`, this will call either
+   * {@link iteratePositiveToNeutral} or {@link iterateNegativeToNeutral}.
+   * The provided callback `f` is invoked once for each vertical depth
+   * encountered, including the neutral layer.
+   *
+   * @param initialVerticalDepth - The starting depth. Positive values count down
+   *                               toward 0, negative values count up toward 0,
+   *                               and 0 invokes the callback only once.
+   * @param f - A function that receives each vertical depth value during iteration.
+   */
+  public iterateToNeutral(
+    initialVerticalDepth: number,
+    f: (vector: ButterflyStackVector<Value>) => void,
+  ) {
+    if (initialVerticalDepth == 0) {
+      f(this.getLastPoint(0));
+    }
+    if (initialVerticalDepth > 0) {
+      this.iteratePositiveToNeutral(initialVerticalDepth, f);
+    }
+    if (initialVerticalDepth < 0) {
+      this.iterateNegativeToNeutral(initialVerticalDepth, f);
     }
   }
 
   static alternateVerticalDepth(index: number) {
-    return Math.pow(-1, index + 1) * Math.ceil(index);
+    return (index % 2 ? 1 : -1) * Math.ceil(index / 2);
   }
 
   static negativeVerticalDepthOperator(verticalDepth: number) {

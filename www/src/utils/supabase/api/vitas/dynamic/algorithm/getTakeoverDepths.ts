@@ -1,5 +1,5 @@
 import { LinearChronicle } from "@/utils/schemas/Chronicle";
-import ButterflyStack from "@/utils/structures/ButterflyStack";
+import Butterfly from "@/utils/structures/ButterflyStack";
 import { ButterflyStackDepth } from "@/utils/structures/ButterflyStack.d";
 import { getLinearChronicleRightDelta } from "../../../../../processing/data/chronicles/getLinearChronicleDeltas";
 import { VITA_DYNAMIC_MANEUVERS_TAKEOVER_MIN_SPACE } from "../dynamicVitaConstants";
@@ -11,16 +11,14 @@ import { VITA_DYNAMIC_MANEUVERS_TAKEOVER_MIN_SPACE } from "../dynamicVitaConstan
 const getTakeoverDepths = (
   insertionChronicle: LinearChronicle,
   insertionDepth: ButterflyStackDepth,
-  butterflyStack: ButterflyStack<LinearChronicle>,
+  butterflyStack: Butterfly<LinearChronicle>,
 ) => {
   /**
    * If the `insertionDepth` has a positive `verticalDepth`, then subtract from the `verticalDepth` until
    * the `neutralLayer` is reached. If the insertion point has a negative vertical depth, add to the
    * `verticalDepth` until the `neutralLayer` is reached.
    */
-  const operator = ButterflyStack.getVerticalDepthOperator(
-    insertionDepth.vertical,
-  );
+  const operator = Butterfly.getVerticalDepthOperator(insertionDepth.vertical);
 
   let iteratingVerticalDepth = (insertionDepth as ButterflyStackDepth).vertical;
   let takeoverStickoutDepth = iteratingVerticalDepth;

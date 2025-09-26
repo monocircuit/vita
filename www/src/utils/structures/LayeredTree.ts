@@ -1,3 +1,5 @@
+/** ANCHOR: DEPRICATED */
+
 import { ChronicleOrientation } from "../schemas/enumerated-types/ChronicleOrientation";
 
 type LayeredTreeSortInComparator<Value> = (

@@ -7,7 +7,7 @@ import { createClient } from "@/utils/supabase/client";
 import getLinearChronicles from "./algorithm/getLinearChronicles";
 import LayeredTree from "@/utils/structures/LayeredTree";
 import checkLinearChronicleOverlap from "../../../../processing/data/chronicles/checkLinearChronicleOverlap";
-import ButterflyStack from "@/utils/structures/ButterflyStack";
+import Butterfly from "@/utils/structures/ButterflyStack";
 import getInsertionDepth from "./algorithm/getInsertionDepth";
 import getTakeoverDepths from "./algorithm/getTakeoverDepths";
 import alignLinearChronicles from "./sortInLinearChronicles";
@@ -84,7 +84,7 @@ import Engine from "@/utils/processing/engines/dynamic/Engine";
 
 const storeLinearChronicles = (linearChronicles: LinearChronicle[]) => {
   const sortedLinearChronicles = alignLinearChronicles(linearChronicles);
-  const butterflyStack = new ButterflyStack<LinearChronicle>();
+  const butterflyStack = new Butterfly<LinearChronicle>();
 
   console.log("sortedLinearChronicles", sortedLinearChronicles);
 
