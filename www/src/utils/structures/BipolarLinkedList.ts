@@ -445,6 +445,62 @@ export default class BipolarLinkedList<Value> {
   }
 
   /**
+   * @author ChatGPT5
+   *
+   * Create a new BipolarLinkedList by applying a mapping function
+   * only to the neutral (0) and positive side (x >= 0).
+   *
+   * Order of iteration:
+   *   0, +1, +2, ..., +N
+   *
+   * Negative side (x < 0) is ignored and not copied into the new list.
+   *
+   * @param mapper - Function that receives the current value,
+   *   its index, and the list itself, and returns the mapped value.
+   * @returns A new BipolarLinkedList<U> containing only the neutral
+   *   and positive values, transformed by the mapper function.
+   */
+  public mapNeutralToPositive<U>(
+    mapper: (value: Value, index: number, list: BipolarLinkedList<Value>) => U,
+  ): BipolarLinkedList<U> {
+    const result = new BipolarLinkedList<U>();
+
+    for (const { index, value } of this.iterateNeutralToPositive()) {
+      result.set(index, mapper(value, index, this));
+    }
+
+    return result;
+  }
+
+  /**
+   * @author ChatGPT5
+   *
+   * Create a new BipolarLinkedList by applying a mapping function
+   * only to the neutral (0) and negative side (x <= 0).
+   *
+   * Order of iteration:
+   *   0, -1, -2, ..., -M
+   *
+   * Positive side (x > 0) is ignored and not copied into the new list.
+   *
+   * @param mapper - Function that receives the current value,
+   *   its index, and the list itself, and returns the mapped value.
+   * @returns A new BipolarLinkedList<U> containing only the neutral
+   *   and negative values, transformed by the mapper function.
+   */
+  public mapNeutralToNegative<U>(
+    mapper: (value: Value, index: number, list: BipolarLinkedList<Value>) => U,
+  ): BipolarLinkedList<U> {
+    const result = new BipolarLinkedList<U>();
+
+    for (const { index, value } of this.iterateNeutralToNegative()) {
+      result.set(index, mapper(value, index, this));
+    }
+
+    return result;
+  }
+
+  /**
    * @author ChaptGPT5
    *
    * Apply a reducer function on every node in the list and return a single result.
@@ -497,6 +553,9 @@ export default class BipolarLinkedList<Value> {
     ) => Accumulator,
     initialValue: Accumulator,
   ): Accumulator | undefined {
+    console.log("--------- CALL ------------");
+    console.log(startIndex);
+
     const startNode = this.findNode(startIndex);
     if (!startNode) return undefined;
 
@@ -523,5 +582,80 @@ export default class BipolarLinkedList<Value> {
     }
 
     return acc;
+  }
+
+  /**
+   * @author ChatGPT5
+   *
+   * Convert the list into a plain array using the default iterator.
+   *
+   * Order:
+   *   0, +1, -1, +2, -2, +3, -3, ...
+   *
+   * @returns An array of all values in default alternating order.
+   */
+  public toArray(): Value[] {
+    const result: Value[] = [];
+    for (const { value } of this) {
+      result.push(value);
+    }
+    return result;
+  }
+
+  /**
+   * @author ChatGPT5
+   *
+   * Convert the list into a plain array using the neutral-to-positive order.
+   *
+   * Order:
+   *   0, +1, +2, ..., +N
+   *
+   * @returns An array of all values from origin to positive tail.
+   */
+  public toArrayNeutralToPositive(): Value[] {
+    const result: Value[] = [];
+    for (const { value } of this.iterateNeutralToPositive()) {
+      result.push(value);
+    }
+    return result;
+  }
+
+  /**
+   * @author ChatGPT5
+   *
+   * Convert the list into a plain array using the neutral-to-negative order.
+   *
+   * Order:
+   *   0, -1, -2, ..., -M
+   *
+   * @returns An array of all values from origin to negative tail.
+   */
+  public toArrayNeutralToNegative(): Value[] {
+    const result: Value[] = [];
+    for (const { value } of this.iterateNeutralToNegative()) {
+      result.push(value);
+    }
+    return result;
+  }
+
+  /**
+   * @author ChatGPT5
+   *
+   * Move a numeric index one step closer to zero.
+   *
+   * Examples:
+   *   - If index = 5   → returns 4
+   *   - If index = 1   → returns 0
+   *   - If index = -3  → returns -2
+   *   - If index = -1  → returns 0
+   *   - If index = 0   → returns 0
+   *
+   * @param index - The index to adjust.
+   * @returns The given index moved one step toward 0.
+   */
+  public stepTowardZero(index: number): number {
+    if (index > 0) return index - 1;
+    if (index < 0) return index + 1;
+    return 0; // already at zero
   }
 }

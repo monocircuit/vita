@@ -60,106 +60,126 @@ const Page: React.FunctionComponent = () => {
         <ViewportWrapper></ViewportWrapper>
         {
           /** Render level 0 */
-          engine.current.getLevel(0)?.forEach((chronicle, i, list) => {
-            /** At this point level 0 exists */
-
-            // Check if multpiple elements is in Layer 0
-            if (engine.current.getLevel(0)?.length == 1) {
-              return (
-                <Branch
-                  key={chronicle.id}
-                  start={0}
-                  end={window.window.innerWidth}
-                  shift={window.innerHeight / 2}
-                  title={chronicle.title}
-                ></Branch>
-              );
-            } else if (
-              /** Validate that this is currently the first element */
-              engine.current.get(0, 0) &&
-              engine.current.get(0, 0) == chronicle
-            ) {
-              /** set first elements first knot to 0 and normalize second knot */
-              const nknots = normalize(chronicle.knots, aknot, distance);
-              return (
-                <Branch
-                  key={chronicle.id}
-                  start={0}
-                  end={nknots[1] * window.window.innerWidth}
-                  shift={window.innerHeight / 2}
-                  title={chronicle.title}
-                ></Branch>
-              );
-            }
-
-            //normalize elements first knot and set last elements last knot to wished width
-            else if (
-              engine.current.getLast(0) &&
-              engine.current.getLast(0) == chronicle
-            ) {
-              const nknots = normalize(chronicle.knots, aknot, distance);
-              return (
-                <Branch
-                  key={chronicle.id}
-                  start={nknots[0] * window.window.innerWidth}
-                  end={window.window.innerWidth}
-                  shift={window.innerHeight / 2}
-                  title={chronicle.title}
-                ></Branch>
-              );
-            } else {
-              const nknots = normalize(chronicle.knots, aknot, distance);
-              return (
-                <Branch
-                  key={chronicle.id}
-                  start={nknots[0] * window.window.innerWidth}
-                  end={nknots[1] * window.window.innerWidth}
-                  shift={window.innerHeight / 2}
-                  title={chronicle.title}
-                ></Branch>
-              );
-            }
-          }) ?? <></>
-        }
-        {
-          // Render positiv Layers
-          Array.from({ length: positiveLayerHeight }, (_, i) => {
-            const layerIndex = i + 1; // positive layers: 1, 2, 3...
-            const layer = engine.current.getLayer(layerIndex);
-
-            return layer.map(e => {
-              const nknots = normalize(e.knots, aknot, distance);
-              return (
-                <React.Fragment key={e.id}>
+          engine.current
+            .getLevel(0)
+            ?.mapNeutralToPositive((chronicle, i) => {
+              /** At this point level 0 exists */
+              /** Check if multiple elements are in level 0 */
+              if (engine.current.getLevel(0)?.length == 1) {
+                /** if there is only one element in level 0 */
+                return (
                   <Branch
-                    key={e.id}
+                    key={i}
+                    start={0}
+                    end={window.window.innerWidth}
+                    shift={window.innerHeight / 2}
+                    title={chronicle.title}
+                  ></Branch>
+                );
+              }
+
+              // set first elements first knot to 0 and normalize second knot
+              else if (
+                /** Validate that this is currently the first element */
+                engine.current.get(0, 0) &&
+                engine.current.get(0, 0) == chronicle
+              ) {
+                const nknots = normalize(chronicle.knots, aknot, distance);
+                return (
+                  <Branch
+                    key={i}
+                    start={0}
+                    end={nknots[1] * window.window.innerWidth}
+                    shift={window.innerHeight / 2}
+                    title={chronicle.title}
+                  ></Branch>
+                );
+              }
+              // normalize elements first knot and set last elements last knot to wished width
+              else if (
+                engine.current.getLast(0) &&
+                engine.current.getLast(0) == chronicle
+              ) {
+                const nknots = normalize(chronicle.knots, aknot, distance);
+                return (
+                  <Branch
+                    key={i}
+                    start={nknots[0] * window.window.innerWidth}
+                    end={window.window.innerWidth}
+                    shift={window.innerHeight / 2}
+                    title={chronicle.title}
+                  ></Branch>
+                );
+              }
+              // if its not the first nor the last element
+              else {
+                const nknots = normalize(chronicle.knots, aknot, distance);
+                return (
+                  <Branch
+                    key={i}
                     start={nknots[0] * window.window.innerWidth}
                     end={nknots[1] * window.window.innerWidth}
-                    shift={window.innerHeight / 2 + -1 * layerIndex * 50} // positive shift (e.g. +1, +2)
-                    title={e.title}
-                  />
-                </React.Fragment>
-              );
-            });
+                    shift={window.innerHeight / 2}
+                    title={chronicle.title}
+                  ></Branch>
+                );
+              }
+            })
+            .toArrayNeutralToPositive() ?? <></>
+        }
+        {
+          /** Render positive levels */
+          Array.from({ length: positiveLayerHeight }, (_, i) => {
+            const levelIndex = i + 1; // positive levels: 1, 2, 3...
+            const level = engine.current.getLevel(levelIndex);
+
+            if (!level) return <></>;
+
+            return level
+              .mapNeutralToPositive(chronicle => {
+                const nknots = normalize(chronicle.knots, aknot, distance);
+                return (
+                  <React.Fragment
+                    key={chronicle.id + Math.ceil(Math.random() * 100)}
+                  >
+                    <Branch
+                      key={chronicle.id}
+                      start={nknots[0] * window.window.innerWidth}
+                      end={nknots[1] * window.window.innerWidth}
+                      shift={window.innerHeight / 2 + -1 * levelIndex * 50} // positive shift (e.g. +1, +2)
+                      title={chronicle.title}
+                    />
+                  </React.Fragment>
+                );
+              })
+              .toArrayNeutralToPositive();
           })
         }
-
         {
-          // Render negative Layers
+          /** Render negative levels */
           Array.from({ length: negativeLayerHeight }, (_, i) => {
-            const layerIndex = i + 1;
-            return engine.current.getLayer(-layerIndex).map(e => {
-              const nknots = normalize(e.knots, aknot, distance);
-              return (
-                <Branch
-                  key={e.id}
-                  start={nknots[0] * window.window.innerWidth}
-                  end={nknots[1] * window.window.innerWidth}
-                  shift={window.innerHeight / 2 + layerIndex * 50}
-                  title={e.title}
-                />
-              );
-            });
+            const levelIndex = i + 1;
+            const level = engine.current.getLevel(-levelIndex);
+
+            if (!level) return <></>;
+
+            return level
+              .mapNeutralToPositive(chronicle => {
+                const nknots = normalize(chronicle.knots, aknot, distance);
+                return (
+                  <React.Fragment
+                    key={chronicle.id + Math.ceil(Math.random() * 100)}
+                  >
+                    <Branch
+                      start={nknots[0] * window.window.innerWidth}
+                      end={nknots[1] * window.window.innerWidth}
+                      shift={window.innerHeight / 2 + levelIndex * 50}
+                      title={chronicle.title}
+                    />
+                  </React.Fragment>
+                );
+              })
+              .toArrayNeutralToPositive();
           })
         }
       </Application>

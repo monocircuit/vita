@@ -318,6 +318,7 @@ export default class Butterfly<Value> {
     initialValue: Accumulator,
   ): Accumulator | undefined {
     // delegate to the store (BipolarLinkedList<BipolarLinkedList<Value>>)
+    console.log("reduceYToNeutral call");
     return this.store.reduceToNeutral<Accumulator>(
       startY,
       (acc, level, y) => reducer(acc, level, y, this),
@@ -433,5 +434,26 @@ export default class Butterfly<Value> {
       // Print the row for this level
       console.log(`y=${y}: [${values.join(", ")}]`);
     }
+  }
+
+  /**
+   * @author ChatGPT5
+   *
+   * Move a numeric index one step closer to zero (toward the neutral origin).
+   *
+   * Examples:
+   *   5   → 4
+   *   1   → 0
+   *  -3   → -2
+   *  -1   → 0
+   *   0   → 0
+   *
+   * This delegates to the underlying BipolarLinkedList helper.
+   *
+   * @param index - The index to adjust.
+   * @returns The index moved one step closer to zero.
+   */
+  public stepTowardZero(index: number): number {
+    return this.store.stepTowardZero(index);
   }
 }

@@ -86,13 +86,11 @@ class Engine extends Butterfly<LinearChronicle> {
       const insertionDepth = this.getInsertionDepth(insertionChronicle);
       console.log("insertionDepth", insertionDepth);
 
-      /** Find `projectionData` */
-      // const projectionData = this.getProjectionData(
-      //   insertionChronicle,
-      //   insertionDepth,
-      // );
-
-      // console.log("projectionData", projectionData);
+      /** Find `TakeoverPath` */
+      const takeoverPath = this.getTakeoverPath(
+        insertionChronicle,
+        insertionDepth,
+      );
 
       /** Find `takeoverLeapVerticalDepth` */
       // const takeoverPath = this.getTakeoverPath(
@@ -243,272 +241,220 @@ class Engine extends Butterfly<LinearChronicle> {
   /**
    * @author Lukas Diegelmann
    *
-   * Calculates the projection data necessary to generate the takeover path. Depending on
-   * the current layer the `insertionDepth` points at, the Projection happens from top to
-   * bottom (positive layers) or from bottom to top (negative layers). In any case does the
-   * projection point to the neutral layer.
+   * Compute the cumulative projection of chronicles across Y-levels,
+   * starting from the given level and reducing step by step toward neutral (0).
    *
-   * Example Projection: (↓: Projection follows this direction)
+   * The algorithm uses {@link reduceYToNeutral} with {@link stepTowardZero}
+   * to walk level by level back toward the origin. At each step it looks at
+   * the `positiveTail` of the current level (i.e. the chronicle at the far
+   * right end of that level).
    *
-   *    (4) x------------------------------------------ (": marks parts of the layers that
-   *    (3) x""""""""""""""""                               belong to the projection)
-   *    (2) x--------
-   *    (1) x----------------"""""""""""""
-   *    (0) x-----------------------------""""""
+   * For each level:
+   * - If the last chronicle in the accumulator already extends beyond (or
+   *   completely covers) the current chronicle, then the current chronicle
+   *   is skipped.
+   *
+   * - Otherwise, if there is a previous slice, its `end` is adjusted to end
+   *   where the current chronicle ends, ensuring continuity of the projection.
+   *
+   * - A new slice is then pushed into the accumulator, starting at the end
+   *   of the current chronicle and extending to `Infinity`. This represents
+   *   the "open projection" continuing from that point onward.
+   *
+   * @param y - The Y-level index from which to start the projection.
+   *            The search begins at {@link stepTowardZero}(y) and proceeds
+   *            toward neutral.
+   * @returns An array of {@link EngineProjectionSlice}, each describing
+   *          a projection slice with its Y-index and knot interval
+   *          `{ start, end }`.
+   *
+   * @example
+   * // Given chronicles on multiple Y-levels, get the cumulative projection
+   * const projection = this.getTotalProjection(3);
+   * // projection: [
+   * //   { y: 2, knots: { start: 12345, end: 67890 } },
+   * //   { y: 1, knots: { start: 67890, end: Infinity } }
+   * // ]
    */
-  private getProjectionData(
-    insertionChronicle: LinearChronicle,
-    insertionDepth: ButterflyDepth,
-  ) {
+  private getTotalProjection(y: number): EngineProjectionSlice[] {
     /**
-     * If the insertionDepth.y is equal to zero, then there are no layers to project
-     * on, meaning there is no projection data (empty array).
+     * Should the y depth happen to be equal to zero, there is nothing
+     * that could be projected anywhere.
      */
-    if (insertionDepth.y == 0) {
-      return [];
-    }
+    if (y == 0) return [];
 
-    /**
-     * If the `insertionDepth.y` is anything other than 0, there might be a chance
-     * for projection.
-     */
-    const projectionSlices = this.reduceYToNeutral(
-      insertionDepth.y,
-      (acc, _level, y) => {
-        const lastVector = this.getLastVector(y);
-
-        if (!lastVector) {
-          /** In case lastVector was not found, just skip this one */
-          return acc;
-        } else {
-          /** In case the lastVector has been found continue. */
-          console.log("iteration", lastVector.y);
-
-          /**
-           * Calculate the current overlap between the `insertion chronicle` and the
-           * lastVector that is the current iteration.
-           */
-          const overlap = getLinearChronicleOverlap(
-            insertionChronicle,
-            lastVector.value,
-          );
-
-          /**
-           * In case there is no overlap between the two `chronicles`, the `overlap`
-           * will be `null`.
-           */
-          if (overlap) {
+    return (
+      this.reduceYToNeutral(
+        this.stepTowardZero(y),
+        (accumulator, level, cy) => {
+          if (level.positiveTail) {
             /**
-             * If there have already been projection slices collected, it is important
-             * to cut the current `overlap` accordingly, since the previous slice, hides
-             * parts of the current.
+             * If the current iteration chronicle is completely shadowed by
+             * the previous chronicle, do not consider the current chronicle.
              */
-            if (acc.length) {
-              /**
-               * Since the previous slice will always be the one sticking out the most,
-               * it is sufficient to just look at the tail of the accumulator (i.e. the)
-               * last element of it.
-               *
-               *            x---------------o1                      (previous slice)
-               *            x---------
-               *            x-----------------------o2              (current slice)
-               *
-               * Meaning the new slice should be between o1 and o2. Where o1 is the end
-               * of the previous slice and o2 is the end of the current overlap.
-               */
-              overlap.start = acc[acc.length - 1].knots.end;
+            if (
+              accumulator.length &&
+              accumulator[accumulator.length - 1].knots.start >=
+                level.positiveTail.value.knots.end
+            ) {
+              return accumulator;
             }
 
-            /**
-             * In case, that after the previous slices went into consideration, the
-             * overlap start is now greater than the overlap end, there will be no
-             * projection slice added.
-             *
-             *              x---------------o1                      (previous slice)
-             *              x---------
-             *              x-----------o2                          (current slice)
-             *
-             * This condition is build in for cases like these. Where a previous slice
-             * shadows the current `iterationChronicle` completely.
-             */
-            if (overlap.start <= overlap.end) {
-              acc.push({
-                knots: overlap,
-                y: lastVector.y,
-              });
+            /** Correct last iteration, if there is one */
+            if (accumulator.length > 1) {
+              accumulator[accumulator.length - 2].knots.end =
+                level.positiveTail.value.knots.end;
             }
+
+            /** Push in current iteration */
+            accumulator.push({
+              y: cy,
+              knots: {
+                start: level.positiveTail.value.knots.end,
+                end: Infinity,
+              },
+            });
+
+            return accumulator;
           }
 
-          return [...acc];
-        }
-      },
-      [] as EngineProjectionSlice[],
+          return [];
+        },
+        [] as EngineProjectionSlice[],
+      ) ?? []
     );
   }
 
-  // private getTakeoverPath(
-  //   insertionChronicle: LinearChronicle,
-  //   insertionDepth: ButterflyDepth,
-  // ) {
-  //   console.log("STARTING TAKEOVER PATH CALCULATION");
-  //   /**
-  //    * The `takeoverPath` will be of the form:
-  //    *
-  //    * { depth: { vertical: number, horizontal: number }, duration: number }[]
-  //    */
-  //   const takeoverPath: EngineTakeoverPath = [];
+  /**
+   * @author Lukas Diegelmann
+   *
+   * Compute the projection of an insertion chronicle at a given depth.
+   *
+   * Starting from the total projection at the specified Y-level,
+   * this method cuts each projection slice so it fits within the
+   * time span (`knots.start` → `knots.end`) of the insertion chronicle.
+   *
+   * Rules applied:
+   * - Slices ending before the chronicle starts are skipped.
+   * - Slices starting before the chronicle are cut at the chronicle start.
+   * - Slices extending beyond the chronicle end are cut at the chronicle end.
+   * - Slices starting after the chronicle ends are skipped.
+   *
+   * @param insertionChronicle - The chronicle whose time span constrains the projection.
+   * @param insertionDepth - The depth (Y-level) where the chronicle is inserted.
+   * @returns A list of projection slices clipped to the insertion chronicle’s bounds.
+   */
+  private getProjection(
+    insertionChronicle: LinearChronicle,
+    insertionDepth: ButterflyDepth,
+  ): EngineProjectionSlice[] {
+    const totalProjection = this.getTotalProjection(insertionDepth.y);
 
-  //   /**
-  //    * If the `insertionDepth` is `0` (neutral) then just add the Chronicle to the neutral layer, without any
-  //    * more calculations.
-  //    */
-  //   if (insertionDepth.y === 0) {
-  //     console.log("insertionDepth is neutral, algorithm is done, NO TAKEOVER!");
-  //     return;
-  //   }
-  //   /**
-  //    * If the `insertionDepth` has a positive `verticalDepth`, then subtract from the `verticalDepth` until
-  //    * the `neutralLayer` is reached. If the insertion point has a negative vertical depth, add to the
-  //    * `verticalDepth` until the `neutralLayer` is reached.
-  //    */
-  //   const operator = Butterfly.getVerticalDepthOperator(
-  //     insertionDepth.vertical,
-  //   );
+    /** The Accumulator collects the final slices */
+    const accumulator: EngineProjectionSlice[] = [];
 
-  //   /**
-  //    * The algorithm start at the vertical insertion depth - 1, since there is no need to look for a take over
-  //    * in the layer the chronicle has already taken over.
-  //    */
-  //   let iteratingVerticalDepth =
-  //     (insertionDepth as ButterflyStackDepth).vertical - 1;
+    /**
+     * Now everything that is left for the algorithm is to cut the
+     * total projection according to the size of the insertion chronicle.
+     *
+     *                  |------------------|              (insertionChronicle)
+     *   x--------~~~~~~|~~                |              (~: Projection)
+     *   x--------------|--                |
+     *   x---------     |  ~~~~~~~~        |
+     *   x--------------|----------~~~~~~~~|~~~~~~~~~~~
+     *                  |                  | <- needed cut.
+     *
+     * Once the algorithm has completed this task the projection data
+     * has been successfully calculated.
+     */
+    totalProjection.forEach(slice => {
+      /**
+       * In case the current slice ends before the insertionChronicle even
+       * starts it can be skipped.
+       *
+       *                    ------------     (insertionChronicle)
+       *   x----~~~~~~~~~                    (current Slice)
+       */
+      if (slice.knots.end <= insertionChronicle.knots.start) {
+        return;
+      }
 
-  //   /**
-  //    * Important for the stickout calculations, that are explained in more detail, when going down.
-  //    */
-  //   let smallestRightDelta = Infinity;
-  //   let stickoutDepth: null | ButterflyStackVerticalDepth = null;
+      /**
+       * In case the current slice starts earlier than the insertion chronicle
+       * it needs to be cut.
+       *
+       *                  -----------         (insertionChronicle)
+       *        x------~~~~~~~~~              (current Slice)
+       */
+      if (slice.knots.start < insertionChronicle.knots.start) {
+        slice.knots.start = insertionChronicle.knots.start;
+      }
 
-  //   let rests = 0;
+      /**
+       * In case the insertion chronicle ends earlier than the current slice
+       * the slice must be cut.
+       *
+       *                  -------------        (insertionChronicle)
+       *          x--------------~~~~~~~~~~~   (current Slice)
+       */
+      if (slice.knots.end > insertionChronicle.knots.end) {
+        slice.knots.end = insertionChronicle.knots.end;
+      }
 
-  //   /**
-  //    * Initiating the loop to calculate the Takeover path
-  //    */
-  //   do {
-  //     /**
-  //      * The `iteratingChronicle` is the `Chronicle` that's the last entry at the current
-  //      * layer, i.e. the `Chronicle` that the algorithm needs to compare the `insertionChronicle`
-  //      * to.
-  //      */
-  //     const iteratingChronicle = this.getLastValue(iteratingVerticalDepth);
+      /**
+       * In case the insertion chronicle has already ended before the current
+       * slice even begins to start, the slice can be skipped.
+       *
+       *             --------------             (insertionChronicle)
+       *    x--------------------------~~~~~~~~ (current Slice)
+       */
+      if (slice.knots.start >= insertionChronicle.knots.end) {
+        return;
+      }
 
-  //     /**
-  //      * The `rightDelta` between the `insertionChronicle` and the `iteratingChronicle`. The
-  //      * meaning of this number can be illustrated via a quick sketch:
-  //      *
-  //      *                        ------------  (insertionChronicle)
-  //      *              ----------------|       (iteratingChronicle)
-  //      *                   left delta | right delta
-  //      */
-  //     const rightDelta = getLinearChronicleRightDelta(
-  //       insertionChronicle,
-  //       iteratingChronicle,
-  //     );
+      /**
+       * At this point the slice has been cut accordingly and can now be added
+       * to the accumulator.
+       */
+      accumulator.push(slice);
+    });
 
-  //     /**
-  //      * At this point it is important to calculate the so called `stickoutChronicle`. That
-  //      * is the `Chronicle` that sticks out the most out of all chronicles that are view by this
-  //      * loop.
-  //      *
-  //      *                      ------------------------ (insertionChronicle)
-  //      *               x-------------    |
-  //      *               x-----------------|              (stickoutChronicle)
-  //      *               x--------         |
-  //      *               x-----------------|----          (iteratingChronicle)
-  //      *                                 | -> available space <-
-  //      *
-  //      * This is important, since the available space for the takeover is dictated by this
-  //      * `Chronicle`.
-  //      *
-  //      * The `stickoutChronicle` is the chronicle with the smallest right delta.
-  //      */
-  //     if (rightDelta <= smallestRightDelta) {
-  //       /**
-  //        * Found a `rightDelta` that is smaller than the currently smallest. Meaning the algorithm
-  //        * has found a `Chronicle` that sticks out more than any previously viewed `Chronicles`.
-  //        */
-  //       smallestRightDelta = rightDelta;
-  //       stickoutDepth = iteratingVerticalDepth;
-  //     }
+    return accumulator;
+  }
 
-  //     /**
-  //      * If the `smallestRightDelta` is greater than the mininum fall and rest space combined, i.e.
-  //      * the minimum takeover space, then continue to calculate the maneuver.
-  //      *
-  //      *                       --------------------- (insertionChronicle)
-  //      *            ----------------|
-  //      *                            | >= Minimum Takeover Space
-  //      *
-  //      * If the algorithm finds such a case, it is clear that there must happen a slicing of
-  //      * the `insertionChronicle`.
-  //      */
-  //     if (smallestRightDelta >= Engine.MANEUVER_TAKEOVER_SPACE_MIN) {
-  //       takeoverPath.push({
-  //         /**
-  //          * The depth is exactly equal to the currently viewed depth `iteratingVerticalDepth`.
-  //          * The horizontal depth can be calculated by the length of the current layer given by
-  //          * the current vertical depth.
-  //          */
-  //         depth: {
-  //           vertical: iteratingVerticalDepth,
-  //           horizontal: this.getLayer(iteratingVerticalDepth).length,
-  //         },
-  //         /**
-  //          * The rest duration is exactly equal to the previously calculated `rightDelta`,
-  //          * since this marks the right overlap between `insertionChronicle` and `interatingChronicle`.
-  //          */
-  //         duration: rightDelta,
-  //       });
+  private getTakeoverPath(
+    insertionChronicle: LinearChronicle,
+    insertionDepth: ButterflyDepth,
+  ) {
+    /** Find `projection` */
+    const projection = this.getProjection(insertionChronicle, insertionDepth);
 
-  //       /** There needs to happen a slice */
-  //       const stickoutChronicle = this.getLastValue(stickoutDepth);
+    console.log(
+      "projectionData",
+      projection.map(v => {
+        const start = new Date(v.knots.start).toISOString();
+        const end =
+          v.knots.end !== Infinity
+            ? new Date(v.knots.end).toISOString()
+            : "infin";
 
-  //       /** If the root slice has not been placed yet */
-  //       if (!rests) {
-  //         this.addValue(
-  //           /** Slicing the insertion Chronicle */
-  //           produce(insertionChronicle, draft => {
-  //             draft.knots.end = stickoutChronicle.knots.end;
-  //           }),
-  //           insertionDepth.vertical,
-  //         );
-  //       }
+        return { ...v, knots: { start, end } };
+      }),
+    );
 
-  //       /** Place the insertion chronicle on the rest area */
-  //       this.addValue(
-  //         produce(insertionChronicle, draft => {
-  //           draft.knots.start =
-  //             stickoutChronicle.knots.end +
-  //             daysToMs(Engine.MANEUVER_TAKEOVER_SPACE_FALL_MIN);
-  //           draft.knots.end = iteratingChronicle.knots.end;
-  //         }),
-  //         iteratingVerticalDepth,
-  //       );
+    /** Filter `projection` for takeoverPath */
+    projection.forEach((slice, i) => {
+      if (i === 0) {
+        this.push(insertionDepth.y, insertionChronicle);
+      }
 
-  //       rests++;
-  //     }
+      const length = slice.knots.end - slice.knots.start;
 
-  //     if (rightDelta <= smallestRightDelta) {
-  //       smallestRightDelta = rightDelta;
-  //       stickoutDepth = iteratingVerticalDepth;
-  //     }
-
-  //     iteratingVerticalDepth = operator(iteratingVerticalDepth);
-  //   } while (iteratingVerticalDepth !== 0);
-
-  //   if (!rests) {
-  //     this.addValue(insertionChronicle, insertionDepth.vertical);
-  //   }
-  // }
+      /** If the slice is big enough to host a takeover maneuver, do it */
+      if (length >= Engine.MANEUVER_TAKEOVER_SPACE_MIN) {
+      }
+    });
+  }
 
   private getDurationWeightByLevel(y: number): number | undefined {
     const level = this.getLevel(y);
@@ -532,7 +478,7 @@ class Engine extends Butterfly<LinearChronicle> {
         }, 0);
       case BipolarLinkedListPolartity.NEGATIVE:
         return this.getAllNegative().reduce((acc, _layer, index) => {
-          const dw = this.getDurationWeightByLevel(index + 1);
+          const dw = this.getDurationWeightByLevel(-(index + 1));
           if (dw) return acc + dw;
           return acc;
         }, 0);
