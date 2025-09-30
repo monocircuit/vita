@@ -1,7 +1,8 @@
-import BipolarLinkedList from "./BipolarLinkedList";
+import BipolarDoublyLinkedList from "./BipolarDoublyLinkedList";
+import { DoublyLinkedList } from "./DoublyLinkedList";
 
 export interface ButterflyVector<Value> extends ButterflyDepth {
-  value: Value;
+  value: ButterflyCell<Value>;
 }
 
 export interface ButterflyDepth {
@@ -9,11 +10,111 @@ export interface ButterflyDepth {
   y: number;
 }
 
-export default class Butterfly<Value> {
-  private store: BipolarLinkedList<BipolarLinkedList<Value>>;
+/**
+ * @author Lukas Diegelmann
+ *
+ * A `ButterflyCell` represents a single entry in the `Butterfly` data structure
+ * at coordinates `(y, x)`, where:
+ * - `y` is the vertical position (the layer in the stack),
+ * - `x` is the horizontal position within that layer.
+ *
+ * Each cell contains:
+ * - The actual `content` of type `Value`
+ * - Linkage information (`next` and `prev`) inherited from {@link ButterflyLinkage},
+ *   which can be used to establish semantic connections between cells on the same
+ *   Y-level that are not directly adjacent in the X-dimension.
+ *
+ * If no linkage was defined, the `next` and `prev` functions will return `null`.
+ *
+ * @typeParam Value - The type of the content stored inside the cell.
+ *
+ * @example
+ * // A cell at (y = 0, x = 2)
+ * const cell: ButterflyCell<string> = {
+ *   content: "Node A",
+ *   next: () => null,
+ *   prev: () => null,
+ * };
+ */
+export interface ButterflyCell<T> extends ButterflyLinkage<T> {
+  $: T;
+}
+
+/**
+ * @author Lukas Diegelmann
+ *
+ * The `ButterflyLinkage` connects two cells that do not have consecutive x coordinates
+ * and are in the same y coordinate. It can be used to semantically group different cells
+ * depending on the use case.
+ *
+ * Should the `next` or `prev` connection not exist (meaning the user of `Butterfly`) did
+ * not instantiate such a connection, these functions will return `null`, indicating that
+ * there is no connection.
+ */
+export interface ButterflyLinkage<T> {
+  next: ButterflyCell<T> | null;
+  prev: ButterflyCell<T> | null;
+}
+
+/**
+ * @author ChatGPT5
+ *
+ * A `ButterflyLevel` is a horizontal row of cells in the Butterfly structure.
+ * It extends a standard {@link DoublyLinkedList}, but provides iterators
+ * that expose both the X-coordinate and the associated `ButterflyCell<Value>`.
+ *
+ * @typeParam Value The type of content stored inside each ButterflyCell.
+ */
+class ButterflyLevel<T> extends DoublyLinkedList<
+  ButterflyCell<T>,
+  { x: number; cell: ButterflyCell<T> }
+> {
+  constructor() {
+    super();
+  }
+
+  protected project(
+    cell: ButterflyCell<T>,
+    index: number,
+  ): { x: number; cell: ButterflyCell<T> } {
+    return { x: index, cell };
+  }
+}
+
+/**
+ * @author Lukas Diegelmann
+ *
+ * The `Butterfly` is a data structure that internally handels a two dimensional
+ * `BipolarDoublyLinkedList`. While the first dimension (the y or vertical dimension)
+ * can have positive, neutral and negative indices, the second dimension (the x or
+ * horizontal dimension) can only have neutral or positive indices. Additionally the
+ * `Butterfly` makes linking between different cells possible.
+ *
+ * One entry in the `Butterfly` consisting of the type `Value & ButterflyLinkage` is
+ * called a cell.
+ *
+ * A one dimensional group of cells (`BipolarDoublyLinkedList<Value>`) is called a
+ * level.
+ */
+export default class Butterfly<T> {
+  private store: BipolarDoublyLinkedList<
+    ButterflyLevel<T>,
+    { y: number; level: ButterflyLevel<T> }
+  >;
 
   constructor() {
-    this.store = new BipolarLinkedList();
+    this.store = new BipolarDoublyLinkedList({
+      project: entry => {
+        return { level: entry.value, y: entry.index };
+      },
+    });
+  }
+
+  protected project(
+    level: ButterflyLevel<T>,
+    y: number,
+  ): { y: number; level: ButterflyLevel<T> } {
+    return { level, y };
   }
 
   /**
@@ -26,22 +127,22 @@ export default class Butterfly<Value> {
    * 2. The latest points of the positive and negative layers, alternating between positive and negative,
    */
   public getLastVectors() {
-    const vectors: ButterflyVector<Value>[] = [];
+    const vectors: ButterflyVector<T>[] = [];
 
     /** Alternating between positive and negative levels and 
         pushing vectors in (starting with the neutral level) */
-    for (const node of this.store) {
+    for (const { y } of this.store) {
       vectors.push({
-        value: this.getLast(node.index) as any,
-        x: (this.getLevel(node.index)?.length as number) - 1,
-        y: node.index,
+        value: this.getLast(y) as any,
+        x: (this.getLevel(y)?.length as number) - 1,
+        y,
       });
     }
 
     return vectors;
   }
 
-  public getLastVector(y: number): ButterflyVector<Value> | undefined {
+  public getLastVector(y: number): ButterflyVector<T> | undefined {
     const level = this.getLevel(y);
 
     if (level) {
@@ -57,7 +158,7 @@ export default class Butterfly<Value> {
     }
   }
 
-  public getLevel(y: number): BipolarLinkedList<Value> | undefined {
+  public getLevel(y: number) {
     return this.store.get(y);
   }
 
@@ -65,7 +166,7 @@ export default class Butterfly<Value> {
     return !!this.store.get(y);
   }
 
-  public get(y: number, x: number): Value | undefined {
+  public get(y: number, x: number) {
     const level = this.getLevel(y);
 
     if (level) {
@@ -73,23 +174,66 @@ export default class Butterfly<Value> {
     }
   }
 
-  public set(y: number, x: number, value: Value): boolean {
-    /** Check if level already exists */
+  /**
+   * @author Lukas Diegelmann
+   *
+   * Insert or update a value at the given coordinates (`y`, `x`) in the butterfly structure.
+   *
+   * Behavior:
+   * - If the Y-level (`y`) already exists:
+   *   The method delegates to the underlying level’s `set(x, value)` function,
+   *   updating the node at X-index `x` or appending it if the position is valid.
+   *
+   * - If the Y-level does not yet exist:
+   *   A new `BipolarDoublyLinkedList` is created for this `y` index,
+   *   and then the value is inserted at the given `x` position.
+   *   When inserting into a newly created level, the `value` is augmented
+   *   with a default `linkage` object whose `next()` and `prev()` functions
+   *   both return `null`, ensuring proper initialization of linkage data.
+   *
+   * @param y - The Y-coordinate (level index) to insert into.
+   * @param x - The X-coordinate within that level.
+   * @param value - The value to store. If the level is created in this call,
+   *   the value will be wrapped with a default `linkage` structure.
+   * @returns `true` if the value was successfully set,
+   *          `false` if the operation failed (e.g., invalid position).
+   *
+   * @example
+   * // Insert into an existing level
+   * butterfly.set(1, 0, { title: "Chronicle A", knots: { start: 0, end: 100 } });
+   *
+   * // Insert into a new level (level 2 is created automatically)
+   * butterfly.set(2, 0, { title: "Chronicle B", knots: { start: 200, end: 300 } });
+   */
+  public set(y: number, x: number, value: T): boolean {
+    // Check if level already exists
     const level = this.getLevel(y);
 
     if (level) {
-      /** If the level already exists, the algorithm can just set the value at x */
-      return level.set(x, value);
+      // If the level already exists, the algorithm can just set the value at x
+      return level.set(x, {
+        // saving the content of the cell
+        $: { ...value },
+        // Instatiating the linkage with connections to null
+        next: null,
+        prev: null,
+      });
     }
 
-    /** Should the level not already exists */
-    const hasSucceeded = this.store.set(y, new BipolarLinkedList());
+    // Should the level not already exists
+    const hasSucceeded = this.store.set(y, new ButterflyLevel());
     const newLevel = this.store.get(y);
 
     if (hasSucceeded && newLevel) {
-      /** If the operation to create the new level has succeeded, the algorith
-            can now add the value at the desired `x` spot */
-      return newLevel.set(x, value);
+      // If the operation to create the new level has succeeded, the algorith
+      // can now add the value at the desired `x` spot
+      return newLevel.set(x, {
+        // Saving the content of the cell
+        $: { ...value },
+        // Instatiating the linkage with connections to null
+        next: null,
+        prev: null,
+      });
     }
 
     return false;
@@ -115,7 +259,7 @@ export default class Butterfly<Value> {
    * @returns `true` if the value was successfully added,
    *          `false` if the operation failed (e.g., invalid position).
    */
-  public push(y: number, value: Value): boolean {
+  public push(y: number, value: T): boolean {
     /** Check if level already exists */
     const level = this.getLevel(y);
 
@@ -141,8 +285,8 @@ export default class Butterfly<Value> {
    * from the origin on each iteration.
    */
   protected *iterateY(): IterableIterator<{
-    index: number;
-    value: BipolarLinkedList<Value>;
+    y: number;
+    level: ButterflyLevel<T>;
   }> {
     for (const node of this.store) {
       yield node;
@@ -163,7 +307,7 @@ export default class Butterfly<Value> {
    */
   protected *iterateYPositiveToNegative(): IterableIterator<{
     index: number;
-    value: BipolarLinkedList<Value>;
+    value: ButterflyLevel<T>;
   }> {
     for (const node of this.store.iteratePositiveToNegative()) {
       yield node;
@@ -184,7 +328,7 @@ export default class Butterfly<Value> {
    */
   protected *iterateYNegativeToPositive(): IterableIterator<{
     index: number;
-    value: BipolarLinkedList<Value>;
+    value: ButterflyLevel<T>;
   }> {
     for (const node of this.store.iterateNegativeToPositive()) {
       yield node;
@@ -203,7 +347,7 @@ export default class Butterfly<Value> {
    */
   protected *iterateYPositiveToNeutral(): IterableIterator<{
     index: number;
-    value: BipolarLinkedList<Value>;
+    value: ButterflyLevel<T>;
   }> {
     for (const node of this.store.iteratePositiveToNeutral()) {
       yield node;
@@ -222,7 +366,7 @@ export default class Butterfly<Value> {
    */
   protected *iterateYNegativeToNeutral(): IterableIterator<{
     index: number;
-    value: BipolarLinkedList<Value>;
+    value: ButterflyLevel<T>;
   }> {
     for (const node of this.store.iterateNegativeToNeutral()) {
       yield node;
@@ -241,7 +385,7 @@ export default class Butterfly<Value> {
    */
   protected *iterateYNeutralToPositive(): IterableIterator<{
     index: number;
-    value: BipolarLinkedList<Value>;
+    value: ButterflyLevel<T>;
   }> {
     for (const node of this.store.iterateNeutralToPositive()) {
       yield node;
@@ -260,7 +404,7 @@ export default class Butterfly<Value> {
    */
   protected *iterateYNeutralToNegative(): IterableIterator<{
     index: number;
-    value: BipolarLinkedList<Value>;
+    value: ButterflyLevel<T>;
   }> {
     for (const node of this.store.iterateNeutralToNegative()) {
       yield node;
@@ -276,7 +420,7 @@ export default class Butterfly<Value> {
    */
   protected getAllYPositive(): {
     index: number;
-    value: BipolarLinkedList<Value>;
+    value: ButterflyLevel<T>;
   }[] {
     return this.store.getAllPositive();
   }
@@ -290,7 +434,7 @@ export default class Butterfly<Value> {
    */
   protected getAllYNegative(): {
     index: number;
-    value: BipolarLinkedList<Value>;
+    value: ButterflyLevel<T>;
   }[] {
     return this.store.getAllNegative();
   }
@@ -311,9 +455,9 @@ export default class Butterfly<Value> {
     startY: number,
     reducer: (
       acc: Accumulator,
-      level: BipolarLinkedList<Value>,
+      level: ButterflyLevel<T>,
       y: number,
-      self: Butterfly<Value>,
+      self: Butterfly<T>,
     ) => Accumulator,
     initialValue: Accumulator,
   ): Accumulator | undefined {
@@ -343,9 +487,9 @@ export default class Butterfly<Value> {
     startX: number,
     reducer: (
       acc: Accumulator,
-      value: Value,
+      value: ButterflyCell<T>,
       x: number,
-      level: BipolarLinkedList<Value>,
+      level: ButterflyLevel<T>,
     ) => Accumulator,
     initialValue: Accumulator,
   ): Accumulator | undefined {
@@ -373,11 +517,11 @@ export default class Butterfly<Value> {
    *   - The value of the node at the positive tail of the level,
    *   - or `undefined` if the level does not exist or is empty.
    */
-  public getLast(y: number): Value | undefined {
+  public getLast(y: number): ButterflyCell<T> | undefined {
     const level = this.getLevel(y);
 
     if (level) {
-      return level.positiveTail?.value;
+      return level.peekLast();
     }
   }
 
@@ -413,22 +557,12 @@ export default class Butterfly<Value> {
    */
   public log() {
     // Iterate over all levels (the Y-dimension).
-    for (const levelNode of this.store) {
-      const level = levelNode.value;
-      const y = levelNode.index;
-
+    for (const { y, level } of this.store) {
       const values: (string | undefined)[] = [];
 
-      // Collect values on the negative side (… -2, -1, 0).
-      // We build this in reverse so the order is correct from left to right.
-      for (const node of level.iterateNeutralToNegative()) {
-        values.unshift(JSON.stringify(node.value));
-      }
-
       // Collect values on the positive side (1, 2, …).
-      // Skip 0 here because it's already included in the negative iteration.
-      for (const node of level.iterateNeutralToPositive()) {
-        if (node.index !== 0) values.push(JSON.stringify(node.value));
+      for (const { cell } of level) {
+        values.push(JSON.stringify(cell));
       }
 
       // Print the row for this level

@@ -4,7 +4,6 @@ import Branch from "@/utils/drawing/dynamic/Branch";
 import Connection from "@/utils/drawing/dynamic/Connection";
 import Engine from "@/utils/processing/engines/dynamic/Engine";
 import useEngine from "@/utils/processing/engines/dynamic/useEngine";
-import Butterfly from "@/utils/structures/ButterflyStack";
 import { useOwnChroniclesData } from "@/utils/supabase/api/chronicles/readOwnChronicles";
 import { Application, extend, useExtend } from "@pixi/react";
 import { Container, Graphics, Sprite, v8_0_0 } from "pixi.js";
@@ -45,9 +44,9 @@ const Page: React.FunctionComponent = () => {
   // Check if Data exists
   if (engine.current.getLevel(0) != null || undefined) {
     //get Variables for Normalization
-    aknot = engine.current.get(0, 0)?.knots.start as any;
+    aknot = engine.current.get(0, 0)?.$.knots.start as any;
     distance =
-      (engine.current.getLastVector(0)?.value.knots.end as number) - aknot; // subract last knot with first one to get the complete distance
+      (engine.current.getLastVector(0)?.value.$.knots.end as number) - aknot; // subract last knot with first one to get the complete distance
   }
 
   return (
@@ -62,7 +61,7 @@ const Page: React.FunctionComponent = () => {
           /** Render level 0 */
           engine.current
             .getLevel(0)
-            ?.mapNeutralToPositive((chronicle, i) => {
+            ?.map((cell, i) => {
               /** At this point level 0 exists */
               /** Check if multiple elements are in level 0 */
               if (engine.current.getLevel(0)?.length == 1) {
@@ -73,7 +72,7 @@ const Page: React.FunctionComponent = () => {
                     start={0}
                     end={window.window.innerWidth}
                     shift={window.innerHeight / 2}
-                    title={chronicle.title}
+                    title={cell.$.title}
                   ></Branch>
                 );
               }
@@ -82,50 +81,50 @@ const Page: React.FunctionComponent = () => {
               else if (
                 /** Validate that this is currently the first element */
                 engine.current.get(0, 0) &&
-                engine.current.get(0, 0) == chronicle
+                engine.current.get(0, 0) == cell
               ) {
-                const nknots = normalize(chronicle.knots, aknot, distance);
+                const nknots = normalize(cell.$.knots, aknot, distance);
                 return (
                   <Branch
                     key={i}
                     start={0}
                     end={nknots[1] * window.window.innerWidth}
                     shift={window.innerHeight / 2}
-                    title={chronicle.title}
+                    title={cell.$.title}
                   ></Branch>
                 );
               }
               // normalize elements first knot and set last elements last knot to wished width
               else if (
                 engine.current.getLast(0) &&
-                engine.current.getLast(0) == chronicle
+                engine.current.getLast(0) == cell
               ) {
-                const nknots = normalize(chronicle.knots, aknot, distance);
+                const nknots = normalize(cell.$.knots, aknot, distance);
                 return (
                   <Branch
                     key={i}
                     start={nknots[0] * window.window.innerWidth}
                     end={window.window.innerWidth}
                     shift={window.innerHeight / 2}
-                    title={chronicle.title}
+                    title={cell.$.title}
                   ></Branch>
                 );
               }
               // if its not the first nor the last element
               else {
-                const nknots = normalize(chronicle.knots, aknot, distance);
+                const nknots = normalize(cell.$.knots, aknot, distance);
                 return (
                   <Branch
                     key={i}
                     start={nknots[0] * window.window.innerWidth}
                     end={nknots[1] * window.window.innerWidth}
                     shift={window.innerHeight / 2}
-                    title={chronicle.title}
+                    title={cell.$.title}
                   ></Branch>
                 );
               }
             })
-            .toArrayNeutralToPositive() ?? <></>
+            .toArray() ?? <></>
         }
         {
           /** Render positive levels */
@@ -136,23 +135,23 @@ const Page: React.FunctionComponent = () => {
             if (!level) return <></>;
 
             return level
-              .mapNeutralToPositive(chronicle => {
-                const nknots = normalize(chronicle.knots, aknot, distance);
+              .map(chronicle => {
+                const nknots = normalize(chronicle.$.knots, aknot, distance);
                 return (
                   <React.Fragment
-                    key={chronicle.id + Math.ceil(Math.random() * 100)}
+                    key={chronicle.$.id + Math.ceil(Math.random() * 100)}
                   >
                     <Branch
-                      key={chronicle.id}
+                      key={chronicle.$.id}
                       start={nknots[0] * window.window.innerWidth}
                       end={nknots[1] * window.window.innerWidth}
                       shift={window.innerHeight / 2 + -1 * levelIndex * 50} // positive shift (e.g. +1, +2)
-                      title={chronicle.title}
+                      title={chronicle.$.title}
                     />
                   </React.Fragment>
                 );
               })
-              .toArrayNeutralToPositive();
+              .toArray();
           })
         }
         {
@@ -164,22 +163,22 @@ const Page: React.FunctionComponent = () => {
             if (!level) return <></>;
 
             return level
-              .mapNeutralToPositive(chronicle => {
-                const nknots = normalize(chronicle.knots, aknot, distance);
+              .map(chronicle => {
+                const nknots = normalize(chronicle.$.knots, aknot, distance);
                 return (
                   <React.Fragment
-                    key={chronicle.id + Math.ceil(Math.random() * 100)}
+                    key={chronicle.$.id + Math.ceil(Math.random() * 100)}
                   >
                     <Branch
                       start={nknots[0] * window.window.innerWidth}
                       end={nknots[1] * window.window.innerWidth}
                       shift={window.innerHeight / 2 + levelIndex * 50}
-                      title={chronicle.title}
+                      title={chronicle.$.title}
                     />
                   </React.Fragment>
                 );
               })
-              .toArrayNeutralToPositive();
+              .toArray();
           })
         }
       </Application>

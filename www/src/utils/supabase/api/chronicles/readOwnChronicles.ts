@@ -32,7 +32,7 @@ export async function getChronicles() {
     if (knots.length == 1) knots.push(Infinity);
 
     if (chronicle.knots) {
-      return { ...chronicle, knots };
+      return { ...chronicle, knots, id: String(chronicle.id) };
     }
 
     return chronicle;

@@ -13,10 +13,13 @@ import alignLinearChronicles from "../../data/chronicles/alignLinearChronicles";
 import { produce } from "immer";
 import daysToMs from "@/utils/processing/data/chronicles/daysToMs";
 import getLinearChronicleOverlap from "../../data/chronicles/getLinearChronicleOverlap";
-import Butterfly, { ButterflyDepth } from "@/utils/structures/Butterfly";
-import BipolarLinkedList, {
+import Butterfly, {
+  ButterflyCell,
+  ButterflyDepth,
+} from "@/utils/structures/Butterfly";
+import BipolarDoublyLinkedList, {
   BipolarLinkedListPolartity,
-} from "@/utils/structures/BipolarLinkedList";
+} from "@/utils/structures/BipolarDoublyLinkedList";
 
 interface EngineTakeover {
   depth: ButterflyDepth;
@@ -69,7 +72,7 @@ class Engine extends Butterfly<LinearChronicle> {
     /** (2) sort chronicles linearly by start knot */
     this.chronicles.linear = alignLinearChronicles(this.chronicles.linear);
 
-    console.log("sortedLinearChronicles", this.chronicles.linear);
+    console.log("linear chronicles", this.chronicles.linear);
 
     /** The first linear Chronicle can always fit into the neutral lane */
     this.push(0, this.chronicles.linear[0]);
@@ -101,7 +104,7 @@ class Engine extends Butterfly<LinearChronicle> {
       // console.log("takeoverDepths", takeoverPath);
 
       console.log("vertical insertion depth", insertionDepth.y);
-      this.push(insertionDepth.y, insertionChronicle);
+      // this.push(insertionDepth.y, insertionChronicle);
     }
 
     console.warn("RESULT");
@@ -142,9 +145,10 @@ class Engine extends Butterfly<LinearChronicle> {
      * Depth > Weight (Depth is prioritized)
      */
     for (const lastVector of lastVectors) {
+      console.log(lastVector);
       /** There is space in the layer to fit the linear Chronicle */
       if (
-        getLinearChronicleLeftDelta(insertionChronicle, lastVector.value) < 0
+        getLinearChronicleLeftDelta(insertionChronicle, lastVector.value.$) < 0
       ) {
         /**
          * Should the found space be in the neutral layer, the insertion point is found
@@ -179,7 +183,7 @@ class Engine extends Butterfly<LinearChronicle> {
            * `insertionChronicle`.
            */
           if (
-            getLinearChronicleLeftDelta(insertionChronicle, lastVector.value)
+            getLinearChronicleLeftDelta(insertionChronicle, lastVector.value.$)
           ) {
             /**
              * Now the algorithm has checked that there is in fact enough space to insert the
@@ -287,7 +291,8 @@ class Engine extends Butterfly<LinearChronicle> {
       this.reduceYToNeutral(
         this.stepTowardZero(y),
         (accumulator, level, cy) => {
-          if (level.positiveTail) {
+          const last = level.peekLast();
+          if (last) {
             /**
              * If the current iteration chronicle is completely shadowed by
              * the previous chronicle, do not consider the current chronicle.
@@ -295,22 +300,21 @@ class Engine extends Butterfly<LinearChronicle> {
             if (
               accumulator.length &&
               accumulator[accumulator.length - 1].knots.start >=
-                level.positiveTail.value.knots.end
+                last.$.knots.end
             ) {
               return accumulator;
             }
 
             /** Correct last iteration, if there is one */
             if (accumulator.length > 1) {
-              accumulator[accumulator.length - 2].knots.end =
-                level.positiveTail.value.knots.end;
+              accumulator[accumulator.length - 2].knots.end = last.$.knots.end;
             }
 
             /** Push in current iteration */
             accumulator.push({
               y: cy,
               knots: {
-                start: level.positiveTail.value.knots.end,
+                start: last.$.knots.end,
                 end: Infinity,
               },
             });
@@ -442,10 +446,14 @@ class Engine extends Butterfly<LinearChronicle> {
       }),
     );
 
-    /** Filter `projection` for takeoverPath */
+    /** If there is no `projection` data, just insert it as is */
+    if (!projection.length) {
+      this.set(insertionDepth.y, insertionDepth.x, insertionChronicle);
+    }
+
+    /** Should there be `projection` data, filter `projection` for takeoverPath */
     projection.forEach((slice, i) => {
       if (i === 0) {
-        this.push(insertionDepth.y, insertionChronicle);
       }
 
       const length = slice.knots.end - slice.knots.start;
@@ -461,8 +469,8 @@ class Engine extends Butterfly<LinearChronicle> {
 
     if (level) {
       let acc = 0;
-      for (const cell of level) {
-        acc += cell.value.knots.end - cell.value.knots.start;
+      for (const { cell } of level) {
+        acc += cell.$.knots.end - cell.$.knots.start;
       }
       return acc;
     }
@@ -500,37 +508,26 @@ class Engine extends Butterfly<LinearChronicle> {
    * Within each level, values are printed left-to-right (… -2, -1, 0, 1, 2, …).
    */
   public log() {
-    for (const levelNode of this.iterateY()) {
-      const level = levelNode.value;
-      const y = levelNode.index;
+    for (const { level, y } of this.iterateY()) {
       // Collect items left-to-right
       const items: Array<{ x: number; v: LinearChronicle }> = [];
 
-      // Negative side … -2, -1, 0
-      for (const node of level.iterateNeutralToNegative()) {
-        items.unshift({ x: node.index, v: node.value });
-      }
-
       // Positive side 1, 2, …
-      for (const node of level.iterateNeutralToPositive()) {
-        if (node.index !== 0) items.push({ x: node.index, v: node.value });
+      for (const { x, cell } of level) {
+        items.push({ x, v: cell.$ });
       }
 
       console.group(`y=${y}`);
       for (const { x, v } of items) {
         // Assume v is a LinearChronicle
-        const lc = v as any as {
-          title: string;
-          knots: { start: number; end: number };
-        };
 
         const fmt = (ms: number) =>
           ms === Infinity ? "∞" : new Date(ms).toISOString().slice(0, 10);
 
-        const start = fmt(lc.knots.start);
-        const end = fmt(lc.knots.end);
+        const start = fmt(v.knots.start);
+        const end = fmt(v.knots.end);
 
-        console.log(`x=${x}: ${lc.title} | start=${start}, end=${end}`);
+        console.log(`x=${x}: ${v.title} | start=${start}, end=${end}`);
       }
       console.groupEnd();
     }
