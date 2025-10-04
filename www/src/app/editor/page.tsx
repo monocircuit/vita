@@ -1,236 +1,199 @@
-"use client";
+"use client"
 
-import Branch from "@/utils/drawing/dynamic/Branch";
-import Connection from "@/utils/drawing/dynamic/Connection";
-import Engine from "@/utils/processing/engines/dynamic/Engine";
-import useEngine from "@/utils/processing/engines/dynamic/useEngine";
-import Butterfly from "@/utils/structures/ButterflyStack";
-import { useOwnChroniclesData } from "@/utils/supabase/api/chronicles/readOwnChronicles";
-import { Application, extend, useExtend } from "@pixi/react";
-import { Container, Graphics, Sprite, v8_0_0 } from "pixi.js";
-import React, { JSX, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from 'react'
+import { Application, Graphics } from "pixi.js";
+import { useOwnChroniclesData } from '@/utils/supabase/api/chronicles/readOwnChronicles';
+import useEngine from '@/utils/processing/engines/dynamic/useEngine';
+import { drawBranch } from '@/utils/drawing/dynamic/drawBranch';
 import { Viewport } from "pixi-viewport";
-import ViewportWrapper from "@/components/ViewportWrapper";
+import { LinearChronicle } from '@/utils/schemas/Chronicle';
 
-const Page: React.FunctionComponent = () => {
-  /** ANCHOR: PixiJS Extensions */
-  useExtend({ Container, Graphics, Viewport });
+function Page() {
 
-  /** ANCHOR: References */
-  const parentRef = useRef(null);
-  const applicationRef = useRef(null);
+    /** ANCHOR: References */
+    const pixiContainer = useRef<HTMLDivElement>(null);
+    const appRef = useRef<Application | null>(null); // Ref for the app
+    const viewportRef = useRef<Viewport | null>(null);
 
-  /** ANCHOR: Fetched Data */
-  const { ownChronicles } = useOwnChroniclesData();
+    /** ANCHOR: Fetched Data */
+    const { ownChronicles } = useOwnChroniclesData();
 
-  /** ANCHOR: Engines */
-  const { init, engine } = useEngine();
+    /** ANCHOR: Engines */
+    const { init, engine } = useEngine();
+    const [isEngineReady, setEngineReady] = useState(false); // State to track engine readiness
+    const [isAppInitialized, setAppInitialized] = useState(false); // State to track app initialization
 
-  useEffect(() => {
-    if (ownChronicles) {
-      console.warn("activated");
-      init(ownChronicles);
-    }
-  }, [ownChronicles]);
-
-  console.log("Engine isLoaded", engine.current.isLoaded());
-  if (!engine.current.isLoaded()) return <></>;
-
-  const positiveLayerHeight = engine.current.yDimensions.positive;
-  const negativeLayerHeight = engine.current.yDimensions.negative;
-
-  let aknot = 0;
-  let distance = 0;
-
-  // Check if Data exists
-  if (engine.current.getLevel(0) != null || undefined) {
-    //get Variables for Normalization
-    aknot = engine.current.get(0, 0)?.knots.start as any;
-    distance =
-      (engine.current.getLastVector(0)?.value.knots.end as number) - aknot; // subract last knot with first one to get the complete distance
-  }
-
-  return (
-    <div ref={parentRef} className="size-full">
-      <Application
-        ref={applicationRef}
-        backgroundColor={"#ffffff"}
-        resizeTo={parentRef}
-      >
-        <ViewportWrapper></ViewportWrapper>
-        {
-          /** Render level 0 */
-          engine.current
-            .getLevel(0)
-            ?.mapNeutralToPositive((chronicle, i) => {
-              /** At this point level 0 exists */
-              /** Check if multiple elements are in level 0 */
-              if (engine.current.getLevel(0)?.length == 1) {
-                /** if there is only one element in level 0 */
-                return (
-                  <Branch
-                    key={i}
-                    start={0}
-                    end={window.window.innerWidth}
-                    shift={window.innerHeight / 2}
-                    title={chronicle.title}
-                  ></Branch>
-                );
-              }
-
-              // set first elements first knot to 0 and normalize second knot
-              else if (
-                /** Validate that this is currently the first element */
-                engine.current.get(0, 0) &&
-                engine.current.get(0, 0) == chronicle
-              ) {
-                const nknots = normalize(chronicle.knots, aknot, distance);
-                return (
-                  <Branch
-                    key={i}
-                    start={0}
-                    end={nknots[1] * window.window.innerWidth}
-                    shift={window.innerHeight / 2}
-                    title={chronicle.title}
-                  ></Branch>
-                );
-              }
-              // normalize elements first knot and set last elements last knot to wished width
-              else if (
-                engine.current.getLast(0) &&
-                engine.current.getLast(0) == chronicle
-              ) {
-                const nknots = normalize(chronicle.knots, aknot, distance);
-                return (
-                  <Branch
-                    key={i}
-                    start={nknots[0] * window.window.innerWidth}
-                    end={window.window.innerWidth}
-                    shift={window.innerHeight / 2}
-                    title={chronicle.title}
-                  ></Branch>
-                );
-              }
-              // if its not the first nor the last element
-              else {
-                const nknots = normalize(chronicle.knots, aknot, distance);
-                return (
-                  <Branch
-                    key={i}
-                    start={nknots[0] * window.window.innerWidth}
-                    end={nknots[1] * window.window.innerWidth}
-                    shift={window.innerHeight / 2}
-                    title={chronicle.title}
-                  ></Branch>
-                );
-              }
-            })
-            .toArrayNeutralToPositive() ?? <></>
+    useEffect(() => {
+        if (ownChronicles) {
+            console.warn("Engine activated");
+            init(ownChronicles);
+            setEngineReady(true); // Signal that the engine has been initialized
         }
-        {
-          /** Render positive levels */
-          Array.from({ length: positiveLayerHeight }, (_, i) => {
-            const levelIndex = i + 1; // positive levels: 1, 2, 3...
+    }, [ownChronicles, init]);
+
+    // Effect 1: Initialize Pixi Application and Viewport (runs only once)
+    useEffect(() => {
+        if (!pixiContainer.current || appRef.current) {
+            return; // Abort if container is not ready or app is already initialized
+        }
+
+        const app = new Application();
+        appRef.current = app;
+
+        const initializePixi = async () => {
+            await app.init({
+                resizeTo: pixiContainer.current!,
+                backgroundColor: 0xffffff,
+                autoDensity: true,
+                resolution: window.devicePixelRatio || 1,
+            });
+            pixiContainer.current!.appendChild(app.canvas);
+
+            const viewport = new Viewport({
+                screenWidth: pixiContainer.current!.clientWidth,
+                screenHeight: pixiContainer.current!.clientHeight,
+                worldWidth: 1000,
+                worldHeight: 1000,
+                events: app.renderer.events,
+            });
+            viewportRef.current = viewport;
+
+            app.stage.addChild(viewport);
+            viewport.drag().pinch().wheel().decelerate();
+            viewport.fit().moveCenter(500, 500);
+        };
+
+        initializePixi();
+
+
+        return () => {
+            app.destroy(true, true);
+            appRef.current = null;
+            viewportRef.current = null;
+        };
+    }, []); // Empty dependency array ensures this runs only once
+
+    // Effect 2: Draw content when the engine is ready (or data changes)
+    useEffect(() => {
+        if (!isEngineReady || !viewportRef.current) {
+            return; // Abort if engine isn't ready or viewport is not set up
+        }
+
+        //Viewport define
+        const viewport = viewportRef.current;
+        viewport.removeChildren(); // Clear previous drawings
+
+
+        let aknot = 0;
+        let distance = 1; // Avoid division by zero
+
+        if (engine.current.getLevel(0) != null) {
+            aknot = engine.current.get(0, 0)?.knots.start ?? 0;
+            const lastKnot = engine.current.getLastVector(0)?.value.knots.end ?? aknot;
+            distance = lastKnot - aknot;
+            if (distance === 0) distance = 1;
+        }
+
+        const positiveLayerHeight = engine.current.yDimensions.positive;
+        const negativeLayerHeight = engine.current.yDimensions.negative;
+
+        const isRenderedChronicles = new Set<string>();
+
+        const drawChronicles = (chronicle: LinearChronicle, levelIndex: number) => {
+            if (isRenderedChronicles.has(chronicle.id.toString())) return;
+
+            const nknots = normalize(chronicle.knots, aknot, distance);
+            drawBranch(viewport, {
+                start: nknots[0] * window.innerWidth,
+                end: nknots[1] * window.innerWidth,
+                shift: window.innerHeight / 2 - levelIndex * 50,
+                title: chronicle.title,
+            });
+            isRenderedChronicles.add(chronicle.id.toString());
+        };
+
+
+        const drawPreviousChronicles = (chronicle: LinearChronicle, levelIndex: number) => {
+
+        }
+
+        const drawNextChronicles = (chronicle: LinearChronicle, levelIndex: number) => {
+        }
+
+        // Render level 0
+        engine.current.getLevel(0)?.forEach((chronicle, i, arr) => {
+            const nknots = normalize(chronicle.knots, aknot, distance);
+            let start = nknots[0] * window.innerWidth;
+            let end = nknots[1] * window.innerWidth;
+
+            if (arr.length === 1) {
+                start = 0;
+                end = window.innerWidth;
+            } else if (i === 0) {
+                start = 0;
+            } else if (i === arr.length - 1) {
+                end = window.innerWidth;
+            }
+
+            drawBranch(viewport, {
+                start,
+                end,
+                shift: window.innerHeight / 2,
+                title: chronicle.title,
+            });
+        });
+        // Render positive levels
+        for (let i = 0; i < positiveLayerHeight; i++) {
+            const levelIndex = i + 1;
             const level = engine.current.getLevel(levelIndex);
-
-            if (!level) return <></>;
-
-            return level
-              .mapNeutralToPositive(chronicle => {
-                const nknots = normalize(chronicle.knots, aknot, distance);
-                return (
-                  <React.Fragment
-                    key={chronicle.id + Math.ceil(Math.random() * 100)}
-                  >
-                    <Branch
-                      key={chronicle.id}
-                      start={nknots[0] * window.window.innerWidth}
-                      end={nknots[1] * window.window.innerWidth}
-                      shift={window.innerHeight / 2 + -1 * levelIndex * 50} // positive shift (e.g. +1, +2)
-                      title={chronicle.title}
-                    />
-                  </React.Fragment>
-                );
-              })
-              .toArrayNeutralToPositive();
-          })
+            level?.forEach(chronicle => drawChronicles(chronicle, levelIndex));
         }
-        {
-          /** Render negative levels */
-          Array.from({ length: negativeLayerHeight }, (_, i) => {
+
+        // Render negative levels
+        for (let i = 0; i < negativeLayerHeight; i++) {
             const levelIndex = i + 1;
             const level = engine.current.getLevel(-levelIndex);
-
-            if (!level) return <></>;
-
-            return level
-              .mapNeutralToPositive(chronicle => {
+            level?.forEach(chronicle => {
                 const nknots = normalize(chronicle.knots, aknot, distance);
-                return (
-                  <React.Fragment
-                    key={chronicle.id + Math.ceil(Math.random() * 100)}
-                  >
-                    <Branch
-                      start={nknots[0] * window.window.innerWidth}
-                      end={nknots[1] * window.window.innerWidth}
-                      shift={window.innerHeight / 2 + levelIndex * 50}
-                      title={chronicle.title}
-                    />
-                  </React.Fragment>
-                );
-              })
-              .toArrayNeutralToPositive();
-          })
+                drawBranch(viewport, {
+                    start: nknots[0] * window.innerWidth,
+                    end: nknots[1] * window.innerWidth,
+                    shift: window.innerHeight / 2 + levelIndex * 50,
+                    title: chronicle.title,
+                });
+            });
         }
-      </Application>
-    </div>
-  );
-};
+
+
+
+        const graphics = new Graphics();
+        graphics.circle(100, 100, 50);
+        graphics.fill(0xff0000);
+        console.log("Viewport", viewport);
+        viewport.addChild(graphics);
+
+
+
+
+
+    }, [isEngineReady]);
+
+    return (
+        <div className='w-full h-full' ref={pixiContainer}>
+        </div>
+    )
+}
+
 
 const normalize = (
-  knots: { start: number; end: number },
-  aKnot: number,
-  distance: number,
+    knots: { start: number; end: number },
+    aKnot: number,
+    distance: number,
 ) => {
-  const normalizedKnots = [0, 0];
-  normalizedKnots[0] = (knots.start - aKnot) / distance;
-  normalizedKnots[1] = (knots.end - aKnot) / distance;
-
-  return normalizedKnots;
-};
-
-/**
- * Determines the end point for a connection based on the next element in the layer.
- * @param currentKnots - The knots of the current element.
- * @param nextElement - The next element in the same layer, or undefined if it's the last.
- * @param layerIndex - The numerical index of the current layer (e.g., 1, 2, -1, -2).
- * @param overtakeWidth - The horizontal width of the connection curve.
- * @param threshold - The maximum gap between knots to be considered "small".
- * @returns The {x, y} coordinates for the end point of the connection.
- */
-const determineConnectionEndPoint = (
-  currentKnots: number[],
-  nextElement: { knots: number[] } | undefined,
-  layerIndex: number,
-  overtakeWidth: number,
-  threshold: number = 50 // e.g., if gap is less than 50 units on the timeline
-) => {
-  const isPositiveLayer = layerIndex > 0;
-  const parentLayerIndex = isPositiveLayer ? layerIndex - 1 : layerIndex + 1;
-
-  // If it's the last element or the next element is too far, connect to the parent layer.
-  if (!nextElement || (nextElement.knots[0] - currentKnots[1] > threshold)) {
-    return {
-      x: currentKnots[1] + overtakeWidth,
-      y: window.innerHeight / 2 + parentLayerIndex * 50,
-    };
-  }
-
-  // Otherwise, connect to the start of the next element on the same layer.
-  return {
-    x: nextElement.knots[0],
-    y: window.innerHeight / 2 + layerIndex * 50,
-  };
+    const normalizedKnots = [0, 0];
+    normalizedKnots[0] = (knots.start - aKnot) / distance;
+    normalizedKnots[1] = (knots.end - aKnot) / distance;
+    return normalizedKnots;
 };
 
 
