@@ -14,7 +14,8 @@ import { $Scope } from "./enumerated-types/Scope";
 
 /** Schemas */
 export const $ChronicleOverhead = zod.object({
-  id: zod.number({
+  /** TODO: Turn into string */
+  id: zod.string({
     description:
       "Unique identifier for the Chronicle. Automatically generated.",
   }),

@@ -1,3 +1,24 @@
+/*
+ * Notes:
+ *
+ * About the information the Engine and the underlying Butterfly-Stack NEED to store. All they need to know about
+ * is the `knots` information, meaning it might make sense to only pass the knots information (this might make)
+ * the algorithm faster. -> after further consideration, each `linearChronicle` object passed to the `Engine` is a
+ * link to the spot in memory where the specific object is located at. -> Although this might sound like: "okay then
+ * it does not really matter" for each slice in a takeover maneuver there have to be deepcopies of each chronicle which
+ * makes the process slow and memory intensive. Thus it would be smarter to just store the chronic information and have
+ * an `id` field for when the renderer needs to now further information about the chronicle it can then look it up in
+ * something like a redux store. (The current implementation does utilize these deepcopies though)
+ *
+ * Dynamic View Pipeline:
+ *
+ *                             Events -> Engine -> Renderer
+ *
+ * Thus the Engine needs to completely define the behaviour of the dynamic view it is at its heart. This also implies
+ * that the current version is just a very premature version of the final Engine. Ultimately the Engine needs to take
+ * in environmental information and work with it, producing a usable butterfly for the renderer.
+ */
+
 import {
   Chronicle,
   ChronicleOverhead,
@@ -13,10 +34,13 @@ import alignLinearChronicles from "../../data/chronicles/alignLinearChronicles";
 import { produce } from "immer";
 import daysToMs from "@/utils/processing/data/chronicles/daysToMs";
 import getLinearChronicleOverlap from "../../data/chronicles/getLinearChronicleOverlap";
-import Butterfly, { ButterflyDepth } from "@/utils/structures/Butterfly";
-import BipolarLinkedList, {
+import Butterfly, {
+  ButterflyCell,
+  ButterflyDepth,
+} from "@/utils/structures/Butterfly";
+import BipolarDoublyLinkedList, {
   BipolarLinkedListPolartity,
-} from "@/utils/structures/BipolarLinkedList";
+} from "@/utils/structures/BipolarDoublyLinkedList";
 
 interface EngineTakeover {
   depth: ButterflyDepth;
@@ -69,18 +93,19 @@ class Engine extends Butterfly<LinearChronicle> {
     /** (2) sort chronicles linearly by start knot */
     this.chronicles.linear = alignLinearChronicles(this.chronicles.linear);
 
-    console.log("sortedLinearChronicles", this.chronicles.linear);
+    console.log("linear chronicles", this.chronicles.linear);
 
     /** The first linear Chronicle can always fit into the neutral lane */
     this.push(0, this.chronicles.linear[0]);
 
-    this.log();
-
     /** Thus we start at the second linear Chronicle in line */
     /** The .getLatestPoints() function already ensures we get minimal depth */
-    for (let i = 1; i < this.chronicles.linear.length; i++) {
+    for (let i = 1; i < 9; i++) {
+      //for (let i = 1; i < this.chronicles.linear.length; i++) {
       const insertionChronicle = this.chronicles.linear[i];
       console.warn(insertionChronicle.title);
+
+      this.log();
 
       /** Find `insertionDepth` */
       const insertionDepth = this.getInsertionDepth(insertionChronicle);
@@ -101,7 +126,7 @@ class Engine extends Butterfly<LinearChronicle> {
       // console.log("takeoverDepths", takeoverPath);
 
       console.log("vertical insertion depth", insertionDepth.y);
-      this.push(insertionDepth.y, insertionChronicle);
+      // this.push(insertionDepth.y, insertionChronicle);
     }
 
     console.warn("RESULT");
@@ -144,7 +169,7 @@ class Engine extends Butterfly<LinearChronicle> {
     for (const lastVector of lastVectors) {
       /** There is space in the layer to fit the linear Chronicle */
       if (
-        getLinearChronicleLeftDelta(insertionChronicle, lastVector.value) < 0
+        getLinearChronicleLeftDelta(insertionChronicle, lastVector.value.$) < 0
       ) {
         /**
          * Should the found space be in the neutral layer, the insertion point is found
@@ -179,7 +204,7 @@ class Engine extends Butterfly<LinearChronicle> {
            * `insertionChronicle`.
            */
           if (
-            getLinearChronicleLeftDelta(insertionChronicle, lastVector.value)
+            getLinearChronicleLeftDelta(insertionChronicle, lastVector.value.$)
           ) {
             /**
              * Now the algorithm has checked that there is in fact enough space to insert the
@@ -199,18 +224,41 @@ class Engine extends Butterfly<LinearChronicle> {
               );
             }
 
+            let x = lastVector.x;
+
+            /* Should there be a switchup, meaning the chronicle is supposed to be
+               inserted at the opposite side than the current lastVector, calculate
+               the x value accordingly */
+            if (
+              (positiveDurationWeight > negativeDurationWeight &&
+                lastVector.y > 0) ||
+              (positiveDurationWeight < negativeDurationWeight &&
+                lastVector.y < 0)
+            ) {
+              /* Switch last vector to the other side */
+              const result = lastVectors.find(
+                vector => vector.y == -lastVector.y,
+              );
+
+              if (result) {
+                x = result.x;
+              } else {
+                x = 0;
+              }
+            }
+
             /** Weight Check, put the Chronicle in the Area with less DurationWeight */
             if (positiveDurationWeight > negativeDurationWeight) {
               /** PUT THE CHRONICLE IN THE NEGATIVE AREA */
               return {
                 y: -Math.abs(lastVector.y),
-                x: lastVector.x + 1,
+                x: x + 1,
               };
             } else {
               /** PUT THE CHRONICLE IN THE POSITIVE AREA */
               return {
                 y: +Math.abs(lastVector.y),
-                x: lastVector.x + 1,
+                x: x + 1,
               };
             }
           }
@@ -287,7 +335,8 @@ class Engine extends Butterfly<LinearChronicle> {
       this.reduceYToNeutral(
         this.stepTowardZero(y),
         (accumulator, level, cy) => {
-          if (level.positiveTail) {
+          const last = level.peekLast();
+          if (last) {
             /**
              * If the current iteration chronicle is completely shadowed by
              * the previous chronicle, do not consider the current chronicle.
@@ -295,22 +344,21 @@ class Engine extends Butterfly<LinearChronicle> {
             if (
               accumulator.length &&
               accumulator[accumulator.length - 1].knots.start >=
-                level.positiveTail.value.knots.end
+                last.$.knots.end
             ) {
               return accumulator;
             }
 
             /** Correct last iteration, if there is one */
             if (accumulator.length > 1) {
-              accumulator[accumulator.length - 2].knots.end =
-                level.positiveTail.value.knots.end;
+              accumulator[accumulator.length - 2].knots.end = last.$.knots.end;
             }
 
             /** Push in current iteration */
             accumulator.push({
               y: cy,
               knots: {
-                start: level.positiveTail.value.knots.end,
+                start: last.$.knots.end,
                 end: Infinity,
               },
             });
@@ -442,16 +490,55 @@ class Engine extends Butterfly<LinearChronicle> {
       }),
     );
 
-    /** Filter `projection` for takeoverPath */
-    projection.forEach((slice, i) => {
-      if (i === 0) {
-        this.push(insertionDepth.y, insertionChronicle);
-      }
+    /** If there is no `projection` data, just insert it as is, the algorith comes
+        to an end at this point. */
+    if (!projection.length) {
+      this.set(insertionDepth.y, insertionDepth.x, insertionChronicle);
+      return;
+    }
 
-      const length = slice.knots.end - slice.knots.start;
+    /* At first filter all projection slices to size, if they can fit
+       a takeover maneuver or not */
+    projection.filter(slice => {
+      const duration = slice.knots.end - slice.knots.start;
 
-      /** If the slice is big enough to host a takeover maneuver, do it */
-      if (length >= Engine.MANEUVER_TAKEOVER_SPACE_MIN) {
+      return duration >= Engine.MANEUVER_TAKEOVER_SPACE_MIN;
+    });
+
+    /* Initialize temporary pointer to the null pointer */
+    let tmp: null | ButterflyCell<LinearChronicle> = null;
+
+    /* Add the root element of the chronicle path, meaning the part of
+       the lane comes before the first slice path */
+    const result = this.set(insertionDepth.y, insertionDepth.x, {
+      ...insertionChronicle,
+      knots: {
+        start: insertionChronicle.knots.start,
+        end: projection[0].knots.start,
+      },
+    });
+
+    /* Setting the pointers to the correct positions */
+    if (result) {
+      result.prev = null;
+      result.next = null;
+      tmp = result;
+    }
+
+    /** Should there be `projection` data, filter `projection` for takeoverPath */
+    projection.forEach(slice => {
+      const result = this.push(slice.y, {
+        ...insertionChronicle,
+        knots: {
+          start: slice.knots.start,
+          end: slice.knots.end,
+        },
+      });
+
+      if (result && tmp) {
+        tmp.next = result;
+        result.next = null;
+        result.prev = tmp;
       }
     });
   }
@@ -461,8 +548,8 @@ class Engine extends Butterfly<LinearChronicle> {
 
     if (level) {
       let acc = 0;
-      for (const cell of level) {
-        acc += cell.value.knots.end - cell.value.knots.start;
+      for (const { cell } of level) {
+        acc += cell.$.knots.end - cell.$.knots.start;
       }
       return acc;
     }
@@ -500,37 +587,26 @@ class Engine extends Butterfly<LinearChronicle> {
    * Within each level, values are printed left-to-right (… -2, -1, 0, 1, 2, …).
    */
   public log() {
-    for (const levelNode of this.iterateY()) {
-      const level = levelNode.value;
-      const y = levelNode.index;
+    for (const { level, y } of this.iterateY()) {
       // Collect items left-to-right
       const items: Array<{ x: number; v: LinearChronicle }> = [];
 
-      // Negative side … -2, -1, 0
-      for (const node of level.iterateNeutralToNegative()) {
-        items.unshift({ x: node.index, v: node.value });
-      }
-
       // Positive side 1, 2, …
-      for (const node of level.iterateNeutralToPositive()) {
-        if (node.index !== 0) items.push({ x: node.index, v: node.value });
+      for (const { x, cell } of level) {
+        items.push({ x, v: cell.$ });
       }
 
       console.group(`y=${y}`);
       for (const { x, v } of items) {
         // Assume v is a LinearChronicle
-        const lc = v as any as {
-          title: string;
-          knots: { start: number; end: number };
-        };
 
         const fmt = (ms: number) =>
           ms === Infinity ? "∞" : new Date(ms).toISOString().slice(0, 10);
 
-        const start = fmt(lc.knots.start);
-        const end = fmt(lc.knots.end);
+        const start = fmt(v.knots.start);
+        const end = fmt(v.knots.end);
 
-        console.log(`x=${x}: ${lc.title} | start=${start}, end=${end}`);
+        console.log(`x=${x}: ${v.title} | start=${start}, end=${end}`);
       }
       console.groupEnd();
     }

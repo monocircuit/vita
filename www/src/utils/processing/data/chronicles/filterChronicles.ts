@@ -27,6 +27,7 @@ const filterChronicles = (chronicles: Chronicle[]) => {
       while (i < chronicle.knots.length - 1) {
         linearChronicles.push({
           ...chronicle,
+          id: `${chronicle.id}-${i / 2}`,
           knots: {
             /** In order to make the timestamps of the Chronicles comparable, they need to be called with .getTime() */
             start: chronicle.knots[i],
@@ -41,6 +42,7 @@ const filterChronicles = (chronicles: Chronicle[]) => {
       if (i == chronicle.knots.length - 1) {
         linearChronicles.push({
           ...chronicle,
+          id: `${chronicle.id}-${i / 2}`,
           knots: {
             /** In order to make the timestamps of the Chronicles comparable, they need to be called with .getTime() */
             start: chronicle.knots[i],

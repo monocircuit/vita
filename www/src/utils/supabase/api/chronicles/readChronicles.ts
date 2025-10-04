@@ -1,6 +1,6 @@
 import { createClient } from "../../client";
 
-export async function getChronicles() {
+export async function readChronicles() {
   const supabase = createClient();
 
   const { data: chronicles, error } = await supabase
@@ -12,5 +12,7 @@ export async function getChronicles() {
     return [];
   }
 
-  return chronicles;
+  return chronicles.map(chronicle => {
+    return { ...chronicle, id: String(chronicle.id) };
+  });
 }
