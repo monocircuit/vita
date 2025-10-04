@@ -138,7 +138,7 @@ function Page() {
                 start,
                 end,
                 shift: window.innerHeight / 2,
-                title: chronicle.title,
+                title: chronicle.$.title,
             });
         });
 
@@ -147,11 +147,11 @@ function Page() {
             const levelIndex = i + 1;
             const level = engine.current.getLevel(levelIndex);
             level?.forEach(chronicle => {
-                drawChronicles(chronicle, levelIndex);
+                drawChronicles(chronicle.$, levelIndex);
 
 
 
-                chronicle.id && isRenderedChronicles.add(chronicle.id.toString())
+                chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString())
             });
 
             //Chronicle schon zu ende gerendert?
