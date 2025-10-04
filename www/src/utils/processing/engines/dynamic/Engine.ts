@@ -1,3 +1,24 @@
+/*
+ * Notes:
+ *
+ * About the information the Engine and the underlying Butterfly-Stack NEED to store. All they need to know about
+ * is the `knots` information, meaning it might make sense to only pass the knots information (this might make)
+ * the algorithm faster. -> after further consideration, each `linearChronicle` object passed to the `Engine` is a
+ * link to the spot in memory where the specific object is located at. -> Although this might sound like: "okay then
+ * it does not really matter" for each slice in a takeover maneuver there have to be deepcopies of each chronicle which
+ * makes the process slow and memory intensive. Thus it would be smarter to just store the chronic information and have
+ * an `id` field for when the renderer needs to now further information about the chronicle it can then look it up in
+ * something like a redux store. (The current implementation does utilize these deepcopies though)
+ *
+ * Dynamic View Pipeline:
+ *
+ *                             Events -> Engine -> Renderer
+ *
+ * Thus the Engine needs to completely define the behaviour of the dynamic view it is at its heart. This also implies
+ * that the current version is just a very premature version of the final Engine. Ultimately the Engine needs to take
+ * in environmental information and work with it, producing a usable butterfly for the renderer.
+ */
+
 import {
   Chronicle,
   ChronicleOverhead,
@@ -77,13 +98,14 @@ class Engine extends Butterfly<LinearChronicle> {
     /** The first linear Chronicle can always fit into the neutral lane */
     this.push(0, this.chronicles.linear[0]);
 
-    this.log();
-
     /** Thus we start at the second linear Chronicle in line */
     /** The .getLatestPoints() function already ensures we get minimal depth */
-    for (let i = 1; i < this.chronicles.linear.length; i++) {
+    for (let i = 1; i < 9; i++) {
+      //for (let i = 1; i < this.chronicles.linear.length; i++) {
       const insertionChronicle = this.chronicles.linear[i];
       console.warn(insertionChronicle.title);
+
+      this.log();
 
       /** Find `insertionDepth` */
       const insertionDepth = this.getInsertionDepth(insertionChronicle);
@@ -145,7 +167,6 @@ class Engine extends Butterfly<LinearChronicle> {
      * Depth > Weight (Depth is prioritized)
      */
     for (const lastVector of lastVectors) {
-      console.log(lastVector);
       /** There is space in the layer to fit the linear Chronicle */
       if (
         getLinearChronicleLeftDelta(insertionChronicle, lastVector.value.$) < 0
@@ -203,18 +224,41 @@ class Engine extends Butterfly<LinearChronicle> {
               );
             }
 
+            let x = lastVector.x;
+
+            /* Should there be a switchup, meaning the chronicle is supposed to be
+               inserted at the opposite side than the current lastVector, calculate
+               the x value accordingly */
+            if (
+              (positiveDurationWeight > negativeDurationWeight &&
+                lastVector.y > 0) ||
+              (positiveDurationWeight < negativeDurationWeight &&
+                lastVector.y < 0)
+            ) {
+              /* Switch last vector to the other side */
+              const result = lastVectors.find(
+                vector => vector.y == -lastVector.y,
+              );
+
+              if (result) {
+                x = result.x;
+              } else {
+                x = 0;
+              }
+            }
+
             /** Weight Check, put the Chronicle in the Area with less DurationWeight */
             if (positiveDurationWeight > negativeDurationWeight) {
               /** PUT THE CHRONICLE IN THE NEGATIVE AREA */
               return {
                 y: -Math.abs(lastVector.y),
-                x: lastVector.x + 1,
+                x: x + 1,
               };
             } else {
               /** PUT THE CHRONICLE IN THE POSITIVE AREA */
               return {
                 y: +Math.abs(lastVector.y),
-                x: lastVector.x + 1,
+                x: x + 1,
               };
             }
           }
@@ -446,20 +490,55 @@ class Engine extends Butterfly<LinearChronicle> {
       }),
     );
 
-    /** If there is no `projection` data, just insert it as is */
+    /** If there is no `projection` data, just insert it as is, the algorith comes
+        to an end at this point. */
     if (!projection.length) {
       this.set(insertionDepth.y, insertionDepth.x, insertionChronicle);
+      return;
+    }
+
+    /* At first filter all projection slices to size, if they can fit
+       a takeover maneuver or not */
+    projection.filter(slice => {
+      const duration = slice.knots.end - slice.knots.start;
+
+      return duration >= Engine.MANEUVER_TAKEOVER_SPACE_MIN;
+    });
+
+    /* Initialize temporary pointer to the null pointer */
+    let tmp: null | ButterflyCell<LinearChronicle> = null;
+
+    /* Add the root element of the chronicle path, meaning the part of
+       the lane comes before the first slice path */
+    const result = this.set(insertionDepth.y, insertionDepth.x, {
+      ...insertionChronicle,
+      knots: {
+        start: insertionChronicle.knots.start,
+        end: projection[0].knots.start,
+      },
+    });
+
+    /* Setting the pointers to the correct positions */
+    if (result) {
+      result.prev = null;
+      result.next = null;
+      tmp = result;
     }
 
     /** Should there be `projection` data, filter `projection` for takeoverPath */
-    projection.forEach((slice, i) => {
-      if (i === 0) {
-      }
+    projection.forEach(slice => {
+      const result = this.push(slice.y, {
+        ...insertionChronicle,
+        knots: {
+          start: slice.knots.start,
+          end: slice.knots.end,
+        },
+      });
 
-      const length = slice.knots.end - slice.knots.start;
-
-      /** If the slice is big enough to host a takeover maneuver, do it */
-      if (length >= Engine.MANEUVER_TAKEOVER_SPACE_MIN) {
+      if (result && tmp) {
+        tmp.next = result;
+        result.next = null;
+        result.prev = tmp;
       }
     });
   }

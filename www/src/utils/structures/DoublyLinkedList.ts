@@ -149,7 +149,7 @@ export class DoublyLinkedList<T, Y = { index: number; value: T }>
    *
    * @param value The value to append.
    */
-  public push(value: T): void {
+  public push(value: T): T {
     const n = new DoublyLinkedListNode(value);
     if (!this.tail) {
       this.head = this.tail = n;
@@ -159,6 +159,8 @@ export class DoublyLinkedList<T, Y = { index: number; value: T }>
       this.tail = n;
     }
     this._length++;
+
+    return n.value;
   }
 
   /**
@@ -279,21 +281,20 @@ export class DoublyLinkedList<T, Y = { index: number; value: T }>
    * @param value The value to store.
    * @returns `true` if overwritten or appended; `false` if out of range.
    */
-  public set(index: number, value: T): boolean {
+  public set(index: number, value: T): null | T {
     // kein negatives Setzen, kein Überspringen von Indizes
-    if (index < 0 || index > this._length) return false;
+    if (index < 0 || index > this._length) return null;
 
     // exakt am Ende? -> wie push, keine Lücke
     if (index === this._length) {
-      this.push(value);
-      return true;
+      return this.push(value);
     }
 
     // existierendes Node holen und überschreiben
     const n = this.getNode(index);
-    if (!n) return false; // sollte wegen Bounds nicht vorkommen
+    if (!n) return null; // sollte wegen Bounds nicht vorkommen
     n.value = value;
-    return true;
+    return n.value;
   }
 
   /**

@@ -205,7 +205,7 @@ export default class Butterfly<T> {
    * // Insert into a new level (level 2 is created automatically)
    * butterfly.set(2, 0, { title: "Chronicle B", knots: { start: 200, end: 300 } });
    */
-  public set(y: number, x: number, value: T): boolean {
+  public set(y: number, x: number, value: T): null | ButterflyCell<T> {
     // Check if level already exists
     const level = this.getLevel(y);
 
@@ -236,7 +236,8 @@ export default class Butterfly<T> {
       });
     }
 
-    return false;
+    /* should none of these operations have worked return the null pointer */
+    return null;
   }
 
   /**
@@ -259,7 +260,7 @@ export default class Butterfly<T> {
    * @returns `true` if the value was successfully added,
    *          `false` if the operation failed (e.g., invalid position).
    */
-  public push(y: number, value: T): boolean {
+  public push(y: number, value: T): null | ButterflyCell<T> {
     /** Check if level already exists */
     const level = this.getLevel(y);
 
