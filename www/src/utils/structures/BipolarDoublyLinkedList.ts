@@ -4,7 +4,11 @@ export enum BipolarLinkedListPolartity {
   NEGATIVE,
 }
 
-class BipolarLinkedListNode<Value> {
+interface BipolarDoublyLinkedListOptions<T, Y> {
+  project: (entry: { index: number; value: T }) => Y;
+}
+
+class BipolarDoublyLinkedListNode<Value> {
   /** Coordinate Information */
   public index: number;
 
@@ -12,8 +16,8 @@ class BipolarLinkedListNode<Value> {
   public value: Value;
 
   /** Links to the other Nodes */
-  public next: BipolarLinkedListNode<Value> | undefined;
-  public prev: BipolarLinkedListNode<Value> | undefined;
+  public next: BipolarDoublyLinkedListNode<Value> | undefined;
+  public prev: BipolarDoublyLinkedListNode<Value> | undefined;
 
   constructor(index: number, value: Value) {
     this.index = index;
@@ -21,20 +25,33 @@ class BipolarLinkedListNode<Value> {
   }
 }
 
-export default class BipolarLinkedList<Value> {
+export default class BipolarDoublyLinkedList<T, Y = { index: number; value: T }>
+  implements Iterable<Y>
+{
   /** Meta Information */
-  private _origin: BipolarLinkedListNode<Value> | undefined;
-  private _negativeTail: BipolarLinkedListNode<Value> | undefined;
-  private _positiveTail: BipolarLinkedListNode<Value> | undefined;
+  private _origin: BipolarDoublyLinkedListNode<T> | undefined;
+  private _negativeTail: BipolarDoublyLinkedListNode<T> | undefined;
+  private _positiveTail: BipolarDoublyLinkedListNode<T> | undefined;
 
   private _length: number;
   private _lengthPositive: number;
   private _lengthNegative: number;
 
-  constructor() {
+  constructor(options?: BipolarDoublyLinkedListOptions<T, Y>) {
     this._length = 0;
     this._lengthPositive = 0;
     this._lengthNegative = 0;
+
+    if (options?.project) this.project = options.project;
+  }
+
+  /**
+   * Customize the yield shape of the default iterator.
+   * By default, the iterator yields `{ index, value }`.
+   * Subclasses can override this to project entries to a different form.
+   */
+  protected project(entry: { index: number; value: T }): Y {
+    return entry as unknown as Y;
   }
 
   /**
@@ -90,7 +107,7 @@ export default class BipolarLinkedList<Value> {
   }
 
   /** Gets the value at position x, if it exists */
-  public get(index: number): Value | undefined {
+  public get(index: number): T | undefined {
     return this.findNode(index)?.value;
   }
 
@@ -99,7 +116,7 @@ export default class BipolarLinkedList<Value> {
    *
    * Sets the value at position x
    */
-  public set(index: number, value: Value): boolean {
+  public set(index: number, value: T): boolean {
     const temp = this.findNode(index);
 
     /** In case the node already exists */
@@ -110,7 +127,7 @@ export default class BipolarLinkedList<Value> {
 
     /** In case the user wants to set the origin */
     if (index == 0) {
-      this._origin = new BipolarLinkedListNode(index, value);
+      this._origin = new BipolarDoublyLinkedListNode(index, value);
 
       /** The pointers should then point to undefined */
       this._origin.next = undefined;
@@ -131,7 +148,7 @@ export default class BipolarLinkedList<Value> {
     /** In case the x value is positive it needs to be 
         put at the positive end */
     if (this._positiveTail && index === this._positiveTail.index + 1) {
-      const newNode = new BipolarLinkedListNode(index, value);
+      const newNode = new BipolarDoublyLinkedListNode(index, value);
 
       /** Bending pointers to fit the new node into the list */
       this._positiveTail.next = newNode;
@@ -149,7 +166,7 @@ export default class BipolarLinkedList<Value> {
     /** In caase the x value is negative it must be 
         put at the negative end */
     if (this._negativeTail && index === this._negativeTail.index - 1) {
-      const newNode = new BipolarLinkedListNode(index, value);
+      const newNode = new BipolarDoublyLinkedListNode(index, value);
 
       /** Bending the pointers to fit the new node into the list */
       this._negativeTail.prev = newNode;
@@ -171,7 +188,7 @@ export default class BipolarLinkedList<Value> {
   /**
    * Helper function that is able to find a node with given index
    */
-  private findNode(index: number): BipolarLinkedListNode<Value> | undefined {
+  private findNode(index: number): BipolarDoublyLinkedListNode<T> | undefined {
     if (index === 0) {
       return this._origin;
     }
@@ -204,8 +221,24 @@ export default class BipolarLinkedList<Value> {
    * That means it starts from the origin node (index = 0),
    * then alternates between the positive side and the negative side,
    * moving one step further out on each iteration.
+   *
+   * NOTE: The yielded value is customizable via `project({ index, value })`.
+   * By default, it yields `{ index, value }`.
    */
-  *[Symbol.iterator](): IterableIterator<{ index: number; value: Value }> {
+  *[Symbol.iterator](): IterableIterator<Y> {
+    for (const entry of this.entries()) {
+      yield this.project(entry);
+    }
+  }
+
+  /**
+   * Stable entries iterator that always yields `{ index, value }`
+   * in the same alternating order as the default iterator:
+   *   0, +1, -1, +2, -2, +3, -3, ...
+   * Use this when you specifically need `{ index, value }` regardless of
+   * any customization to the default iterator yield type.
+   */
+  public *entries(): IterableIterator<{ index: number; value: T }> {
     // If there is no origin node, the list is empty → nothing to iterate.
     if (!this._origin) {
       return;
@@ -220,7 +253,7 @@ export default class BipolarLinkedList<Value> {
 
       // --- Positive side: try to yield the node at +step ---
       if (this._positiveTail && this._positiveTail.index >= step) {
-        let node: BipolarLinkedListNode<Value> | undefined = this._origin;
+        let node: BipolarDoublyLinkedListNode<T> | undefined = this._origin;
         // Move right until we reach or surpass the target index.
         while (node && node.index < step) node = node.next;
         if (node && node.index === step) {
@@ -231,7 +264,7 @@ export default class BipolarLinkedList<Value> {
 
       // --- Negative side: try to yield the node at -step ---
       if (this._negativeTail && this._negativeTail.index <= -step) {
-        let node: BipolarLinkedListNode<Value> | undefined = this._origin;
+        let node: BipolarDoublyLinkedListNode<T> | undefined = this._origin;
         // Move left until we reach or surpass the target index.
         while (node && node.index > -step) node = node.prev;
         if (node && node.index === -step) {
@@ -254,7 +287,7 @@ export default class BipolarLinkedList<Value> {
    */
   *iteratePositiveToNeutral(): IterableIterator<{
     index: number;
-    value: Value;
+    value: T;
   }> {
     let node = this._positiveTail;
     while (node) {
@@ -270,7 +303,7 @@ export default class BipolarLinkedList<Value> {
    */
   *iterateNegativeToNeutral(): IterableIterator<{
     index: number;
-    value: Value;
+    value: T;
   }> {
     let node = this._negativeTail;
     while (node) {
@@ -286,10 +319,10 @@ export default class BipolarLinkedList<Value> {
    */
   *iterateNeutralToPositive(): IterableIterator<{
     index: number;
-    value: Value;
+    value: T;
   }> {
     if (!this._origin) return;
-    let node: BipolarLinkedListNode<Value> | undefined = this._origin;
+    let node: BipolarDoublyLinkedListNode<T> | undefined = this._origin;
     while (node) {
       yield { index: node.index, value: node.value };
       node = node.next;
@@ -302,10 +335,10 @@ export default class BipolarLinkedList<Value> {
    */
   *iterateNeutralToNegative(): IterableIterator<{
     index: number;
-    value: Value;
+    value: T;
   }> {
     if (!this._origin) return;
-    let node: BipolarLinkedListNode<Value> | undefined = this._origin;
+    let node: BipolarDoublyLinkedListNode<T> | undefined = this._origin;
     while (node) {
       yield { index: node.index, value: node.value };
       node = node.prev;
@@ -322,13 +355,13 @@ export default class BipolarLinkedList<Value> {
    */
   *iteratePositiveToNegative(): IterableIterator<{
     index: number;
-    value: Value;
+    value: T;
   }> {
     // Choose the best starting point:
     // - Prefer the positive tail if it exists,
     // - else start at origin if it exists,
     // - else (only negative side exists) start at the negative tail.
-    let node: BipolarLinkedListNode<Value> | undefined =
+    let node: BipolarDoublyLinkedListNode<T> | undefined =
       this._positiveTail ?? this._origin ?? this._negativeTail;
 
     while (node) {
@@ -347,13 +380,13 @@ export default class BipolarLinkedList<Value> {
    */
   *iterateNegativeToPositive(): IterableIterator<{
     index: number;
-    value: Value;
+    value: T;
   }> {
     // Choose the best starting point:
     // - Prefer the negative tail if it exists,
     // - else start at origin if it exists,
     // - else (only positive side exists) start at the positive tail.
-    let node: BipolarLinkedListNode<Value> | undefined =
+    let node: BipolarDoublyLinkedListNode<T> | undefined =
       this._negativeTail ?? this._origin ?? this._positiveTail;
 
     while (node) {
@@ -366,8 +399,8 @@ export default class BipolarLinkedList<Value> {
    * Collect all nodes on the positive side (index > 0).
    * Returns them in ascending order of index (1, 2, 3, …).
    */
-  public getAllPositive(): { index: number; value: Value }[] {
-    const result: { index: number; value: Value }[] = [];
+  public getAllPositive(): { index: number; value: T }[] {
+    const result: { index: number; value: T }[] = [];
     if (!this._origin) return result;
 
     let node = this._origin.next;
@@ -384,8 +417,8 @@ export default class BipolarLinkedList<Value> {
    * Collect all nodes on the negative side (index < 0).
    * Returns them in descending order of index (… -3, -2, -1).
    */
-  public getAllNegative(): { index: number; value: Value }[] {
-    const result: { index: number; value: Value }[] = [];
+  public getAllNegative(): { index: number; value: T }[] {
+    const result: { index: number; value: T }[] = [];
     if (!this._origin) return result;
 
     let node = this._origin.prev;
@@ -410,12 +443,12 @@ export default class BipolarLinkedList<Value> {
    */
   public forEach(
     callback: (
-      value: Value,
+      value: T,
       index: number,
-      list: BipolarLinkedList<Value>,
+      list: BipolarDoublyLinkedList<T, Y>,
     ) => void,
   ): void {
-    for (const { index, value } of this) {
+    for (const { index, value } of this.entries()) {
       callback(value, index, this);
     }
   }
@@ -435,10 +468,10 @@ export default class BipolarLinkedList<Value> {
    *   and indices, but containing the mapped values.
    */
   public map<U>(
-    mapper: (value: Value, index: number, list: BipolarLinkedList<Value>) => U,
-  ): BipolarLinkedList<U> {
-    const result = new BipolarLinkedList<U>();
-    for (const { index, value } of this) {
+    mapper: (value: T, index: number, list: BipolarDoublyLinkedList<T, Y>) => U,
+  ): BipolarDoublyLinkedList<U> {
+    const result = new BipolarDoublyLinkedList<U>();
+    for (const { index, value } of this.entries()) {
       result.set(index, mapper(value, index, this));
     }
     return result;
@@ -461,9 +494,9 @@ export default class BipolarLinkedList<Value> {
    *   and positive values, transformed by the mapper function.
    */
   public mapNeutralToPositive<U>(
-    mapper: (value: Value, index: number, list: BipolarLinkedList<Value>) => U,
-  ): BipolarLinkedList<U> {
-    const result = new BipolarLinkedList<U>();
+    mapper: (value: T, index: number, list: BipolarDoublyLinkedList<T, Y>) => U,
+  ): BipolarDoublyLinkedList<U> {
+    const result = new BipolarDoublyLinkedList<U>();
 
     for (const { index, value } of this.iterateNeutralToPositive()) {
       result.set(index, mapper(value, index, this));
@@ -489,9 +522,9 @@ export default class BipolarLinkedList<Value> {
    *   and negative values, transformed by the mapper function.
    */
   public mapNeutralToNegative<U>(
-    mapper: (value: Value, index: number, list: BipolarLinkedList<Value>) => U,
-  ): BipolarLinkedList<U> {
-    const result = new BipolarLinkedList<U>();
+    mapper: (value: T, index: number, list: BipolarDoublyLinkedList<T, Y>) => U,
+  ): BipolarDoublyLinkedList<U> {
+    const result = new BipolarDoublyLinkedList<U>();
 
     for (const { index, value } of this.iterateNeutralToNegative()) {
       result.set(index, mapper(value, index, this));
@@ -515,14 +548,14 @@ export default class BipolarLinkedList<Value> {
   public reduce<Accumulator>(
     reducer: (
       acc: Accumulator,
-      value: Value,
+      value: T,
       index: number,
-      list: BipolarLinkedList<Value>,
+      list: BipolarDoublyLinkedList<T, Y>,
     ) => Accumulator,
     initialValue: Accumulator,
   ): Accumulator {
     let acc = initialValue;
-    for (const { index, value } of this) {
+    for (const { index, value } of this.entries()) {
       acc = reducer(acc, value, index, this);
     }
     return acc;
@@ -547,20 +580,17 @@ export default class BipolarLinkedList<Value> {
     startIndex: number,
     reducer: (
       acc: Accumulator,
-      value: Value,
+      value: T,
       index: number,
-      list: BipolarLinkedList<Value>,
+      list: BipolarDoublyLinkedList<T, Y>,
     ) => Accumulator,
     initialValue: Accumulator,
   ): Accumulator | undefined {
-    console.log("--------- CALL ------------");
-    console.log(startIndex);
-
     const startNode = this.findNode(startIndex);
     if (!startNode) return undefined;
 
     let acc = initialValue;
-    let node: BipolarLinkedListNode<Value> | undefined = startNode;
+    let node: BipolarDoublyLinkedListNode<T> | undefined = startNode;
 
     if (startIndex > 0) {
       // move backwards (towards 0) via prev
@@ -594,9 +624,9 @@ export default class BipolarLinkedList<Value> {
    *
    * @returns An array of all values in default alternating order.
    */
-  public toArray(): Value[] {
-    const result: Value[] = [];
-    for (const { value } of this) {
+  public toArray(): T[] {
+    const result: T[] = [];
+    for (const { value } of this.entries()) {
       result.push(value);
     }
     return result;
@@ -612,8 +642,8 @@ export default class BipolarLinkedList<Value> {
    *
    * @returns An array of all values from origin to positive tail.
    */
-  public toArrayNeutralToPositive(): Value[] {
-    const result: Value[] = [];
+  public toArrayNeutralToPositive(): T[] {
+    const result: T[] = [];
     for (const { value } of this.iterateNeutralToPositive()) {
       result.push(value);
     }
@@ -630,8 +660,8 @@ export default class BipolarLinkedList<Value> {
    *
    * @returns An array of all values from origin to negative tail.
    */
-  public toArrayNeutralToNegative(): Value[] {
-    const result: Value[] = [];
+  public toArrayNeutralToNegative(): T[] {
+    const result: T[] = [];
     for (const { value } of this.iterateNeutralToNegative()) {
       result.push(value);
     }
