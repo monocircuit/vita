@@ -85,9 +85,9 @@ function Page() {
     let distance = 1; // Avoid division by zero
 
     if (engine.current.getLevel(0) != null) {
-      aknot = engine.current.get(0, 0)?.knots.start ?? 0;
+      aknot = engine.current.get(0, 0)?.$.knots.start ?? 0;
       const lastKnot =
-        engine.current.getLastVector(0)?.value.knots.end ?? aknot;
+        engine.current.getLastVector(0)?.value.$.knots.end ?? aknot;
       distance = lastKnot - aknot;
       if (distance === 0) distance = 1;
     }
@@ -122,7 +122,7 @@ function Page() {
 
     // Render level 0
     engine.current.getLevel(0)?.forEach((chronicle, i, arr) => {
-      const nknots = normalize(chronicle.knots, aknot, distance);
+      const nknots = normalize(chronicle.$.knots, aknot, distance);
       let start = nknots[0] * window.innerWidth;
       let end = nknots[1] * window.innerWidth;
 
@@ -139,14 +139,14 @@ function Page() {
         start,
         end,
         shift: window.innerHeight / 2,
-        title: chronicle.title,
+        title: chronicle.$.title,
       });
     });
     // Render positive levels
     for (let i = 0; i < positiveLayerHeight; i++) {
       const levelIndex = i + 1;
       const level = engine.current.getLevel(levelIndex);
-      level?.forEach(chronicle => drawChronicles(chronicle, levelIndex));
+      level?.forEach(chronicle => drawChronicles(chronicle.$, levelIndex));
     }
 
     // Render negative levels
@@ -154,12 +154,12 @@ function Page() {
       const levelIndex = i + 1;
       const level = engine.current.getLevel(-levelIndex);
       level?.forEach(chronicle => {
-        const nknots = normalize(chronicle.knots, aknot, distance);
+        const nknots = normalize(chronicle.$.knots, aknot, distance);
         drawBranch(viewport, {
           start: nknots[0] * window.innerWidth,
           end: nknots[1] * window.innerWidth,
           shift: window.innerHeight / 2 + levelIndex * 50,
-          title: chronicle.title,
+          title: chronicle.$.title,
         });
       });
     }
