@@ -1,7 +1,7 @@
 import {
-  Chronicle,
-  ChronicleOverhead,
-  LinearChronicle,
+  TChronicle,
+  TChronicleOverhead,
+  TLinearChronicle,
 } from "@/utils/schemas/Chronicle";
 import { createClient } from "@/utils/supabase/client";
 import getLinearChronicles from "./algorithm/getLinearChronicles";
@@ -82,9 +82,9 @@ import Engine from "@/utils/processing/engines/dynamic/Engine";
 //   return layeredTree;
 // };
 
-const storeLinearChronicles = (linearChronicles: LinearChronicle[]) => {
+const storeLinearChronicles = (linearChronicles: TLinearChronicle[]) => {
   const sortedLinearChronicles = alignLinearChronicles(linearChronicles);
-  const butterflyStack = new Butterfly<LinearChronicle>();
+  const butterflyStack = new Butterfly<TLinearChronicle>();
 
   console.log("sortedLinearChronicles", sortedLinearChronicles);
 
@@ -119,7 +119,7 @@ const storeLinearChronicles = (linearChronicles: LinearChronicle[]) => {
   }
 };
 
-async function inferDynamicVita(chronicles: (Chronicle & ChronicleOverhead)[]) {
+async function inferDynamicVita(chronicles: (TChronicle & TChronicleOverhead)[]) {
   const supabase = createClient();
 
   const userId = (await supabase.auth.getUser()).data.user?.id;

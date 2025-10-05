@@ -12,7 +12,7 @@
  *
  * Dynamic View Pipeline:
  *
- *                             Events -> Engine -> Renderer
+ *                                        Events -> Engine -> Renderer
  *
  * Thus the Engine needs to completely define the behaviour of the dynamic view it is at its heart. This also implies
  * that the current version is just a very premature version of the final Engine. Ultimately the Engine needs to take
@@ -20,41 +20,30 @@
  */
 
 import {
-  Chronicle,
-  ChronicleOverhead,
-  LinearChronicle,
-  LinearChronicleKnots,
+  TChronicle,
+  TLinearChronicle,
+  TLinearChronicleKnots,
 } from "@/utils/schemas/Chronicle";
 import filterChronicles from "../../data/chronicles/filterChronicles";
-import {
-  getLinearChronicleLeftDelta,
-  getLinearChronicleRightDelta,
-} from "../../data/chronicles/getLinearChronicleDeltas";
+import { getLinearChronicleLeftDelta } from "../../data/chronicles/getLinearChronicleDeltas";
 import alignLinearChronicles from "../../data/chronicles/alignLinearChronicles";
-import { produce } from "immer";
-import daysToMs from "@/utils/processing/data/chronicles/daysToMs";
-import getLinearChronicleOverlap from "../../data/chronicles/getLinearChronicleOverlap";
 import Butterfly, {
   ButterflyCell,
-  ButterflyDepth,
+  IButterflyDepth,
 } from "@/utils/structures/Butterfly";
-import BipolarDoublyLinkedList, {
-  BipolarLinkedListPolartity,
-} from "@/utils/structures/BipolarDoublyLinkedList";
+import { BipolarLinkedListPolartity } from "@/utils/structures/BipolarDoublyLinkedList";
 
 interface EngineTakeover {
-  depth: ButterflyDepth;
+  depth: IButterflyDepth;
   duration: number;
 }
 
 interface EngineProjectionSlice {
   y: number;
-  knots: LinearChronicleKnots;
+  knots: TLinearChronicleKnots;
 }
 
-type EngineTakeoverPath = EngineTakeover[];
-
-class Engine extends Butterfly<LinearChronicle> {
+class Engine extends Butterfly<TLinearChronicle> {
   /**
    * Space for Constants
    */
@@ -71,8 +60,8 @@ class Engine extends Butterfly<LinearChronicle> {
   private loaded = false;
 
   private chronicles: {
-    linear: LinearChronicle[];
-    static: Chronicle[];
+    linear: TLinearChronicle[];
+    static: TChronicle[];
   } = { linear: [], static: [] };
 
   constructor() {
@@ -83,7 +72,7 @@ class Engine extends Butterfly<LinearChronicle> {
    * Initiates the calculations for filling the inner `ButterflyStack` with
    * the correct chronicle information.
    */
-  public init(chronicles: Chronicle[]) {
+  public init(chronicles: TChronicle[]) {
     /** The `Engine` is only supposed to load once, multiple loading is not possible */
     if (this.loaded) return;
     this.loaded = true;
@@ -155,10 +144,10 @@ class Engine extends Butterfly<LinearChronicle> {
    * @returns ButterflyDepth (it will always find a spot to fit the chronicle in)
    */
   private getInsertionDepth(
-    insertionChronicle: LinearChronicle,
-  ): ButterflyDepth {
-    const lastVectors = this.getLastVectors();
-    let insertionDepth: ButterflyDepth | null = null;
+    insertionChronicle: TLinearChronicle,
+  ): IButterflyDepth {
+    const lastCells = this.getLastCells();
+    let insertionDepth: IButterflyDepth | null = null;
 
     /**
      * Find insertion point
@@ -166,19 +155,17 @@ class Engine extends Butterfly<LinearChronicle> {
      *
      * Depth > Weight (Depth is prioritized)
      */
-    for (const lastVector of lastVectors) {
+    for (const lastCell of lastCells) {
       /** There is space in the layer to fit the linear Chronicle */
-      if (
-        getLinearChronicleLeftDelta(insertionChronicle, lastVector.value.$) < 0
-      ) {
+      if (getLinearChronicleLeftDelta(insertionChronicle, lastCell.$) < 0) {
         /**
          * Should the found space be in the neutral layer, the insertion point is found
          * and the algorithm can break out of the loop.
          */
-        if (lastVector.y == 0) {
+        if (lastCell.y == 0) {
           insertionDepth = {
             y: 0,
-            x: lastVector.x + 1,
+            x: lastCell.x + 1,
           };
           break;
         }
@@ -198,14 +185,12 @@ class Engine extends Butterfly<LinearChronicle> {
          * This needs to happen in two steps: check if the opposite layer is empty, if not, check
          * the left delta to the latest point in this specific layer.
          */
-        if (this.doesLevelExist(-lastVector.y)) {
+        if (this.doesLevelExist(-lastCell.y)) {
           /**
            * The layer exists, thus the algorithm needs to check if there is enough space for the
            * `insertionChronicle`.
            */
-          if (
-            getLinearChronicleLeftDelta(insertionChronicle, lastVector.value.$)
-          ) {
+          if (getLinearChronicleLeftDelta(insertionChronicle, lastCell.$)) {
             /**
              * Now the algorithm has checked that there is in fact enough space to insert the
              * `insertionChronicle`, meaning now it makes sense to make a weight check, to see
@@ -224,21 +209,19 @@ class Engine extends Butterfly<LinearChronicle> {
               );
             }
 
-            let x = lastVector.x;
+            let x = lastCell.x;
 
             /* Should there be a switchup, meaning the chronicle is supposed to be
                inserted at the opposite side than the current lastVector, calculate
                the x value accordingly */
             if (
               (positiveDurationWeight > negativeDurationWeight &&
-                lastVector.y > 0) ||
+                lastCell.y > 0) ||
               (positiveDurationWeight < negativeDurationWeight &&
-                lastVector.y < 0)
+                lastCell.y < 0)
             ) {
               /* Switch last vector to the other side */
-              const result = lastVectors.find(
-                vector => vector.y == -lastVector.y,
-              );
+              const result = lastCells.find(vector => vector.y == -lastCell.y);
 
               if (result) {
                 x = result.x;
@@ -251,13 +234,13 @@ class Engine extends Butterfly<LinearChronicle> {
             if (positiveDurationWeight > negativeDurationWeight) {
               /** PUT THE CHRONICLE IN THE NEGATIVE AREA */
               return {
-                y: -Math.abs(lastVector.y),
+                y: -Math.abs(lastCell.y),
                 x: x + 1,
               };
             } else {
               /** PUT THE CHRONICLE IN THE POSITIVE AREA */
               return {
-                y: +Math.abs(lastVector.y),
+                y: +Math.abs(lastCell.y),
                 x: x + 1,
               };
             }
@@ -393,8 +376,8 @@ class Engine extends Butterfly<LinearChronicle> {
    * @returns A list of projection slices clipped to the insertion chronicle’s bounds.
    */
   private getProjection(
-    insertionChronicle: LinearChronicle,
-    insertionDepth: ButterflyDepth,
+    insertionChronicle: TLinearChronicle,
+    insertionDepth: IButterflyDepth,
   ): EngineProjectionSlice[] {
     const totalProjection = this.getTotalProjection(insertionDepth.y);
 
@@ -471,8 +454,8 @@ class Engine extends Butterfly<LinearChronicle> {
   }
 
   private getTakeoverPath(
-    insertionChronicle: LinearChronicle,
-    insertionDepth: ButterflyDepth,
+    insertionChronicle: TLinearChronicle,
+    insertionDepth: IButterflyDepth,
   ) {
     /** Find `projection` */
     const projection = this.getProjection(insertionChronicle, insertionDepth);
@@ -506,7 +489,7 @@ class Engine extends Butterfly<LinearChronicle> {
     });
 
     /* Initialize temporary pointer to the null pointer */
-    let tmp: null | ButterflyCell<LinearChronicle> = null;
+    let tmp: null | ButterflyCell<TLinearChronicle> = null;
 
     /* Add the root element of the chronicle path, meaning the part of
        the lane comes before the first slice path */
@@ -589,7 +572,7 @@ class Engine extends Butterfly<LinearChronicle> {
   public log() {
     for (const { level, y } of this.iterateY()) {
       // Collect items left-to-right
-      const items: Array<{ x: number; v: LinearChronicle }> = [];
+      const items: Array<{ x: number; v: TLinearChronicle }> = [];
 
       // Positive side 1, 2, …
       for (const { x, cell } of level) {

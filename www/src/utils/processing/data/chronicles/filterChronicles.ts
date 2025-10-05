@@ -1,13 +1,13 @@
-import { Chronicle, LinearChronicle } from "../../../schemas/Chronicle";
+import { TChronicle, TLinearChronicle } from "../../../schemas/Chronicle";
 
-const filterChronicles = (chronicles: Chronicle[]) => {
-  const linearChronicles: LinearChronicle[] = [];
-  const staticChronicles: Chronicle[] = [];
+const filterChronicles = (chronicles: TChronicle[]) => {
+  const linearChronicles: TLinearChronicle[] = [];
+  const staticChronicles: TChronicle[] = [];
 
   chronicles.forEach(chronicle => {
     if (chronicle.knots.length == 0) {
       /** Sort out all StaticChronicles */
-      staticChronicles.push(chronicle as Chronicle);
+      staticChronicles.push(chronicle as TChronicle);
     } else if (chronicle.knots.length == 2) {
       /** Linearize all Chronicles, that is make them definable by two knots, if they have more */
       /** The readOwnChronicle() function guarantees that there will be at least two knots */

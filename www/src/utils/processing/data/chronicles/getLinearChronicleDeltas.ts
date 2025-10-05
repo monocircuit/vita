@@ -1,4 +1,4 @@
-import { LinearChronicle } from "@/utils/schemas/Chronicle";
+import { TLinearChronicle } from "@/utils/schemas/Chronicle";
 
 /**
  * TODO: At the moment all functions only work with the `x2` setting, they need to be
@@ -30,8 +30,8 @@ import { LinearChronicle } from "@/utils/schemas/Chronicle";
  * left delta would be positive. Keep in mind that a delta always measures the overlap!
  */
 export const getLinearChronicleLeftDelta = (
-  primary: LinearChronicle,
-  secondary: LinearChronicle,
+  primary: TLinearChronicle,
+  secondary: TLinearChronicle,
 ) => {
   if (!secondary.knots.end) {
     return Infinity;
@@ -45,8 +45,8 @@ export const getLinearChronicleLeftDelta = (
 };
 
 export const getLinearChronicleRightDelta = (
-  primary: LinearChronicle,
-  secondary: LinearChronicle,
+  primary: TLinearChronicle,
+  secondary: TLinearChronicle,
 ) => {
   if (!secondary.knots.end) {
     return Infinity;
@@ -60,8 +60,8 @@ export const getLinearChronicleRightDelta = (
 };
 
 const getLinearChronicleDeltas = (
-  primary: LinearChronicle,
-  secondary: LinearChronicle,
+  primary: TLinearChronicle,
+  secondary: TLinearChronicle,
 ) => {
   return {
     left: getLinearChronicleLeftDelta(primary, secondary),

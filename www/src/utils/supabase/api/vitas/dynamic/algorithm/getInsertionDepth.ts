@@ -1,4 +1,4 @@
-import { LinearChronicle } from "@/utils/schemas/Chronicle";
+import { TLinearChronicle } from "@/utils/schemas/Chronicle";
 import Butterfly from "@/utils/structures/ButterflyStack";
 import { ButterflyStackDepth } from "@/utils/structures/ButterflyStack.d";
 import { getLinearChronicleLeftDelta } from "../../../../../processing/data/chronicles/getLinearChronicleDeltas";
@@ -15,8 +15,8 @@ import { getLinearChronicleLeftDelta } from "../../../../../processing/data/chro
  * reads from it.
  */
 function getInsertionDepth(
-  insertionChronicle: LinearChronicle,
-  butterflyStack: Butterfly<LinearChronicle>,
+  insertionChronicle: TLinearChronicle,
+  butterflyStack: Butterfly<TLinearChronicle>,
 ) {
   const latestPoints = butterflyStack.getLastPoints();
   let insertionDepth: ButterflyStackDepth | null = null;

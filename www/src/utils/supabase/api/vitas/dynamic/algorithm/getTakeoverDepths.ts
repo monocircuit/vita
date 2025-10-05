@@ -1,4 +1,4 @@
-import { LinearChronicle } from "@/utils/schemas/Chronicle";
+import { TLinearChronicle } from "@/utils/schemas/Chronicle";
 import Butterfly from "@/utils/structures/ButterflyStack";
 import { ButterflyStackDepth } from "@/utils/structures/ButterflyStack.d";
 import { getLinearChronicleRightDelta } from "../../../../../processing/data/chronicles/getLinearChronicleDeltas";
@@ -9,9 +9,9 @@ import { VITA_DYNAMIC_MANEUVERS_TAKEOVER_MIN_SPACE } from "../dynamicVitaConstan
  * contents of the passed `ButterflyStack`.
  */
 const getTakeoverDepths = (
-  insertionChronicle: LinearChronicle,
+  insertionChronicle: TLinearChronicle,
   insertionDepth: ButterflyStackDepth,
-  butterflyStack: Butterfly<LinearChronicle>,
+  butterflyStack: Butterfly<TLinearChronicle>,
 ) => {
   /**
    * If the `insertionDepth` has a positive `verticalDepth`, then subtract from the `verticalDepth` until

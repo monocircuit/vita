@@ -1,43 +1,9 @@
 import BipolarDoublyLinkedList from "./BipolarDoublyLinkedList";
 import { DoublyLinkedList } from "./DoublyLinkedList";
 
-export interface ButterflyVector<Value> extends ButterflyDepth {
-  value: ButterflyCell<Value>;
-}
-
-export interface ButterflyDepth {
+export interface IButterflyDepth {
   x: number;
   y: number;
-}
-
-/**
- * @author Lukas Diegelmann
- *
- * A `ButterflyCell` represents a single entry in the `Butterfly` data structure
- * at coordinates `(y, x)`, where:
- * - `y` is the vertical position (the layer in the stack),
- * - `x` is the horizontal position within that layer.
- *
- * Each cell contains:
- * - The actual `content` of type `Value`
- * - Linkage information (`next` and `prev`) inherited from {@link ButterflyLinkage},
- *   which can be used to establish semantic connections between cells on the same
- *   Y-level that are not directly adjacent in the X-dimension.
- *
- * If no linkage was defined, the `next` and `prev` functions will return `null`.
- *
- * @typeParam Value - The type of the content stored inside the cell.
- *
- * @example
- * // A cell at (y = 0, x = 2)
- * const cell: ButterflyCell<string> = {
- *   content: "Node A",
- *   next: () => null,
- *   prev: () => null,
- * };
- */
-export interface ButterflyCell<T> extends ButterflyLinkage<T> {
-  $: T;
 }
 
 /**
@@ -51,9 +17,57 @@ export interface ButterflyCell<T> extends ButterflyLinkage<T> {
  * not instantiate such a connection, these functions will return `null`, indicating that
  * there is no connection.
  */
-export interface ButterflyLinkage<T> {
+export interface IButterflyLinkage<T> {
   next: ButterflyCell<T> | null;
   prev: ButterflyCell<T> | null;
+}
+
+/**
+ * @author Lukas Diegelmann
+ *
+ * A `ButterflyCell` represents a single entry in the `Butterfly` data structure
+ * at coordinates `(y, x)`, where:
+ * - `y` is the vertical position (the layer in the stack),
+ * - `x` is the horizontal position within that layer.
+ *
+ * Each cell contains:
+ * - The actual `content` of type `Value`
+ * - Linkage information (`next` and `prev`) inherited from {@link IButterflyLinkage},
+ *   which can be used to establish semantic connections between cells on the same
+ *   Y-level that are not directly adjacent in the X-dimension.
+ *
+ * If no linkage was defined, the `next` and `prev` functions will return `null`.
+ *
+ * @typeParam Value - The type of the content stored inside the cell.
+ */
+export class ButterflyCell<T> implements IButterflyLinkage<T>, IButterflyDepth {
+  public readonly $: T;
+
+  /* Making the `ButterflyCell` able to connect with other `ButterflyCells`
+     inside the `Butterfly`. */
+  public prev: null | ButterflyCell<T> = null;
+  public next: null | ButterflyCell<T> = null;
+
+  /* Making the `ButterflyCell` aware of its own depth inside the `Butterfly` */
+  public x: number = NaN;
+  public y: number = NaN;
+
+  constructor(
+    $: T,
+    options?: { depth: IButterflyDepth; linkage?: IButterflyLinkage<T> },
+  ) {
+    this.$ = $;
+
+    if (options?.linkage) {
+      this.next = options?.linkage.next;
+      this.prev = options?.linkage.prev;
+    }
+
+    if (options?.depth) {
+      this.x = options.depth.x;
+      this.y = options.depth.y;
+    }
+  }
 }
 
 /**
@@ -126,36 +140,20 @@ export default class Butterfly<T> {
    * 1. The latest point of the neutral layer (if it exists)
    * 2. The latest points of the positive and negative layers, alternating between positive and negative,
    */
-  public getLastVectors() {
-    const vectors: ButterflyVector<T>[] = [];
+  public getLastCells() {
+    const cells: ButterflyCell<T>[] = [];
 
     /** Alternating between positive and negative levels and 
         pushing vectors in (starting with the neutral level) */
     for (const { y } of this.store) {
-      vectors.push({
-        value: this.getLast(y) as any,
-        x: (this.getLevel(y)?.length as number) - 1,
-        y,
-      });
-    }
+      const result = this.getLastCell(y);
 
-    return vectors;
-  }
-
-  public getLastVector(y: number): ButterflyVector<T> | undefined {
-    const level = this.getLevel(y);
-
-    if (level) {
-      const value = this.getLast(y);
-
-      if (value) {
-        return {
-          value,
-          x: level.length - 1,
-          y,
-        };
+      if (result) {
+        cells.push(result);
       }
     }
+
+    return cells;
   }
 
   public getLevel(y: number) {
@@ -206,18 +204,24 @@ export default class Butterfly<T> {
    * butterfly.set(2, 0, { title: "Chronicle B", knots: { start: 200, end: 300 } });
    */
   public set(y: number, x: number, value: T): null | ButterflyCell<T> {
+    // Create Butterfly Cell
+    const cell = new ButterflyCell(value, {
+      depth: {
+        x: x,
+        y: y,
+      },
+      linkage: {
+        next: null,
+        prev: null,
+      },
+    });
+
     // Check if level already exists
     const level = this.getLevel(y);
 
     if (level) {
       // If the level already exists, the algorithm can just set the value at x
-      return level.set(x, {
-        // saving the content of the cell
-        $: { ...value },
-        // Instatiating the linkage with connections to null
-        next: null,
-        prev: null,
-      });
+      return level.set(x, cell);
     }
 
     // Should the level not already exists
@@ -227,13 +231,7 @@ export default class Butterfly<T> {
     if (hasSucceeded && newLevel) {
       // If the operation to create the new level has succeeded, the algorith
       // can now add the value at the desired `x` spot
-      return newLevel.set(x, {
-        // Saving the content of the cell
-        $: { ...value },
-        // Instatiating the linkage with connections to null
-        next: null,
-        prev: null,
-      });
+      return newLevel.set(x, cell);
     }
 
     /* should none of these operations have worked return the null pointer */
@@ -518,7 +516,7 @@ export default class Butterfly<T> {
    *   - The value of the node at the positive tail of the level,
    *   - or `undefined` if the level does not exist or is empty.
    */
-  public getLast(y: number): ButterflyCell<T> | undefined {
+  public getLastCell(y: number): ButterflyCell<T> | undefined {
     const level = this.getLevel(y);
 
     if (level) {

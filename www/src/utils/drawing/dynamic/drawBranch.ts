@@ -11,14 +11,7 @@ interface BranchProps {
 
 export const drawBranch = (
   container: PIXI.Container,
-  {
-    start,
-    end,
-    shift,
-    thickness = 2,
-    color = 0x000000,
-    title,
-  }: BranchProps,
+  { start, end, shift, thickness = 2, color = 0x000000, title }: BranchProps,
 ) => {
   const graphics = new PIXI.Graphics();
   graphics.moveTo(start, shift);
