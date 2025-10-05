@@ -143,12 +143,60 @@ function Page() {
         shift: window.innerHeight / 2,
         title: chronicle.$.title,
       });
+
+      if (chronicle.prev) {
+        drawPreviousChronicles(chronicle.prev, 1);
+        console.log("Draw Previous");
+      }
+      if (chronicle.next) {
+        drawNextChronicles(chronicle.next, -1);
+        console.log("Draw Next");
+      }
+
+      chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
     });
+
     // Render positive levels
     for (let i = 0; i < positiveLayerHeight; i++) {
       const levelIndex = i + 1;
       const level = engine.current.getLevel(levelIndex);
-      level?.forEach(chronicle => drawChronicles(chronicle.$, levelIndex));
+      level?.forEach(chronicle => {
+        drawChronicles(chronicle.$, levelIndex);
+
+        if (chronicle.prev) {
+          drawPreviousChronicles(chronicle.prev, levelIndex + 1);
+          console.log("Draw Previous");
+        }
+
+        if (chronicle.next) {
+          drawNextChronicles(chronicle.next, levelIndex - 1);
+          console.log("Draw Next");
+        }
+
+        chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
+      });
+
+      //Chronicle schon zu ende gerendert?
+      //Chronicle previous
+      //Renderfunktion für Previous
+      //Bis Previous null
+      //if (chronicle.prev) {
+      //  drawPreviousChronicles(chronicle.prev, levelIndex + 1)
+      //}
+
+      //Chronicle next
+      //Chronicle next
+      //Renderfunktion für Previous
+      //Bis next null
+
+      //if (chronicle.next) {
+      //  drawNextChronicles(chronicle.next, levelIndex - 1)
+      //}
+
+      //Unzerteilt ist Id als string
+      //Wenn Zerteilt dann Id-Segment als string (1-2 / 1-1)
+
+      //Packe diese Chronicle in diese schon gerendert Liste POGGERS
     }
 
     // Render negative levels
@@ -165,12 +213,6 @@ function Page() {
         });
       });
     }
-
-    const graphics = new Graphics();
-    graphics.circle(100, 100, 50);
-    graphics.fill(0xff0000);
-    console.log("Viewport", viewport);
-    viewport.addChild(graphics);
   }, [isEngineReady]);
 
   return <div className="w-full h-full" ref={pixiContainer}></div>;
