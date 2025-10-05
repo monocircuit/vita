@@ -1,4 +1,4 @@
-import { $Chroncile, Chronicle } from "@/utils/schemas/Chronicle";
+import { $Chroncile, TChronicle } from "@/utils/schemas/Chronicle";
 import createChronicle from "@/utils/supabase/api/chronicles/createChronicle";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input } from "@monolithium/next/components";
@@ -11,7 +11,7 @@ const ChronicleForm = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<Chronicle>({
+  } = useForm<TChronicle>({
     resolver: zodResolver($Chroncile),
   });
 

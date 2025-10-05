@@ -1,4 +1,4 @@
-import { Chronicle } from "@/utils/schemas/Chronicle";
+import { TChronicle } from "@/utils/schemas/Chronicle";
 import Engine from "./Engine";
 import { useEffect, useRef, useState } from "react";
 
@@ -7,7 +7,7 @@ const useEngine = () => {
   const engineRef = useRef<Engine>(new Engine());
 
   return {
-    init: (chronicles: Chronicle[]) => {
+    init: (chronicles: TChronicle[]) => {
       engineRef.current.init(chronicles);
       setIsEngineLoaded(engineRef.current.isLoaded());
     },

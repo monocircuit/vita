@@ -1,9 +1,9 @@
-import { LinearChronicle } from "@/utils/schemas/Chronicle";
+import { TLinearChronicle } from "@/utils/schemas/Chronicle";
 import alignLinearChronicles from "../../../../processing/data/chronicles/alignLinearChronicles";
 import LayeredTree from "@/utils/structures/LayeredTree";
 import getLinearChronicleDeltas from "../../../../processing/data/chronicles/getLinearChronicleDeltas";
 
-const findLatestChronicle = (layeredTrees: LayeredTree<LinearChronicle>[]) => {
+const findLatestChronicle = (layeredTrees: LayeredTree<TLinearChronicle>[]) => {
   let latestChronicle = layeredTrees[0].lastValue;
 
   for (let i = 1; i < layeredTrees.length; i++) {
@@ -15,10 +15,10 @@ const findLatestChronicle = (layeredTrees: LayeredTree<LinearChronicle>[]) => {
   return latestChronicle;
 };
 
-const sortInLinearChronicle = (linearChronicles: LinearChronicle[]) => {
+const sortInLinearChronicle = (linearChronicles: TLinearChronicle[]) => {
   const sortedLinearChronicles = alignLinearChronicles(linearChronicles);
 
-  const layeredTree = new LayeredTree<LinearChronicle>({
+  const layeredTree = new LayeredTree<TLinearChronicle>({
     embeddedSortIn: (context, chronicle, comparator) => {
       const flattened = context.flattened;
       let cachedIndex = 0;

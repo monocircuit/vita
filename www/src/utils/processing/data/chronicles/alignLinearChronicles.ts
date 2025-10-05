@@ -1,6 +1,6 @@
-import { LinearChronicle } from "@/utils/schemas/Chronicle";
+import { TLinearChronicle } from "@/utils/schemas/Chronicle";
 
-const alignLinearChronicles = (linearChronicles: LinearChronicle[]) => {
+const alignLinearChronicles = (linearChronicles: TLinearChronicle[]) => {
   return linearChronicles.sort((a, b) => a.knots.start - b.knots.start);
 };
 

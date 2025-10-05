@@ -7,7 +7,7 @@ import { Application, extend, PixiReactElementProps, useExtend } from "@pixi/rea
 import { Container, Graphics } from "pixi.js";
 import React, { JSX, useEffect, useRef } from "react";
 import { Viewport } from "pixi-viewport";
-import { LinearChronicle } from "@/utils/schemas/Chronicle";
+import { TLinearChronicle } from "@/utils/schemas/Chronicle";
 
 
 const Page: React.FunctionComponent = () => {
@@ -54,7 +54,7 @@ const Page: React.FunctionComponent = () => {
 
 
 
-  const drawChronicles = (chronicle: LinearChronicle, levelIndex: number) => {
+  const drawChronicles = (chronicle: TLinearChronicle, levelIndex: number) => {
     //Is this Chronicle already rendered?
     if (isRenderedChronicles.has(chronicle.id.toString())) {
       return <></>
@@ -77,11 +77,11 @@ const Page: React.FunctionComponent = () => {
     );
   }
 
-  const drawPreviousChronicles = (chronicle: LinearChronicle, levelIndex: number) => {
+  const drawPreviousChronicles = (chronicle: TLinearChronicle, levelIndex: number) => {
 
   }
 
-  const drawNextChronicles = (chronicle: LinearChronicle, levelIndex: number) => {
+  const drawNextChronicles = (chronicle: TLinearChronicle, levelIndex: number) => {
   }
 
 
@@ -138,8 +138,8 @@ const Page: React.FunctionComponent = () => {
 
                 // normalize elements first knot and set last elements last knot to wished width
                 else if (
-                  engine.current.getLast(0) &&
-                  engine.current.getLast(0) == chronicle
+                  engine.current.getLastCell(0) &&
+                  engine.current.getLastCell(0) == chronicle
                 ) {
                   const nknots = normalize(chronicle.knots, aknot, distance);
                   return (

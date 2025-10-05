@@ -6,7 +6,7 @@ import { useOwnChroniclesData } from "@/utils/supabase/api/chronicles/readOwnChr
 import useEngine from "@/utils/processing/engines/dynamic/useEngine";
 import { drawBranch } from "@/utils/drawing/dynamic/drawBranch";
 import { Viewport } from "pixi-viewport";
-import { LinearChronicle } from "@/utils/schemas/Chronicle";
+import { TLinearChronicle } from "@/utils/schemas/Chronicle";
 
 function Page() {
   /** ANCHOR: References */
@@ -86,8 +86,7 @@ function Page() {
 
     if (engine.current.getLevel(0) != null) {
       aknot = engine.current.get(0, 0)?.$.knots.start ?? 0;
-      const lastKnot =
-        engine.current.getLastVector(0)?.value.$.knots.end ?? aknot;
+      const lastKnot = engine.current.getLastCell(0)?.$.knots.end ?? aknot;
       distance = lastKnot - aknot;
       if (distance === 0) distance = 1;
     }
@@ -97,7 +96,10 @@ function Page() {
 
     const isRenderedChronicles = new Set<string>();
 
-    const drawChronicles = (chronicle: LinearChronicle, levelIndex: number) => {
+    const drawChronicles = (
+      chronicle: TLinearChronicle,
+      levelIndex: number,
+    ) => {
       if (isRenderedChronicles.has(chronicle.id.toString())) return;
 
       const nknots = normalize(chronicle.knots, aknot, distance);
@@ -111,12 +113,12 @@ function Page() {
     };
 
     const drawPreviousChronicles = (
-      chronicle: LinearChronicle,
+      chronicle: TLinearChronicle,
       levelIndex: number,
     ) => {};
 
     const drawNextChronicles = (
-      chronicle: LinearChronicle,
+      chronicle: TLinearChronicle,
       levelIndex: number,
     ) => {};
 

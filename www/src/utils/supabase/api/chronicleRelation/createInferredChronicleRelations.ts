@@ -1,14 +1,14 @@
 import {
-  Chronicle,
-  ChronicleOverhead,
-  LinearChronicle,
+  TChronicle,
+  TChronicleOverhead,
+  TLinearChronicle,
 } from "@/utils/schemas/Chronicle";
 import { createClient } from "@/utils/supabase/client";
 import getLinearChronicles from "../vitas/dynamic/algorithm/getLinearChronicles";
 import LayeredTree from "@/utils/structures/LayeredTree";
 
 const sortLinearlyTiedChronicles = (
-  linearlyTiedChronicles: (LinearChronicle & ChronicleOverhead)[],
+  linearlyTiedChronicles: (TLinearChronicle & TChronicleOverhead)[],
 ) => {
   const sortedLinearlyTiedChronicles = linearlyTiedChronicles.sort(
     (a, b) => a.knots.start - b.knots.start,
@@ -21,7 +21,7 @@ const sortLinearlyTiedChronicles = (
    * leaf can contain multiple linearlyTiedChronicles.
    */
   const layeredTree = new LayeredTree<
-    LinearChronicle & ChronicleOverhead
+    TLinearChronicle & TChronicleOverhead
   >();
 
   console.log("linear chronicles", linearlyTiedChronicles);
@@ -63,7 +63,7 @@ const sortLinearlyTiedChronicles = (
 };
 
 async function createInferredChronicleRelations(
-  chronicles: (Chronicle & ChronicleOverhead)[],
+  chronicles: (TChronicle & TChronicleOverhead)[],
 ) {
   const supabase = createClient();
 

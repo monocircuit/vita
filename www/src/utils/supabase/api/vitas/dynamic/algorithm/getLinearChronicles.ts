@@ -1,20 +1,20 @@
 import {
-  Chronicle,
-  ChronicleOverhead,
-  LinearChronicle,
+  TChronicle,
+  TChronicleOverhead,
+  TLinearChronicle,
 } from "@/utils/schemas/Chronicle";
 
 /**
  * @author Lukas Diegelmann
  */
-const getLinearChronicles = (chronicles: (Chronicle & ChronicleOverhead)[]) => {
-  const linearChronicles: (LinearChronicle & ChronicleOverhead)[] = [];
-  const staticChronicles: (Chronicle & ChronicleOverhead)[] = [];
+const getLinearChronicles = (chronicles: (TChronicle & TChronicleOverhead)[]) => {
+  const linearChronicles: (TLinearChronicle & TChronicleOverhead)[] = [];
+  const staticChronicles: (TChronicle & TChronicleOverhead)[] = [];
 
   chronicles.forEach(chronicle => {
     // Sort out all StaticChronicles
     if (chronicle.knots.length == 0) {
-      staticChronicles.push(chronicle as Chronicle & ChronicleOverhead);
+      staticChronicles.push(chronicle as TChronicle & TChronicleOverhead);
     }
 
     // Linearize the `chronicle`, that is make them definable by two knots, if they have more

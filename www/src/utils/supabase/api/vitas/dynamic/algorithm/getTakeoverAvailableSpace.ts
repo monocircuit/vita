@@ -1,8 +1,8 @@
-import { LinearChronicle } from "@/utils/schemas/Chronicle";
+import { TLinearChronicle } from "@/utils/schemas/Chronicle";
 
 const getTakeoverAvailableSpace = (
-  linearChronicleTop: LinearChronicle,
-  linearChronicleBottom: LinearChronicle,
+  linearChronicleTop: TLinearChronicle,
+  linearChronicleBottom: TLinearChronicle,
 ) => {
   return linearChronicleBottom.knots.end - linearChronicleTop.knots.end;
 };

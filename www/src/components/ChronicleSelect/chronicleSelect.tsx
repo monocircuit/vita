@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Chronicle, ChronicleOverhead } from "@/utils/schemas/Chronicle";
+import { TChronicle, TChronicleOverhead } from "@/utils/schemas/Chronicle";
 import { getChronicles } from "@/utils/supabase/api/chronicles/readOwnChronicles";
 import { Button, Popover, Scrollable } from "@monolithium/next/components";
 import CardText from "../common/Card/CardText";
 import classNames from "classnames";
 
 interface Props {
-  submitFunction: (e: (Chronicle & ChronicleOverhead)[]) => void;
+  submitFunction: (e: (TChronicle & TChronicleOverhead)[]) => void;
 }
 
 function ChronicleSelect({ submitFunction }: Props) {
   const [chronicles, setChronicles] = useState<
-    (Chronicle & ChronicleOverhead)[] | null
+    (TChronicle & TChronicleOverhead)[] | null
   >();
   const [selectedChronicles, setSelectedChronicles] = useState<
-    (Chronicle & ChronicleOverhead)[]
+    (TChronicle & TChronicleOverhead)[]
   >([]);
 
   useEffect(() => {

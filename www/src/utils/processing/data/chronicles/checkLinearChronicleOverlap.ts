@@ -1,8 +1,8 @@
-import { LinearChronicle } from "@/utils/schemas/Chronicle";
+import { TLinearChronicle } from "@/utils/schemas/Chronicle";
 
 const checkLinearChronicleOverlap = (
-  linearChronicleA: LinearChronicle,
-  linearChronicleB: LinearChronicle,
+  linearChronicleA: TLinearChronicle,
+  linearChronicleB: TLinearChronicle,
 ) => {
   if (!linearChronicleA.knots.end && linearChronicleB.knots.end) {
     return linearChronicleB.knots.end > linearChronicleA.knots.start;

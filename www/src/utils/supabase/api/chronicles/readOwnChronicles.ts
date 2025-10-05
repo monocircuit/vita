@@ -1,6 +1,7 @@
-import { Chronicle, ChronicleOverhead } from "@/utils/schemas/Chronicle";
+import { TChronicle, TChronicleOverhead } from "@/utils/schemas/Chronicle";
 import { createClient } from "@/utils/supabase/client";
 import useSWR from "swr";
+import { create } from "zustand";
 
 export async function getChronicles() {
   const supabase = createClient();
@@ -36,7 +37,7 @@ export async function getChronicles() {
     }
 
     return chronicle;
-  }) as (Chronicle & ChronicleOverhead)[];
+  }) as (TChronicle & TChronicleOverhead)[];
 }
 
 export const useOwnChroniclesData = () => {

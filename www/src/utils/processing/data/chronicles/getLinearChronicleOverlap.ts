@@ -1,12 +1,12 @@
 import {
-  LinearChronicle,
-  LinearChronicleKnots,
+  TLinearChronicle,
+  TLinearChronicleKnots,
 } from "@/utils/schemas/Chronicle";
 
 const getLinearChronicleOverlap = (
-  a: LinearChronicle,
-  b: LinearChronicle,
-): LinearChronicleKnots | null => {
+  a: TLinearChronicle,
+  b: TLinearChronicle,
+): TLinearChronicleKnots | null => {
   /**
    * Simple intervall intersection.
    */

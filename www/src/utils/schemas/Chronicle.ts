@@ -57,8 +57,8 @@ export const $LinearChronicle = $Chroncile.extend({
 });
 
 /** Types */
-export type Chronicle = zod.infer<typeof $Chroncile>;
-export type ChronicleOverhead = zod.infer<typeof $ChronicleOverhead>;
+export type TChronicle = zod.infer<typeof $Chroncile>;
+export type TChronicleOverhead = zod.infer<typeof $ChronicleOverhead>;
 
-export type LinearChronicleKnots = zod.infer<typeof $LinearChronicleKnots>;
-export type LinearChronicle = zod.infer<typeof $LinearChronicle>;
+export type TLinearChronicleKnots = zod.infer<typeof $LinearChronicleKnots>;
+export type TLinearChronicle = zod.infer<typeof $LinearChronicle>;
