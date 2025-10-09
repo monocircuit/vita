@@ -20,19 +20,20 @@ export type {
 } from "./_mapping";
 
 export {
-  chronBaseKey,
-  normalizeChronicle,
+  chroniclesBaseKey,
   useReadAllChronicles,
   useReadChroniclesByName,
   useReadChroniclesByType,
   useReadChroniclesByUser,
   useReadOwnChronicles,
   useReadChronicleById,
+  useReadChronicleBase,
   fetchAll,
   fetchById,
   fetchByNameContains,
   fetchByType,
   fetchByUser,
   fetchOwn,
+  normalizeChronicle,
 } from "./$read";
 export type { IChronicleCache } from "./$read";
