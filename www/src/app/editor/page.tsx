@@ -2,12 +2,15 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Application } from "pixi.js";
-import { useOwnChroniclesData } from "@/utils/supabase/api/tables/chronicles/readOwnChronicles";
 import useEngine from "@/utils/processing/engines/dynamic/useEngine";
 import { drawBranch } from "@/utils/drawing/dynamic/drawBranch";
 import { Viewport } from "pixi-viewport";
 import { ButterflyCell } from "@/utils/structures/Butterfly";
-import { TLinearChronicle } from "@/utils/schemas/Chronicle";
+import {
+  oTLinearChronicle,
+  useReadOwnChronicles,
+} from "@/utils/supabase/api/tables/chronicles";
+import filterChronicles from "@/utils/processing/data/chronicles/filterChronicles";
 
 function Page() {
   /** ANCHOR: References */
@@ -101,7 +104,7 @@ function Page() {
     const isRenderedChronicles = new Set<string>();
 
     const drawChronicles = (
-      chronicle: TLinearChronicle,
+      chronicle: oTLinearChronicle,
       levelIndex: number,
     ) => {
       if (isRenderedChronicles.has(chronicle.id.toString())) return;
@@ -117,7 +120,7 @@ function Page() {
     };
 
     const drawPreviousChronicles = (
-      chronicle: ButterflyCell<TLinearChronicle>,
+      chronicle: ButterflyCell<oTLinearChronicle>,
       levelIndex: number,
     ) => {
       drawChronicles(chronicle.$, levelIndex);
@@ -127,7 +130,7 @@ function Page() {
     };
 
     const drawNextChronicles = (
-      chronicle: ButterflyCell<TLinearChronicle>,
+      chronicle: ButterflyCell<oTLinearChronicle>,
       levelIndex: number,
     ) => {
       drawChronicles(chronicle.$, levelIndex);
@@ -137,9 +140,9 @@ function Page() {
     };
 
     // Render level 0
-    engine.current.getLevel(0)?.forEach((chronicle, i, arr) => {
-      console.log("chronicle:", chronicle.$.id);
-      const nknots = normalize(chronicle.$.knots, aknot, distance);
+    engine.current.getLevel(0)?.forEach((cell, i, arr) => {
+      console.log("chronicle:", cell.$.id);
+      const nknots = normalize(cell.$.knots, aknot, distance);
       let start = nknots[0] * window.innerWidth;
       let end = nknots[1] * window.innerWidth;
 
