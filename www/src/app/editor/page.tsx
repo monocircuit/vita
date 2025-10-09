@@ -17,7 +17,7 @@ function Page() {
   const viewportRef = useRef<Viewport | null>(null);
 
   /** ANCHOR: Fetched Data */
-  const { chronicles: ownChronicles } = useReadOwnChronicles();
+  const { chronicles: ownChronicles,loading } = useReadOwnChronicles();
 
   /** ANCHOR: Engines */
   const { init, engine } = useEngine();
@@ -25,7 +25,7 @@ function Page() {
   const [isAppInitialized, setAppInitialized] = useState(false); // State to track app initialization
 
   useEffect(() => {
-    if (ownChronicles.length > 0 ) {
+    if (!loading && ownChronicles.length > 0 ) {
       console.warn("Engine activated");
       const { linear, untied} = filterChronicles(ownChronicles);
       console.log("Linear Chronicles:", linear);

@@ -13,6 +13,7 @@ import { chroniclesBaseKey } from "../keys";
 export function useReadChronicleBase<T = oTChronicle[]>(
   select: (cache: IChronicleCache) => T,
   opts?: { enabled?: boolean; staleTime?: number },
+  isLoading: boolean = false,
 ) {
   const qc = useQueryClient();
 
@@ -28,7 +29,7 @@ export function useReadChronicleBase<T = oTChronicle[]>(
 
   return {
     chronicles: (q.data as T) ?? ([] as unknown as T),
-    loading: q.isLoading,
+    loading: isLoading,
     error: (q.error as Error) ?? null,
     refetch: q.refetch,
   };

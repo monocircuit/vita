@@ -13,7 +13,7 @@ export function useReadChronicleById(id?: string | number) {
   const sid = id == null ? undefined : String(id);
 
   // Netzwerk-Fetch nur, wenn eine id vorhanden ist
-  const { data: row } = useQuery<any | null>({
+  const { data: row, isLoading } = useQuery<any | null>({
     queryKey: sid ? netKey.byId(sid) : ["noop"],
     queryFn: () => fetchById(sid as string),
     enabled: !!sid,
@@ -26,13 +26,13 @@ export function useReadChronicleById(id?: string | number) {
     qc.setQueryData<IChronicleCache>(chroniclesBaseKey, old => {
       const next = old
         ? {
-            ...old,
-            loaded: {
-              ...old.loaded,
-              users: new Set(old.loaded.users),
-              types: new Set(old.loaded.types),
-            },
-          }
+          ...old,
+          loaded: {
+            ...old.loaded,
+            users: new Set(old.loaded.users),
+            types: new Set(old.loaded.types),
+          },
+        }
         : emptyCache();
       mergeIntoCache(next, [row]);
       return next;
@@ -43,5 +43,6 @@ export function useReadChronicleById(id?: string | number) {
   return useReadChronicleBase(
     cache => (sid ? (cache.byId[sid] as oTChronicle | undefined) : undefined),
     { enabled: !!sid },
+    isLoading
   );
 }
