@@ -1,7 +1,6 @@
 "use client";
 
 import VitaForm from "@/components/common/VitaForm";
-import { useOwnDynamicVitas } from "@/utils/supabase/api/vitas/dynamic/readOwnDynamicVitas";
 import { Button, Popover } from "@monolithium/next/components";
 import React, { useEffect, useState } from "react";
 import {
@@ -12,14 +11,15 @@ import {
   TableRow,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useOwnProfileData } from "@/utils/supabase/api/profiles/getOwnProfile";
+import { useOwnProfileData } from "@/utils/supabase/api/tables/profiles/getOwnProfile";
+import { useReadOwnVitas } from "@/utils/supabase/api/tables/vitas";
 
 interface Props {}
 
 const Vitas = (props: Props) => {
   /** ANCHOR: Data */
   const { ownProfile } = useOwnProfileData();
-  const { ownDynamicVitas } = useOwnDynamicVitas();
+  const { vitas: ownVitas } = useReadOwnVitas();
 
   /** ANCHOR: Router */
   const router = useRouter();
@@ -28,7 +28,7 @@ const Vitas = (props: Props) => {
   const [isAddPopoverActive, setIsAddPopoverActive] = useState(false);
 
   useEffect(() => {
-    console.log(ownDynamicVitas);
+    console.log("vitas", ownVitas);
   });
 
   return (
@@ -42,7 +42,7 @@ const Vitas = (props: Props) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {ownDynamicVitas?.map((vita, key) => (
+          {ownVitas?.map((vita, key) => (
             <TableRow key={key}>
               <TableCell>{vita.name}</TableCell>
               <TableCell>{vita.scope}</TableCell>
@@ -50,9 +50,9 @@ const Vitas = (props: Props) => {
                 <Button
                   className="w-[60px] h-[20px] overflow-hidden monolithium-border"
                   onClick={() => {
-                    if (ownProfile && ownDynamicVitas) {
+                    if (ownProfile && ownVitas) {
                       router.push(
-                        `/editor/${ownProfile.id}/${ownDynamicVitas[key].name}`,
+                        `/editor/${ownProfile.id}/${ownVitas[key].name}`,
                       );
                     }
                   }}

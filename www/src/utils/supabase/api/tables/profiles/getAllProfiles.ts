@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import { createClient } from "../../client";
+import { createClient } from "../../../client";
 
 export async function getAllProfiles() {
   const supabase = createClient();

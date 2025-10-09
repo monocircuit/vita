@@ -1,12 +1,15 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Application, Graphics } from "pixi.js";
-import { useOwnChroniclesData } from "@/utils/supabase/api/chronicles/readOwnChronicles";
+import { Application } from "pixi.js";
+import { useOwnChroniclesData } from "@/utils/supabase/api/tables/chronicles/readOwnChronicles";
 import useEngine from "@/utils/processing/engines/dynamic/useEngine";
 import { drawBranch } from "@/utils/drawing/dynamic/drawBranch";
 import { Viewport } from "pixi-viewport";
-import { TLinearChronicle } from "@/utils/schemas/Chronicle";
+import { oTLinearChronicle } from "@/utils/supabase/api/tables/chronicles/_mapping";
+import { useCreateVitaShardsDynamic } from "@/utils/supabase/api/tables/vitas/shards/dynamic/$write";
+import filterChronicles from "@/utils/processing/data/chronicles/filterChronicles";
+import { useReadOwnChronicles } from "@/utils/supabase/api/tables/chronicles";
 
 function Page() {
   /** ANCHOR: References */
@@ -15,7 +18,7 @@ function Page() {
   const viewportRef = useRef<Viewport | null>(null);
 
   /** ANCHOR: Fetched Data */
-  const { ownChronicles } = useOwnChroniclesData();
+  const { chronicles: ownChronicles } = useReadOwnChronicles();
 
   /** ANCHOR: Engines */
   const { init, engine } = useEngine();
@@ -23,9 +26,12 @@ function Page() {
   const [isAppInitialized, setAppInitialized] = useState(false); // State to track app initialization
 
   useEffect(() => {
-    if (ownChronicles) {
+    if (ownChronicles && ownChronicles.length > 0) {
       console.warn("Engine activated");
-      init(ownChronicles);
+
+      const { linear } = filterChronicles(ownChronicles);
+
+      init(linear);
       setEngineReady(true); // Signal that the engine has been initialized
     }
   }, [ownChronicles, init]);
@@ -97,7 +103,7 @@ function Page() {
     const isRenderedChronicles = new Set<string>();
 
     const drawChronicles = (
-      chronicle: TLinearChronicle,
+      chronicle: oTLinearChronicle,
       levelIndex: number,
     ) => {
       if (isRenderedChronicles.has(chronicle.id.toString())) return;
@@ -113,18 +119,18 @@ function Page() {
     };
 
     const drawPreviousChronicles = (
-      chronicle: TLinearChronicle,
+      chronicle: oTLinearChronicle,
       levelIndex: number,
     ) => {};
 
     const drawNextChronicles = (
-      chronicle: TLinearChronicle,
+      chronicle: oTLinearChronicle,
       levelIndex: number,
     ) => {};
 
     // Render level 0
-    engine.current.getLevel(0)?.forEach((chronicle, i, arr) => {
-      const nknots = normalize(chronicle.$.knots, aknot, distance);
+    engine.current.getLevel(0)?.forEach((cell, i, arr) => {
+      const nknots = normalize(cell.$.knots, aknot, distance);
       let start = nknots[0] * window.innerWidth;
       let end = nknots[1] * window.innerWidth;
 
@@ -141,19 +147,19 @@ function Page() {
         start,
         end,
         shift: window.innerHeight / 2,
-        title: chronicle.$.title,
+        title: cell.$.title,
       });
 
-      if (chronicle.prev) {
-        drawPreviousChronicles(chronicle.prev, 1);
+      if (cell.prev) {
+        drawPreviousChronicles(cell.prev, 1);
         console.log("Draw Previous");
       }
-      if (chronicle.next) {
-        drawNextChronicles(chronicle.next, -1);
+      if (cell.next) {
+        drawNextChronicles(cell.next, -1);
         console.log("Draw Next");
       }
 
-      chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
+      cell.$.id && isRenderedChronicles.add(cell.$.id.toString());
     });
 
     // Render positive levels

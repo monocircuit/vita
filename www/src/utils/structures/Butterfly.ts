@@ -52,6 +52,9 @@ export class ButterflyCell<T> implements IButterflyLinkage<T>, IButterflyDepth {
   public x: number = NaN;
   public y: number = NaN;
 
+  /* Enable flagging of a `ButterflyCell` */
+  private _flag: boolean = false;
+
   constructor(
     $: T,
     options?: { depth: IButterflyDepth; linkage?: IButterflyLinkage<T> },
@@ -67,6 +70,20 @@ export class ButterflyCell<T> implements IButterflyLinkage<T>, IButterflyDepth {
       this.x = options.depth.x;
       this.y = options.depth.y;
     }
+  }
+
+  get isFlagged() {
+    return this._flag;
+  }
+
+  public flag(): boolean {
+    this._flag = true;
+    return this._flag;
+  }
+
+  public unflag() {
+    this._flag = false;
+    return this._flag;
   }
 }
 
@@ -589,4 +606,6 @@ export default class Butterfly<T> {
   public stepTowardZero(index: number): number {
     return this.store.stepTowardZero(index);
   }
+
+  public toJson() {}
 }

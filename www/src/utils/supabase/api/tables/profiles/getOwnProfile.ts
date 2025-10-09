@@ -1,5 +1,5 @@
 import { Profile } from "@/utils/schemas/Profile";
-import { createClient } from "../../client";
+import { createClient } from "../../../client";
 import useSWR from "swr";
 
 export async function getOwnProfile() {

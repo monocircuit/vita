@@ -2,12 +2,12 @@
 
 import Branch from "@/utils/drawing/dynamic/Branch";
 import useEngine from "@/utils/processing/engines/dynamic/useEngine";
-import { useOwnChroniclesData } from "@/utils/supabase/api/chronicles/readOwnChronicles";
+import { useOwnChroniclesData } from "@/utils/supabase/api/tables/chronicles/readOwnChronicles";
 import { Application, extend, PixiReactElementProps, useExtend } from "@pixi/react";
 import { Container, Graphics } from "pixi.js";
 import React, { JSX, useEffect, useRef } from "react";
 import { Viewport } from "pixi-viewport";
-import { TLinearChronicle } from "@/utils/schemas/Chronicle";
+import { TLinearChronicle } from "@/utils/supabase/api/tables/chronicles/_mapping";
 
 
 const Page: React.FunctionComponent = () => {

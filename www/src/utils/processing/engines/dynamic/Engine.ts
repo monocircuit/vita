@@ -17,13 +17,23 @@
  * Thus the Engine needs to completely define the behaviour of the dynamic view it is at its heart. This also implies
  * that the current version is just a very premature version of the final Engine. Ultimately the Engine needs to take
  * in environmental information and work with it, producing a usable butterfly for the renderer.
+ *
+ * Proccesing of a single Chronicle goes as follows:
+ *
+ * Chronicle -> linear Chronicle -> engine Chronicle
+ *           -> static Chronicle
  */
 
 import {
-  TChronicle,
-  TLinearChronicle,
+  $LinearChronicleKnots,
+  iTChronicle,
+  iTLinearChronicle,
+  o$Chronicle,
+  o$LinearChronicle,
+  oTChronicle,
+  oTLinearChronicle,
   TLinearChronicleKnots,
-} from "@/utils/schemas/Chronicle";
+} from "@/utils/supabase/api/tables/chronicles/_mapping";
 import filterChronicles from "../../data/chronicles/filterChronicles";
 import { getLinearChronicleLeftDelta } from "../../data/chronicles/getLinearChronicleDeltas";
 import alignLinearChronicles from "../../data/chronicles/alignLinearChronicles";
@@ -32,18 +42,41 @@ import Butterfly, {
   IButterflyDepth,
 } from "@/utils/structures/Butterfly";
 import { BipolarLinkedListPolartity } from "@/utils/structures/BipolarDoublyLinkedList";
+import zod from "zod";
+import { fetchById } from "@/utils/supabase/api/tables/chronicles";
+import { oTVitaFragmentDynamic } from "@/utils/supabase/api/tables/vitas/shards/dynamic/_mapping";
 
-interface EngineTakeover {
-  depth: IButterflyDepth;
-  duration: number;
-}
-
-interface EngineProjectionSlice {
+interface IEngineProjectionSlice {
   y: number;
   knots: TLinearChronicleKnots;
 }
 
-class Engine extends Butterfly<TLinearChronicle> {
+const $EngineChronicle = o$LinearChronicle.omit({
+  category: true,
+  scope: true,
+  created_at: true,
+  updated_at: true,
+  description: true,
+  entity_id: true,
+  title: true,
+  user_id: true,
+});
+
+type TEngineChronicle = zod.infer<typeof $EngineChronicle>;
+
+/**
+ * @author Lukas Diegelmann
+ *
+ * @description
+ * The `Engine` is the core of the dynamic vita view. It utilizes a `Butterfly` to
+ * calculate the behaviour of the dynamic view and give this information further to
+ * the `Renderer`.
+ *
+ * The `Engine` under the hood works with sharded chronicle information, meaning that
+ * it only holds knowledge about the `id` and `knots` of a chronicle. This makes it
+ * more memory efficient.
+ */
+class Engine extends Butterfly<TEngineChronicle> {
   /**
    * Space for Constants
    */
@@ -59,40 +92,48 @@ class Engine extends Butterfly<TLinearChronicle> {
    */
   private loaded = false;
 
-  private chronicles: {
-    linear: TLinearChronicle[];
-    static: TChronicle[];
-  } = { linear: [], static: [] };
+  private chronicles: TEngineChronicle[] = [];
 
   constructor() {
     super();
   }
 
   /**
+   * @author Lukas Diegelmann
+   *
    * Initiates the calculations for filling the inner `ButterflyStack` with
    * the correct chronicle information.
    */
-  public init(chronicles: TChronicle[]) {
+  public init(chronicles: oTLinearChronicle[]) {
     /** The `Engine` is only supposed to load once, multiple loading is not possible */
     if (this.loaded) return;
     this.loaded = true;
 
-    /** (1) remove all chronicles without knots */
-    this.chronicles = filterChronicles(chronicles);
-    /** (2) sort chronicles linearly by start knot */
-    this.chronicles.linear = alignLinearChronicles(this.chronicles.linear);
+    console.log("test init");
 
-    console.log("linear chronicles", this.chronicles.linear);
+    /*
+     * Parsing the passed chronicles to ensure that they are stripped of any overhang
+     * for better memory usage.
+     */
+    console.log("chronicles", chronicles);
+    this.chronicles = $EngineChronicle.array().parse(chronicles);
+
+    /*
+     * Saving all passed chronicles into the chronicle store and align them by the
+     * start knot. This makes processing the chronicles simpler.
+     */
+    this.chronicles = alignLinearChronicles(this.chronicles);
+
+    console.log("linear chronicles", this.chronicles);
 
     /** The first linear Chronicle can always fit into the neutral lane */
-    this.push(0, this.chronicles.linear[0]);
+    this.push(0, this.chronicles[0]);
 
     /** Thus we start at the second linear Chronicle in line */
     /** The .getLatestPoints() function already ensures we get minimal depth */
-    for (let i = 1; i < 9; i++) {
-      //for (let i = 1; i < this.chronicles.linear.length; i++) {
-      const insertionChronicle = this.chronicles.linear[i];
-      console.warn(insertionChronicle.title);
+    for (let i = 1; i < this.chronicles.length; i++) {
+      const insertionChronicle = this.chronicles[i];
+      console.warn(insertionChronicle.id);
 
       this.log();
 
@@ -144,7 +185,7 @@ class Engine extends Butterfly<TLinearChronicle> {
    * @returns ButterflyDepth (it will always find a spot to fit the chronicle in)
    */
   private getInsertionDepth(
-    insertionChronicle: TLinearChronicle,
+    insertionChronicle: TEngineChronicle,
   ): IButterflyDepth {
     const lastCells = this.getLastCells();
     let insertionDepth: IButterflyDepth | null = null;
@@ -295,7 +336,7 @@ class Engine extends Butterfly<TLinearChronicle> {
    * @param y - The Y-level index from which to start the projection.
    *            The search begins at {@link stepTowardZero}(y) and proceeds
    *            toward neutral.
-   * @returns An array of {@link EngineProjectionSlice}, each describing
+   * @returns An array of {@link IEngineProjectionSlice}, each describing
    *          a projection slice with its Y-index and knot interval
    *          `{ start, end }`.
    *
@@ -307,7 +348,7 @@ class Engine extends Butterfly<TLinearChronicle> {
    * //   { y: 1, knots: { start: 67890, end: Infinity } }
    * // ]
    */
-  private getTotalProjection(y: number): EngineProjectionSlice[] {
+  private getTotalProjection(y: number): IEngineProjectionSlice[] {
     /**
      * Should the y depth happen to be equal to zero, there is nothing
      * that could be projected anywhere.
@@ -351,7 +392,7 @@ class Engine extends Butterfly<TLinearChronicle> {
 
           return [];
         },
-        [] as EngineProjectionSlice[],
+        [] as IEngineProjectionSlice[],
       ) ?? []
     );
   }
@@ -376,13 +417,13 @@ class Engine extends Butterfly<TLinearChronicle> {
    * @returns A list of projection slices clipped to the insertion chronicle’s bounds.
    */
   private getProjection(
-    insertionChronicle: TLinearChronicle,
+    insertionChronicle: TEngineChronicle,
     insertionDepth: IButterflyDepth,
-  ): EngineProjectionSlice[] {
+  ): IEngineProjectionSlice[] {
     const totalProjection = this.getTotalProjection(insertionDepth.y);
 
     /** The Accumulator collects the final slices */
-    const accumulator: EngineProjectionSlice[] = [];
+    const accumulator: IEngineProjectionSlice[] = [];
 
     /**
      * Now everything that is left for the algorithm is to cut the
@@ -454,7 +495,7 @@ class Engine extends Butterfly<TLinearChronicle> {
   }
 
   private getTakeoverPath(
-    insertionChronicle: TLinearChronicle,
+    insertionChronicle: TEngineChronicle,
     insertionDepth: IButterflyDepth,
   ) {
     /** Find `projection` */
@@ -489,7 +530,7 @@ class Engine extends Butterfly<TLinearChronicle> {
     });
 
     /* Initialize temporary pointer to the null pointer */
-    let tmp: null | ButterflyCell<TLinearChronicle> = null;
+    let tmp: null | ButterflyCell<TEngineChronicle> = null;
 
     /* Add the root element of the chronicle path, meaning the part of
        the lane comes before the first slice path */
@@ -572,7 +613,7 @@ class Engine extends Butterfly<TLinearChronicle> {
   public log() {
     for (const { level, y } of this.iterateY()) {
       // Collect items left-to-right
-      const items: Array<{ x: number; v: TLinearChronicle }> = [];
+      const items: Array<{ x: number; v: TEngineChronicle }> = [];
 
       // Positive side 1, 2, …
       for (const { x, cell } of level) {
@@ -586,13 +627,70 @@ class Engine extends Butterfly<TLinearChronicle> {
         const fmt = (ms: number) =>
           ms === Infinity ? "∞" : new Date(ms).toISOString().slice(0, 10);
 
+        console.log(v.knots);
         const start = fmt(v.knots.start);
         const end = fmt(v.knots.end);
 
-        console.log(`x=${x}: ${v.title} | start=${start}, end=${end}`);
+        console.log(`x=${x}: ${v.id} | start=${start}, end=${end}`);
       }
       console.groupEnd();
     }
+  }
+
+  public toJson(): oTVitaFragmentDynamic[] {
+    const rows: oTVitaFragmentDynamic[] = [];
+
+    // Map: cell -> id (für Lookup von prev/next)
+    const cellToId = new Map<ButterflyCell<TEngineChronicle>, number>();
+
+    // Parallel-Array: id -> cell (stabile Zuordnung im 2. Pass)
+    const idToCell: ButterflyCell<TEngineChronicle>[] = [];
+
+    let id = 0;
+
+    // ---------- Pass 1: IDs vergeben, Zeilen anlegen ----------
+    for (const { y, level } of this.iterateY()) {
+      for (const { cell } of level) {
+        const thisId = id++;
+
+        cellToId.set(cell, thisId);
+        idToCell[thisId] = cell;
+
+        // defensiv: x extrahieren und in number[] casten
+        const xArr = [cell.$.knots.start, cell.$.knots.end].filter(v =>
+          Number.isFinite(v),
+        );
+
+        rows.push({
+          id: thisId,
+          prev_id: null, // wird in Pass 2 gesetzt
+          next_id: null, // wird in Pass 2 gesetzt
+          chronicle_id: cell.$.id,
+          y,
+          x: xArr,
+        });
+      }
+    }
+
+    // ---------- Pass 2: prev_id / next_id via Map auflösen ----------
+    for (let i = 0; i < rows.length; i++) {
+      const entry = rows[i];
+      const cell = idToCell[i];
+
+      if (!cell) continue;
+
+      const prev = cell.prev as ButterflyCell<TEngineChronicle> | null;
+      const next = cell.next as ButterflyCell<TEngineChronicle> | null;
+
+      if (prev) {
+        entry.prev_id = cellToId.get(prev) ?? null;
+      }
+      if (next) {
+        entry.next_id = cellToId.get(next) ?? null;
+      }
+    }
+
+    return rows;
   }
 }
 

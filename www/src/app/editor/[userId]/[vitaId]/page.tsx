@@ -7,7 +7,7 @@ interface Props {}
 const Page = (props: Props) => {
   const params = use(props.params);
 
-  return <div>Page</div>;
+  return <div>{/* <DynamicView vitaId={params.vitaId} /> */}</div>;
 };
 
 export default Page;

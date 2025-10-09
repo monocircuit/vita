@@ -1,5 +1,5 @@
 import zod from "zod";
-import { $MaritalStatus } from "./enumerated-types/MaritalStatus";
+import { $MaritalStatus } from "../supabase/api/enumerated-types/MaritalStatus";
 
 /** Schemas */
 export const $ProfileOverhead = zod.object({

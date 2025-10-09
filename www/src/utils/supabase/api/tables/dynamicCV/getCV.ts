@@ -1,4 +1,4 @@
-import { createClient } from "../../client";
+import { createClient } from "../../../client";
 
 export async function getCV(name: string, Userid: string) {
   const supabase = await createClient();

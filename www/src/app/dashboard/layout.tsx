@@ -40,7 +40,7 @@ const Page = (props: Props) => {
             onClick={() => router.push(`/dashboard/chronicles`)}
           />
           <Button
-            text="CVs"
+            text="Vitas"
             className={`h-[30px] w-full border-b-(length:--stroke) border-solid border-secondary ${SourceSans3.className}`}
             onClick={() => router.push(`/dashboard/vitas`)}
           />

@@ -1,4 +1,4 @@
-import { useOwnProfileData } from "@/utils/supabase/api/profiles/getOwnProfile";
+import { useOwnProfileData } from "@/utils/supabase/api/tables/profiles/getOwnProfile";
 import Profile from "@/components/common/Profile";
 import React from "react";
 import { Button } from "@monolithium/next/components";

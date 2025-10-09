@@ -1,5 +1,5 @@
 import { $VitaDynamic, VitaDynamic } from "@/utils/schemas/VitaDynamic";
-import createDynamicVita from "@/utils/supabase/api/vitas/dynamic/createDynamicVita";
+import {} from "@/utils/supabase/api/tables/vitas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input } from "@monolithium/next/components";
 import React from "react";

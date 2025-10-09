@@ -1,7 +1,7 @@
-import { TChronicle } from "@/utils/schemas/Chronicle";
+import { iTChronicle } from "@/utils/supabase/api/tables/chronicles/_mapping";
 import { createClient } from "@/utils/supabase/client";
 
-async function createChronicle(data: TChronicle) {
+async function createChronicle(data: iTChronicle) {
   const supabase = createClient();
 
   const userId = (await supabase.auth.getUser()).data.user?.id;

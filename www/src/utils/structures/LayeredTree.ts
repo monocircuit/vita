@@ -1,6 +1,6 @@
 /** ANCHOR: DEPRICATED */
 
-import { ChronicleOrientation } from "../schemas/enumerated-types/ChronicleOrientation";
+import { ChronicleOrientation } from "../supabase/api/enumerated-types/ChronicleOrientation";
 
 type LayeredTreeSortInComparator<Value> = (
   staticValue: Value,

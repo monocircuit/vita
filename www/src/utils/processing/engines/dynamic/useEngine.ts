@@ -1,4 +1,7 @@
-import { TChronicle } from "@/utils/schemas/Chronicle";
+import {
+  iTChronicle,
+  oTLinearChronicle,
+} from "@/utils/supabase/api/tables/chronicles/_mapping";
 import Engine from "./Engine";
 import { useEffect, useRef, useState } from "react";
 
@@ -7,7 +10,7 @@ const useEngine = () => {
   const engineRef = useRef<Engine>(new Engine());
 
   return {
-    init: (chronicles: TChronicle[]) => {
+    init: (chronicles: oTLinearChronicle[]) => {
       engineRef.current.init(chronicles);
       setIsEngineLoaded(engineRef.current.isLoaded());
     },
