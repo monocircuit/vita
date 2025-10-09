@@ -6,10 +6,8 @@ import { useOwnChroniclesData } from "@/utils/supabase/api/tables/chronicles/rea
 import useEngine from "@/utils/processing/engines/dynamic/useEngine";
 import { drawBranch } from "@/utils/drawing/dynamic/drawBranch";
 import { Viewport } from "pixi-viewport";
-import { oTLinearChronicle } from "@/utils/supabase/api/tables/chronicles/_mapping";
-import { useCreateVitaShardsDynamic } from "@/utils/supabase/api/tables/vitas/shards/dynamic/$write";
-import filterChronicles from "@/utils/processing/data/chronicles/filterChronicles";
-import { useReadOwnChronicles } from "@/utils/supabase/api/tables/chronicles";
+import { ButterflyCell } from "@/utils/structures/Butterfly";
+import { TLinearChronicle } from "@/utils/schemas/Chronicle";
 
 function Page() {
   /** ANCHOR: References */
@@ -103,7 +101,7 @@ function Page() {
     const isRenderedChronicles = new Set<string>();
 
     const drawChronicles = (
-      chronicle: oTLinearChronicle,
+      chronicle: TLinearChronicle,
       levelIndex: number,
     ) => {
       if (isRenderedChronicles.has(chronicle.id.toString())) return;
@@ -119,18 +117,29 @@ function Page() {
     };
 
     const drawPreviousChronicles = (
-      chronicle: oTLinearChronicle,
+      chronicle: ButterflyCell<TLinearChronicle>,
       levelIndex: number,
-    ) => {};
+    ) => {
+      drawChronicles(chronicle.$, levelIndex);
+      if (chronicle.prev) {
+        drawPreviousChronicles(chronicle.prev, levelIndex + 1);
+      }
+    };
 
     const drawNextChronicles = (
-      chronicle: oTLinearChronicle,
+      chronicle: ButterflyCell<TLinearChronicle>,
       levelIndex: number,
-    ) => {};
+    ) => {
+      drawChronicles(chronicle.$, levelIndex);
+      if (chronicle.prev) {
+        drawPreviousChronicles(chronicle.prev, levelIndex + 1);
+      }
+    };
 
     // Render level 0
-    engine.current.getLevel(0)?.forEach((cell, i, arr) => {
-      const nknots = normalize(cell.$.knots, aknot, distance);
+    engine.current.getLevel(0)?.forEach((chronicle, i, arr) => {
+      console.log("chronicle:", chronicle.$.id);
+      const nknots = normalize(chronicle.$.knots, aknot, distance);
       let start = nknots[0] * window.innerWidth;
       let end = nknots[1] * window.innerWidth;
 
@@ -167,6 +176,8 @@ function Page() {
       const levelIndex = i + 1;
       const level = engine.current.getLevel(levelIndex);
       level?.forEach(chronicle => {
+        if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
+
         drawChronicles(chronicle.$, levelIndex);
 
         if (chronicle.prev) {
@@ -210,6 +221,7 @@ function Page() {
       const levelIndex = i + 1;
       const level = engine.current.getLevel(-levelIndex);
       level?.forEach(chronicle => {
+        if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
         const nknots = normalize(chronicle.$.knots, aknot, distance);
         drawBranch(viewport, {
           start: nknots[0] * window.innerWidth,
@@ -220,6 +232,7 @@ function Page() {
       });
     }
   }, [isEngineReady]);
+  console.log(engine.current);
 
   return <div className="w-full h-full" ref={pixiContainer}></div>;
 }
