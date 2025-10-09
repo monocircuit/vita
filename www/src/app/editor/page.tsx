@@ -178,22 +178,22 @@ function Page() {
     for (let i = 0; i < positiveLayerHeight; i++) {
       const levelIndex = i + 1;
       const level = engine.current.getLevel(levelIndex);
-      level?.forEach(chronicle => {
-        if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
+      level?.forEach(cell => {
+        if (isRenderedChronicles.has(cell.$.id.toString())) return;
 
-        drawChronicles(chronicle.$, levelIndex);
+        drawChronicles(cell.$, levelIndex);
 
-        if (chronicle.prev) {
-          drawPreviousChronicles(chronicle.prev, levelIndex + 1);
+        if (cell.prev) {
+          drawPreviousChronicles(cell.prev, levelIndex + 1);
           console.log("Draw Previous");
         }
 
-        if (chronicle.next) {
-          drawNextChronicles(chronicle.next, levelIndex - 1);
+        if (cell.next) {
+          drawNextChronicles(cell.next, levelIndex - 1);
           console.log("Draw Next");
         }
 
-        chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
+        cell.$.id && isRenderedChronicles.add(cell.$.id.toString());
       });
 
       //Chronicle schon zu ende gerendert?
