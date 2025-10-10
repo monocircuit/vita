@@ -14,7 +14,7 @@ import { fetchOwn } from "../fetchers/fetchOwn";
  */
 export function useReadOwnChronicles() {
   const qc = useQueryClient();
-  const { data } = useQuery<{ userId: string | null; chronicles: any[] }>({
+  const { data, isLoading } = useQuery<{ userId: string | null; chronicles: any[] }>({
     queryKey: netKey.own(),
     queryFn: fetchOwn,
   });
@@ -24,13 +24,13 @@ export function useReadOwnChronicles() {
     qc.setQueryData<IChronicleCache>(chroniclesBaseKey, (old: any) => {
       const next = old
         ? {
-            ...old,
-            loaded: {
-              ...old.loaded,
-              users: new Set(old.loaded.users),
-              types: new Set(old.loaded.types),
-            },
-          }
+          ...old,
+          loaded: {
+            ...old.loaded,
+            users: new Set(old.loaded.users),
+            types: new Set(old.loaded.types),
+          },
+        }
         : emptyCache();
       mergeIntoCache(next, data.chronicles, {
         userId: data.userId ?? undefined,
@@ -45,5 +45,6 @@ export function useReadOwnChronicles() {
     );
     const uniq = Array.from(new Set(ids));
     return uniq.map(id => cache.byId[id]);
-  });
+
+  }, { enabled: !!data?.userId }, isLoading);
 }
