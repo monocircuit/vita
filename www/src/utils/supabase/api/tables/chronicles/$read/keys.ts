@@ -19,5 +19,5 @@ export const netKey = {
     ["chronicles", "net", "byType", String(type)] as const,
   byName: (name: string) => ["chronicles", "net", "byName", name] as const,
   own: () => ["chronicles", "net", "own"] as const,
-  byId: (id: string) => ["chronicles", "net", "byId", id] as const, // 🔹 NEU
+  byId: (id: string) => ["chronicles", "net", "byId", id] as const,
 };
