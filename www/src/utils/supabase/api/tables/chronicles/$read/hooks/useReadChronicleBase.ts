@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import { oTChronicle } from "../../_mapping";
 import { emptyCache, IChronicleCache } from "../cache";
 import { chroniclesBaseKey } from "../keys";
@@ -11,9 +11,12 @@ import { chroniclesBaseKey } from "../keys";
  * Hook for reactive access to the **shared base store** of chronicles.
  */
 export function useReadChronicleBase<T = oTChronicle[]>(
+  queryResult: UseQueryResult<{
+    userId: string | null;
+    chronicles: any[];
+  }, Error>,
   select: (cache: IChronicleCache) => T,
   opts?: { enabled?: boolean; staleTime?: number },
-  isLoading: boolean = false,
 ) {
   const qc = useQueryClient();
 
@@ -29,8 +32,6 @@ export function useReadChronicleBase<T = oTChronicle[]>(
 
   return {
     chronicles: (q.data as T) ?? ([] as unknown as T),
-    loading: isLoading,
-    error: (q.error as Error) ?? null,
-    refetch: q.refetch,
+    ...queryResult
   };
 }
