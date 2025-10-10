@@ -10,42 +10,17 @@ import { emptyCache, IChronicleCache } from "../cache";
 import { chroniclesBaseKey } from "../keys";
 
 /**
- * @author ChatGPT5
- *
- * A custom hook for reading and managing the base data of chronicles from a cache.
- * This hook leverages React Query to fetch and manage the data, allowing for
- * efficient state management and caching.
- *
- * @template T - The type of data to be returned. Defaults to an array of `oTChronicle`.
- *
- * @param select - A function that selects and transforms the data from the cache.
- *                 It receives the cache (`IChronicleCache`) as an argument and
- *                 returns the desired data of type `T`.
- * @param opts - Optional configuration for the hook.
- * @param opts.enabled - A boolean to enable or disable the query. Defaults to `true`.
- * @param opts.staleTime - The duration (in milliseconds) for which the data is considered fresh.
- *                         Defaults to `Infinity`.
- *
- * @returns An object containing:
- * - `chronicles`: The selected data of type `T`. Defaults to an empty array if no data is available.
- * - `loading`: A boolean indicating whether the query is currently loading.
- * - `error`: An error object if the query fails, or `null` if there is no error.
- * - `refetch`: A function to manually refetch the data.
+ * Liest synchronisiert aus dem Base-Store (normalisiert).
+ * Reicht die Netzwerk-Statuswerte explizit durch.
  */
 export function useReadChronicleBase<T = oTChronicle[]>(
-  queryResult: UseQueryResult<
-    {
-      userId: string | null;
-      chronicles: any[];
-    },
-    Error
-  >,
+  net: UseQueryResult<{ userId: string | null; chronicles: any[] }, Error>,
   select: (cache: IChronicleCache) => T,
   opts?: { enabled?: boolean; staleTime?: number },
 ) {
   const qc = useQueryClient();
 
-  const q = useQuery<IChronicleCache, Error, T, typeof chroniclesBaseKey>({
+  const base = useQuery<IChronicleCache, Error, T, typeof chroniclesBaseKey>({
     queryKey: chroniclesBaseKey,
     queryFn: () =>
       qc.getQueryData<IChronicleCache>(chroniclesBaseKey) ?? emptyCache(),
@@ -56,7 +31,15 @@ export function useReadChronicleBase<T = oTChronicle[]>(
   });
 
   return {
-    chronicles: (q.data as T) ?? ([] as unknown as T),
-    ...queryResult,
+    // Daten aus Base-Store
+    chronicles: (base.data as T) ?? ([] as unknown as T),
+
+    // Netzwerk-Status klar durchreichen (kein Spread-Zufall)
+    isLoading: net.isLoading,
+    isFetching: net.isFetching,
+    isSuccess: net.isSuccess,
+    isError: net.isError,
+    error: net.error ?? null,
+    refetch: net.refetch,
   };
 }

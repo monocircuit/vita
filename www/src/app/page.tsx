@@ -14,15 +14,13 @@ import filterChronicles from "@/utils/processing/data/chronicles/filterChronicle
 
 const Home = () => {
   /** ANCHOR: Fetched Data */
-  const { chronicles, ...a } = useReadOwnChronicles();
+  const { chronicles, isLoading } = useReadOwnChronicles();
 
   /** ANCHOR: Mutate Data */
   const { mutate } = useCreateVitaShardsDynamic();
 
-  console.log("loading", a);
-
   useEffect(() => {
-    if (chronicles && chronicles.length > 0) {
+    if (!isLoading) {
       console.log(chronicles);
 
       const { linear } = filterChronicles(chronicles);
