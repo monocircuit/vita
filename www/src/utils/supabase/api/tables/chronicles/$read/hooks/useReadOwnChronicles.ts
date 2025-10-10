@@ -21,9 +21,6 @@ export function useReadOwnChronicles() {
 
   useEffect(() => {
     if (!q.data?.userId) return;
-
-    console.log("q", q.data);
-
     qc.setQueryData<IChronicleCache>(chroniclesBaseKey, (old: any) => {
       const next = old
         ? {
@@ -42,12 +39,16 @@ export function useReadOwnChronicles() {
     });
   }, [q.data, qc]);
 
-  return useReadChronicleBase(q, cache => {
-    const ids = Array.from(cache.loaded.users).flatMap(
-      uid => cache.index.byUser[uid] ?? [],
-    );
-    const uniq = Array.from(new Set(ids));
+  return useReadChronicleBase(
+    q,
+    cache => {
+      const ids = Array.from(cache.loaded.users).flatMap(
+        uid => cache.index.byUser[uid] ?? [],
+      );
+      const uniq = Array.from(new Set(ids));
 
-    return uniq.map(id => cache.byId[id]);
-  });
+      return uniq.map(id => cache.byId[id]);
+    },
+    { enabled: !!q.data?.userId },
+  );
 }
