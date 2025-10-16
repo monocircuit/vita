@@ -6,9 +6,9 @@ import useEngine from "@/utils/processing/engines/dynamic/useEngine";
 import { drawBranch } from "@/utils/drawing/dynamic/drawBranch";
 import { Viewport } from "pixi-viewport";
 import { ButterflyCell } from "@/utils/structures/Butterfly";
-import { oTLinearChronicle, useReadOwnChronicles } from "@/utils/supabase/api/tables/chronicles";
+import { useReadOwnChronicles } from "@/utils/supabase/api/tables/chronicles";
 import filterChronicles from "@/utils/processing/data/chronicles/filterChronicles";
-import { load } from "text-to-svg";
+import { drawConnection } from "@/utils/drawing/dynamic/drawConnection";
 
 function Page() {
   /** ANCHOR: References */
@@ -17,24 +17,23 @@ function Page() {
   const viewportRef = useRef<Viewport | null>(null);
 
   /** ANCHOR: Fetched Data */
-  const { chronicles: ownChronicles , isLoading } = useReadOwnChronicles();
+  const { chronicles: ownChronicles, isLoading } = useReadOwnChronicles();
 
   /** ANCHOR: Engines */
   const { init, engine } = useEngine();
   const [isEngineReady, setEngineReady] = useState(false); // State to track engine readiness
-  const [isAppInitialized, setAppInitialized] = useState(false); // State to track app initialization
 
   useEffect(() => {
     if (!isLoading && ownChronicles.length > 0) {
       console.warn("Engine activated");
-      const { linear, untied } = filterChronicles(ownChronicles);
+      const { linear } = filterChronicles(ownChronicles);
       console.log("Linear Chronicles:", linear);
       init(linear);
       setEngineReady(true); // Signal that the engine has been initialized
     }
   }, [ownChronicles, init]);
 
-  console.log("IsLoading:", isLoading);
+
 
   // Effect 1: Initialize Pixi Application and Viewport (runs only once)
   useEffect(() => {
@@ -77,6 +76,8 @@ function Page() {
     };
   }, []); // Empty dependency array ensures this runs only once
 
+
+
   // Effect 2: Draw content when the engine is ready (or data changes)
   useEffect(() => {
     if (!isEngineReady || !viewportRef.current) {
@@ -103,39 +104,71 @@ function Page() {
 
     const isRenderedChronicles = new Set<string>();
 
-    const drawChronicles = (
-      chronicle: { id: string, knots: { start: number; end: number; } },
-      levelIndex: number) => {
-      if (isRenderedChronicles.has(chronicle.id.toString())) return;
 
-      const nknots = normalize(chronicle.knots, aknot, distance);
+    /*
+    This Function starts the drawing of one Chonicle.
+    One Chronicle can Contain multiple Branches. 
+    So it needs to be able to call itself recursivly until all Branches are drawn.
+    */
+
+    const drawChronicles = (
+      chronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
+      levelIndex: number) => {
+
+      //Draw Previous Logic:
+      const drawPreviousChronicles = (
+        chronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
+        levelIndex: number
+      ) => {
+        drawChronicles(chronicle, levelIndex);
+        if (chronicle.prev) {
+          drawPreviousChronicles(chronicle.prev, chronicle.prev.y);
+        }
+      };
+
+      //Draw Next Logic:
+      const drawNextChronicles = (
+        chronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
+        levelIndex: number
+      ) => {
+        drawChronicles(chronicle, levelIndex);
+        if (chronicle.next) {
+          drawNextChronicles(chronicle.next, chronicle.next.y);
+        }
+      };
+
+      if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
+
+
+      //Drawing the Branch on the Screen
+      const nknots = normalize(chronicle.$.knots, aknot, distance);
       drawBranch(viewport, {
         start: nknots[0] * window.innerWidth,
         end: nknots[1] * window.innerWidth,
         shift: window.innerHeight / 2 - levelIndex * 50,
-        title: "Mango",
+        title: "t",
       });
-    };
 
-    const drawPreviousChronicles = (
-      chronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
-      levelIndex: number
-    ) => {
-      console.log("Recursing Previous:", levelIndex);
-      drawChronicles(chronicle.$, levelIndex);
+
       if (chronicle.prev) {
-
-        drawPreviousChronicles(chronicle.prev, chronicle.prev.y);
+        const nknotsPrev = normalize(chronicle.prev.$.knots, aknot, distance);
+        drawConnection(viewport, {
+          startPoint: { x: nknots[0] * window.innerWidth, y: window.innerHeight / 2 - levelIndex * 50 },
+          endPoint: { x: nknotsPrev[1] * window.innerWidth, y: window.innerHeight / 2 - chronicle.prev.y * 50 },
+          color: 0xFF0000,
+          thickness: 2
+        });
+        drawPreviousChronicles(chronicle.prev, chronicle.prev.y)
       }
-    };
 
-    const drawNextChronicles = (
-      chronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
-      levelIndex: number
-    ) => {
-      drawChronicles(chronicle.$, levelIndex);
       if (chronicle.next) {
-        drawPreviousChronicles(chronicle.next, chronicle.next.y);
+        const nknotsNext = normalize(chronicle.next.$.knots, aknot, distance);
+        drawConnection(viewport, {
+          startPoint: { x: nknots[0] * window.innerWidth, y: window.innerHeight / 2 - levelIndex * 50 },
+          endPoint: { x: nknotsNext[1] * window.innerWidth, y: window.innerHeight / 2 - chronicle.next.y * 50 },
+          color: 0xFF0000,
+          thickness: 2
+        });
       }
     };
 
@@ -155,17 +188,7 @@ function Page() {
         end = window.innerWidth;
       }
 
-      drawChronicles(chronicle.$, chronicle.y);
-
-      if (chronicle.prev) {
-        drawPreviousChronicles(chronicle.prev, chronicle.prev.y);
-        console.log("Draw Previous");
-      }
-
-      if (chronicle.next) {
-        drawNextChronicles(chronicle.next, chronicle.next.y);
-        console.log("Draw Next");
-      }
+      drawChronicles(chronicle, chronicle.y);
 
       chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
     });
@@ -176,19 +199,7 @@ function Page() {
       const level = engine.current.getLevel(levelIndex);
       level?.forEach((chronicle) => {
         if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
-
-        drawChronicles(chronicle.$, chronicle.y);
-
-        if (chronicle.prev) {
-          drawPreviousChronicles(chronicle.prev, chronicle.prev.y);
-          console.log("Draw Previous");
-        }
-
-        if (chronicle.next) {
-          drawNextChronicles(chronicle.next, chronicle.next.y);
-          console.log("Draw Next");
-        }
-
+        drawChronicles(chronicle, chronicle.y);
         chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
       });
 
@@ -200,22 +211,13 @@ function Page() {
       const level = engine.current.getLevel(-levelIndex);
       level?.forEach((chronicle) => {
         if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
-
-        drawChronicles(chronicle.$, levelIndex);
-        if (chronicle.prev) {
-          drawPreviousChronicles(chronicle.prev, chronicle.prev.y);
-          console.log("Draw Previous");
-        }
-        if (chronicle.next) {
-          drawNextChronicles(chronicle.next, chronicle.next.y);
-          console.log("Draw Next");
-        }
         chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
       });
     }
+
   }, [isEngineReady]);
 
-  return <div className="w-full h-full" ref={pixiContainer}></div>;
+  return <div className="w-full h-screen" ref={pixiContainer}></div>;
 }
 
 const normalize = (
