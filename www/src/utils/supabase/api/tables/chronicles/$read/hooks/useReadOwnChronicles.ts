@@ -1,32 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
 import { emptyCache, IChronicleCache, mergeIntoCache } from "../cache";
 import { chroniclesBaseKey, netKey } from "../keys";
 import { useReadChronicleBase } from "./useReadChronicleBase";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchOwn } from "../fetchers/fetchOwn";
 import { oTChronicle } from "../../_mapping";
-
-type NetFull<T> = T & { _slim?: false };
-type NetSlim<T, K extends keyof T> = Pick<T, K> & {
-  ids: string[];
-  _slim: true;
-};
-type Net<T, K extends keyof T> = null | NetFull<T> | NetSlim<T, K>;
+import { Net, useFull } from "@/hooks/useFull";
+import { useNetFlow } from "@/utils/tanstack/hooks/useNetFlow";
 
 interface Data {
   userId: string;
   chronicles: oTChronicle[];
-}
-
-function isFull<T, K extends keyof T>(data: Net<T, K>): data is NetFull<T> {
-  console.log("isFull", data);
-  return !!data && (data as any)._slim !== true;
-}
-
-function isSlim<T, K extends keyof T>(data: Net<T, K>): data is NetSlim<T, K> {
-  return !!data && (data as any)._slim === true;
 }
 
 /**
@@ -34,7 +19,6 @@ function isSlim<T, K extends keyof T>(data: Net<T, K>): data is NetSlim<T, K> {
  *
  * Load (if necessary) only the **current user's** chronicles and return them.
  */
-// useReadOwnChronicles.ts
 export function useReadOwnChronicles() {
   const qc = useQueryClient();
 
@@ -47,28 +31,54 @@ export function useReadOwnChronicles() {
     refetchOnReconnect: true,
   });
 
-  useEffect(() => {
-    if (q.isSuccess && isFull(q.data)) {
-      const data = q.data;
+  // inside useReadOwnChronicles()
 
-      qc.setQueryData<IChronicleCache>(chroniclesBaseKey, old => {
-        const next = old ?? emptyCache();
-        mergeIntoCache(next, data.chronicles, {
-          userId: data.userId,
-        });
-        return next;
-      });
+  useNetFlow<
+    { userId: string; chronicles: oTChronicle[] }, // TFull
+    "userId", // TSlimKey
+    unknown, // TError
+    any, // TRawRow (server row)
+    oTChronicle, // TRow after normalize
+    { id: string; user_id?: string; type?: string; title: string } // TStored in Base
+  >({
+    query: q, // your Net<TFull, "userId"> query
+    netKey: netKey.own(),
 
-      const ids = data.chronicles.map(r => String(r.id));
-      qc.setQueryData(netKey.own(), {
-        userId: data.userId,
-        ids,
-        _slim: true,
-      });
-    }
+    base: {
+      baseKey: chroniclesBaseKey,
+      createEmpty: () =>
+        createEmptyBaseCache({
+          indices: ["byUser", "byType"],
+          scopes: ["users", "types"],
+        }),
+      mergeOptions: {
+        selectRows: f => f.chronicles,
+        normalizeRow: normalizeChronicle, // optional
+        project: c => ({
+          id: String(c.id),
+          user_id: c.user_id,
+          type: c.type,
+          title: c.title,
+        }),
+        selectKeyParts: r => [r.id], // or [r.user_id, r.type] for composite PK
+        indices: [
+          {
+            name: "byUser",
+            select: r => (r.user_id ? [r.user_id] : undefined),
+          },
+          { name: "byType", select: r => (r.type ? [r.type] : undefined) },
+        ],
+        // mark scopes as fully loaded based on the payload
+        markLoadedFromFull: f => [{ scope: "users", value: f.userId }],
+      },
+    },
 
-    // nur feuern, wenn echte neue Daten ankamen
-  }, [q.status, q.dataUpdatedAt]);
+    toSlim: full => ({
+      userId: full.userId,
+      ids: full.chronicles.map(r => String(r.id)),
+      _slim: true as const,
+    }),
+  });
 
   // Base lesen (volle Daten kommen immer aus dem Base-Store)
   return useReadChronicleBase(
