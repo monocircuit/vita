@@ -13,10 +13,10 @@
             "state": {
               "type": "excalidraw",
               "state": {
-                "file": "Excalidraw/normalize() 2025-08-04 14.15.48.excalidraw.md"
+                "file": "Vita/Dynamic/Maneuvers/TakeOver_Sketch.md"
               },
               "icon": "excalidraw-icon",
-              "title": "normalize() 2025-08-04 14.15.48.excalidraw"
+              "title": "TakeOver_Sketch"
             }
           }
         ]
@@ -180,18 +180,21 @@
   },
   "active": "dd654cd3aea2c072",
   "lastOpenFiles": [
-    "Vita/Dynamic/Engine/normalize().md",
-    "Excalidraw/normalize() 2025-08-04 14.15.48.excalidraw.md",
-    "Vita/Dynamic/Engine/Inferring the Dynamic Vita_Sketch.md",
-    "Vita/Dynamic/Engine/Inferring the Dynamic Vita.md",
+    "Vita/Dynamic/Maneuvers/TakeOver.md",
+    "Vita/Dynamic/Maneuvers/Secession_Sketch.md",
+    "Vita/Dynamic/Maneuvers/Secession.md",
     "Vita/Dynamic/Engine/getLaneDeltas().md",
+    "Vita/Dynamic/Engine/Inferring the Dynamic Vita.md",
+    "Vita/Dynamic/Engine/normalize().md",
+    "Vita/Dynamic/Engine/Inferring the Dynamic Vita_Sketch.md",
+    "Vita/Dynamic/Structures/ButterlyStack.md",
+    "Excalidraw/normalize() 2025-08-04 14.15.48.excalidraw.md",
     "Features.md",
     "Vita/Vita.md",
     "Vita/Different Forms of Vitas.md",
     "Vita/Chronicle.md",
     "Vita/ChronicleRelation_Sketch.md",
     "Vita/ChronicleRelation.md",
-    "Vita/Dynamic/Maneuvers/TakeOver.md",
     "Vita/Dynamic/Maneuvers/TakeOver_Sketch.md",
     "Vita/Dynamic/Elements/Lane.md",
     "Supabase/Integrating Chronicle Paths into Supabase.md",
@@ -201,11 +204,8 @@
     "Vita/Dynamic/LinearChronicle Diagramm.md",
     "Vita/Dynamic/LinearChronicle.md",
     "Vita/Dynamic/Dynamic Vita.md",
-    "Vita/Dynamic/Maneuvers/Secession_Sketch.md",
-    "Vita/Dynamic/Maneuvers/Secession.md",
     "Ideaboard.md",
     "Vita/Dynamic/Engine",
-    "Vita/Dynamic/Structures/ButterlyStack.md",
     "Vita/Dynamic/Structures",
     "Vita/Dynamic/Maneuvers.md",
     "Vita/Dynamic/Elements",

@@ -117,59 +117,104 @@ function Page() {
 
       //Draw Previous Logic:
       const drawPreviousChronicles = (
+        nextChronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
         chronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
-        levelIndex: number
+        prevlevelIndex: number
       ) => {
-        drawChronicles(chronicle, levelIndex);
+
+        const nknots = normalize(nextChronicle.$.knots, aknot, distance);
+        const nknotsPrev = normalize(chronicle.$.knots, aknot, distance);
+
+        const StartX = nknotsPrev[0] * window.innerWidth;
+        const EndX = nknotsPrev[1] * window.innerWidth;
+
+        const nextStartX = nknots[0] * window.innerWidth;
+        const nextEndX = nknots[1] * window.innerWidth;
+
+        const nextConnStartX = connectionEndpointX(nextStartX, nextEndX);
+        const ConnEndX = connectionEndpointX(EndX, StartX);
+
+
+        //Drawing the connection and the Branch on Screen then if another previous exist do it also for it
+        drawConnection(viewport, {
+          startPoint: { x: nextConnStartX, y: window.innerHeight / 2 - nextChronicle.y * 50 },
+          endPoint: { x: ConnEndX, y: window.innerHeight / 2 - chronicle.y * 50 },
+          color: 0xFF0000,
+          thickness: 2
+        });
+        drawBranch(viewport, {
+          start: nknotsPrev[0] * window.innerWidth,
+          end: nknotsPrev[1] * window.innerWidth,
+          shift: window.innerHeight / 2 - prevlevelIndex * 50,
+          title: "t",
+        });
+
+
         if (chronicle.prev) {
-          drawPreviousChronicles(chronicle.prev, chronicle.prev.y);
+          drawPreviousChronicles(chronicle, chronicle.prev, chronicle.prev.y);
         }
       };
 
       //Draw Next Logic:
       const drawNextChronicles = (
-        chronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
-        levelIndex: number
+        prevChronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
+        chronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>
       ) => {
-        drawChronicles(chronicle, levelIndex);
+        const nknots = normalize(prevChronicle.$.knots, aknot, distance);
+        const nknotsNext = normalize(chronicle.$.knots, aknot, distance);
+
+        const nextStartX = nknots[0] * window.innerWidth;
+        const nextEndX = nknotsNext[1] * window.innerWidth;
+        const nextConnEndX = connectionEndpointX(nextEndX, nextStartX);
+
+
+
+        //Drawing the connection and the Branch on Screen then if another previous exist do it also for it
+        drawConnection(viewport, {
+          startPoint: { x: nknots[0] * window.innerWidth, y: window.innerHeight / 2 - prevChronicle.y * 100 },
+          endPoint: { x: nextConnEndX, y: window.innerHeight / 2 - chronicle.y * 100 },
+          color: 0xFF0000,
+          thickness: 2
+        });
+        drawBranch(viewport, {
+          start: nknotsNext[0] * window.innerWidth,
+          end: nknotsNext[1] * window.innerWidth,
+          shift: window.innerHeight / 2 - chronicle.y * 100,
+          title: "t",
+        });
         if (chronicle.next) {
-          drawNextChronicles(chronicle.next, chronicle.next.y);
+          drawNextChronicles(chronicle, chronicle.next);
+        } else {
+          chronicle.flag = () => true
+
         }
       };
 
       if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
 
 
-      //Drawing the Branch on the Screen
-      const nknots = normalize(chronicle.$.knots, aknot, distance);
-      drawBranch(viewport, {
-        start: nknots[0] * window.innerWidth,
-        end: nknots[1] * window.innerWidth,
-        shift: window.innerHeight / 2 - levelIndex * 50,
-        title: "t",
-      });
-
-
-      if (chronicle.prev) {
-        const nknotsPrev = normalize(chronicle.prev.$.knots, aknot, distance);
-        drawConnection(viewport, {
-          startPoint: { x: nknots[0] * window.innerWidth, y: window.innerHeight / 2 - levelIndex * 50 },
-          endPoint: { x: nknotsPrev[1] * window.innerWidth, y: window.innerHeight / 2 - chronicle.prev.y * 50 },
-          color: 0xFF0000,
-          thickness: 2
+      //Drawing the Branch on the Screen only if is unflagged!
+      if (!chronicle.isFlagged) {
+        const nknots = normalize(chronicle.$.knots, aknot, distance);
+        drawBranch(viewport, {
+          start: nknots[0] * window.innerWidth,
+          end: nknots[1] * window.innerWidth,
+          shift: window.innerHeight / 2 - levelIndex * 50,
+          title: "t",
         });
-        drawPreviousChronicles(chronicle.prev, chronicle.prev.y)
+
+        if (chronicle.prev && !chronicle.isFlagged) {
+          drawPreviousChronicles(chronicle, chronicle.prev, chronicle.prev.y)
+        }
+
+        if (chronicle.next && !chronicle.isFlagged) {
+          drawNextChronicles(chronicle, chronicle.next)
+        } else {
+          chronicle.flag = () => true
+        }
       }
 
-      if (chronicle.next) {
-        const nknotsNext = normalize(chronicle.next.$.knots, aknot, distance);
-        drawConnection(viewport, {
-          startPoint: { x: nknots[0] * window.innerWidth, y: window.innerHeight / 2 - levelIndex * 50 },
-          endPoint: { x: nknotsNext[1] * window.innerWidth, y: window.innerHeight / 2 - chronicle.next.y * 50 },
-          color: 0xFF0000,
-          thickness: 2
-        });
-      }
+
     };
 
     // Render level 0
@@ -229,6 +274,21 @@ const normalize = (
   normalizedKnots[0] = (knots.start - aKnot) / distance;
   normalizedKnots[1] = (knots.end - aKnot) / distance;
   return normalizedKnots;
+};
+
+/**
+ * Compute connection endpoint X for a branch.
+ * - If branch length <= 300px: use 25% of length
+ * - If branch length > 300px: use 75px
+ *
+ * @param startX left or source x coordinate
+ * @param endX right or target x coordinate
+ * @returns x coordinate for connection endpoint starting from startX toward endX
+ */
+const connectionEndpointX = (startX: number, endX: number): number => {
+  const length = Math.abs(endX - startX);
+  const offset = Math.min(length * 0.25, 75); // 25% or cap at 75px
+  return startX < endX ? startX + offset : startX - offset;
 };
 
 export default Page;
