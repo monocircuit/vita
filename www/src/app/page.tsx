@@ -8,8 +8,8 @@ import Navbar from "@/components/layout/Navbar";
 import styles from "./page.module.scss";
 import { useEffect } from "react";
 import Engine from "@/utils/processing/engines/dynamic/Engine";
-import { useCreateVitaShardsDynamic } from "@/utils/supabase/api/tables/vitas/shards/dynamic/$write";
-import { useReadOwnChronicles } from "@/utils/supabase/api/tables/chronicles";
+import { useCreateVitaShardsDynamic } from "@/utils/supabase/tables/vitas/shards/dynamic/$write";
+import { useReadOwnChronicles } from "@/utils/supabase/tables/chronicles";
 import filterChronicles from "@/utils/processing/data/chronicles/filterChronicles";
 
 const Home = () => {

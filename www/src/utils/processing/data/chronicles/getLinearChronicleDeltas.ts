@@ -1,4 +1,4 @@
-import { TLinearChronicle } from "@/utils/supabase/api/tables/chronicles/_mapping";
+import { TLinearChronicle } from "@/utils/supabase/tables/chronicles/mapping";
 
 /**
  * TODO: At the moment all functions only work with the `x2` setting, they need to be

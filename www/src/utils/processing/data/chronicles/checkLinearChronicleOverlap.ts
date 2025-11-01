@@ -1,4 +1,4 @@
-import { TLinearChronicle } from "@/utils/supabase/api/tables/chronicles/_mapping";
+import { TLinearChronicle } from "@/utils/supabase/tables/chronicles/mapping";
 
 const checkLinearChronicleOverlap = (
   linearChronicleA: TLinearChronicle,

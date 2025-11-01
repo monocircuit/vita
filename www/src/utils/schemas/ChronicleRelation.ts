@@ -1,5 +1,5 @@
 import zod from "zod";
-import { $ChronicleOrientation } from "../supabase/api/enumerated-types/ChronicleOrientation";
+import { $ChronicleOrientation } from "../supabase/enumerated-types/ChronicleOrientation";
 
 /** Schemas */
 export const $ChronicleRelationOverhead = zod.object({

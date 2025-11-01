@@ -1,7 +1,7 @@
 import {
   TLinearChronicle,
   TLinearChronicleKnots,
-} from "@/utils/supabase/api/tables/chronicles/_mapping";
+} from "@/utils/supabase/tables/chronicles/mapping";
 
 const getLinearChronicleOverlap = (
   a: TLinearChronicle,

@@ -6,7 +6,7 @@ import {
   oTChronicle,
   oTLinearChronicle,
   oTUntiedChronicle,
-} from "@/utils/supabase/api/tables/chronicles/_mapping";
+} from "@/utils/supabase/tables/chronicles/mapping";
 
 type InputChronicle = iTChronicle | oTChronicle;
 type ResultFor<T extends InputChronicle> = T extends oTChronicle

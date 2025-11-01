@@ -1,3 +1,5 @@
+import { QueryKey } from "@tanstack/react-query";
+
 /**
  * Namespaced helper types for `BaseCache`. Collected under the class name
  * to keep the public API tidy and discoverable via `BaseCache.*`.
@@ -7,15 +9,34 @@
  * @author Lukas Diegelmann
  */
 export namespace BaseCache {
-  /**
-   * A valid index key of the cached row type `T`. Must be a string key of `T`
-   * because indices are addressable by string names (column names).
-   * @example
-   * type IK = BaseCache.TIndexKey<{ id: string; user_id: string }>;
-   * //    ^? "id" | "user_id"
-   * @author Lukas Diegelmann
-   */
-  export type TIndexKey<T> = keyof T & string;
+  export namespace Mapping {
+    export namespace PrimaryKey {
+      export type Part<T> = keyof T;
+    }
+  }
+
+  export namespace Caching {
+    export namespace PrimaryKey {
+      export type UnhashedPart = string | number | bigint | Date | boolean;
+      export type Hashed = string;
+    }
+
+    export namespace Index {
+      /**
+       * A valid index key of the cached row type `T`. Must be a string key of `T`
+       * because indices are addressable by string names (column names).
+       * @example
+       * type IK = BaseCache.TIndexKey<{ id: string; user_id: string }>;
+       * //    ^? "id" | "user_id"
+       * @author Lukas Diegelmann
+       */
+      export type Name<T> = keyof T & string;
+
+      export type Key = string;
+    }
+  }
+
+  export namespace Cache {}
 
   /**
    * The finalized primary key string used as object key in the cache.
@@ -30,13 +51,13 @@ export namespace BaseCache {
    * Dates are allowed and will be stringified during hashing.
    * @author Lukas Diegelmann
    */
-  export type TPrimaryKeyPart = string | number | bigint | Date | boolean;
+  export type TPrimaryKeyPart<T> = keyof T;
 
   /**
    * A tuple of primary key parts representing a composite primary key.
    * @author Lukas Diegelmann
    */
-  export type TPrimaryKeyParts = TPrimaryKeyPart[];
+  export type TPrimaryKeyParts<T> = TPrimaryKeyPart<T>[];
 
   /**
    * A "loaded" mark describing which scope value has been fully loaded.
@@ -44,7 +65,7 @@ export namespace BaseCache {
    * @author Lukas Diegelmann
    */
   export interface ILoadedMark<T> {
-    scope: TIndexKey<T>;
+    scope: BaseCache.Caching.Index.Name<T>;
     value: string | number;
   }
 
@@ -78,7 +99,7 @@ export namespace BaseCache {
      *
      * List of column keys to maintain as secondary indices for the incoming rows.
      */
-    indices?: readonly TIndexKey<T>[];
+    indices?: readonly BaseCache.Caching.Index.Name<T>[];
 
     /**
      * @author Lukas Diegelmann
@@ -115,6 +136,22 @@ export namespace BaseCache {
     updated: number;
     touched: number; // inserted + updated
   }
+
+  export interface Config<T> {
+    database: {
+      /**
+       * @author Lukas Diegelmann
+       *
+       * The ordered list of keys from `T` that form the composite primary key.
+       * The actual primary key string is produced by hashing the values for these parts.
+       */
+      primaryKeyParts: TPrimaryKeyParts<T>;
+    };
+    caching: {
+      queryKey: QueryKey;
+      indexKeys: BaseCache.Caching.Index.Name<T>[];
+    };
+  }
 }
 
 /**
@@ -126,8 +163,13 @@ export namespace BaseCache {
  * The API is designed to be ergonomic for both batch merges and single-row updates,
  * e.g., from real-time events or mutations.
  * All internal maps are plain object maps for O(1) access and minimal overhead.
+ *
+ * Its important to know that the BaseCache should only store entire and complete rows
+ * of the supabase db.
  */
-export class BaseCache<T> {
+export class BaseCache<Row> {
+  public readonly config: BaseCache.Config<Row>;
+
   /**
    * @author Lukas Diegelmann
    *
@@ -152,24 +194,16 @@ export class BaseCache<T> {
   /**
    * @author Lukas Diegelmann
    *
-   * The ordered list of keys from `T` that form the composite primary key.
-   * The actual primary key string is produced by hashing the values for these parts.
-   */
-  public readonly primaryKeyParts: (keyof T)[];
-
-  /**
-   * @author Lukas Diegelmann
-   *
    * Primary store: maps hashed primary key strings to stored rows.
    */
-  public readonly byPrimaryKey: Record<BaseCache.TPrimaryKey, T>;
+  public readonly byPrimaryKey: Record<BaseCache.TPrimaryKey, Row>;
 
   /**
    * @author Lukas Diegelmann
    *
    * Insertion order of all known primary keys. Useful for iteration and stable ordering.
    */
-  public readonly allPrimaryKeys: BaseCache.TPrimaryKey[];
+  public readonly allPrimaryKeys: BaseCache.Caching.PrimaryKey.Hashed[];
 
   /**
    * @author Lukas Diegelmann
@@ -178,7 +212,10 @@ export class BaseCache<T> {
    * This enables O(1) lookups of “all rows that share an index value”.
    */
   public readonly index: Partial<
-    Record<BaseCache.TIndexKey<T>, Record<string, BaseCache.TPrimaryKey[]>>
+    Record<
+      BaseCache.Caching.Index.Name<Row>,
+      Record<string, BaseCache.Caching.PrimaryKey.Hashed[]>
+    >
   >;
 
   /**
@@ -188,7 +225,7 @@ export class BaseCache<T> {
    * that are known to be fully loaded. This helps prevent redundant fetches.
    */
   public readonly loaded: Partial<
-    Record<BaseCache.TIndexKey<T>, Set<string | number>>
+    Record<BaseCache.Caching.Index.Name<Row>, Set<string | number>>
   >;
 
   /**
@@ -197,32 +234,18 @@ export class BaseCache<T> {
    * Creates a new cache with the given primary key parts and pre-initialized index/loaded maps.
    * Use the static `create` to instantiate; `constructor` is kept private to encourage consistency.
    */
-  private constructor(primaryKeyParts: (keyof T)[]) {
-    this.primaryKeyParts = primaryKeyParts;
+  public constructor(config: BaseCache.Config<Row>) {
+    this.config = config;
+
     this.byPrimaryKey = Object.create(null);
     this.allPrimaryKeys = [];
     this.index = Object.create(null);
     this.loaded = Object.create(null);
-  }
 
-  /**
-   * @author Lukas Diegelmann
-   *
-   * Factory to create a cache with composite primary key parts and predefined index keys.
-   * Ensures internal maps are initialized for the given indices.
-   * @example
-   * const cache = BaseCache.create<MyRow>(["id"], ["user_id", "type"]);
-   */
-  static create<U>(
-    primaryKeyParts: (keyof U)[],
-    indexKeys: BaseCache.TIndexKey<U>[],
-  ): BaseCache<U> {
-    const cache = new BaseCache<U>(primaryKeyParts);
-    for (const k of indexKeys ?? []) {
-      cache.index[k] = Object.create(null);
-      cache.loaded[k] = new Set();
+    for (const INDEX_KEY of this.config.caching.indexKeys) {
+      this.index[INDEX_KEY] = Object.create(null);
+      this.loaded[INDEX_KEY] = new Set();
     }
-    return cache;
   }
 
   /**
@@ -231,13 +254,8 @@ export class BaseCache<T> {
    * Creates a new empty cache instance that preserves current index/loaded structure
    * but contains no rows. Useful for resets without losing configured shapes.
    */
-  public cloneEmpty(): BaseCache<T> {
-    const next = new BaseCache<T>(this.primaryKeyParts);
-    for (const k of Object.keys(this.index) as BaseCache.TIndexKey<T>[]) {
-      next.index[k] = Object.create(null);
-      next.loaded[k] = new Set();
-    }
-    return next;
+  public cloneEmpty(): BaseCache<Row> {
+    return new BaseCache<Row>(this.config);
   }
 
   /**
@@ -246,14 +264,21 @@ export class BaseCache<T> {
    * Clears all stored rows and buckets while keeping the index and loaded shape.
    * After calling, the cache is empty but still configured the same way.
    */
-  public reset(): void {
-    for (const pk of Object.keys(this.byPrimaryKey))
-      delete this.byPrimaryKey[pk];
-    this.allPrimaryKeys.length = 0;
-    for (const k of Object.keys(this.index) as BaseCache.TIndexKey<T>[]) {
-      this.index[k] = Object.create(null);
-      this.loaded[k]?.clear();
+  public reset(): this {
+    for (const PRIMARY_KEY of Object.keys(this.byPrimaryKey)) {
+      delete this.byPrimaryKey[PRIMARY_KEY];
     }
+
+    this.allPrimaryKeys.length = 0;
+
+    for (const INDEX_NAME of Object.keys(
+      this.index,
+    ) as BaseCache.Caching.Index.Name<Row>[]) {
+      this.index[INDEX_NAME] = Object.create(null);
+      this.loaded[INDEX_NAME]?.clear();
+    }
+
+    return this;
   }
 
   /**
@@ -266,30 +291,14 @@ export class BaseCache<T> {
    * write operations on this index key (e.g., during `upsert` or `markLoaded`)
    * can safely proceed without null checks.
    *
-   * @param indexKey The name of the index key (column) to ensure existence for.
+   * @param indexName The name of the index key (column) to ensure existence for.
    * @example
    * cache.ensureIndexKey("user_id");
    * // → cache.index["user_id"] and cache.loaded["user_id"] now exist
    */
-  public ensureIndexKey(indexKey: BaseCache.TIndexKey<T>) {
-    if (!this.index[indexKey]) this.index[indexKey] = Object.create(null);
-    if (!this.loaded[indexKey]) this.loaded[indexKey] = new Set();
-  }
-
-  /**
-   * @author Lukas Diegelmann
-   *
-   * Returns a concretely typed index map for writes, creating it if missing.
-   * This narrows the generic index access to a specific `Record<string, BaseCache.TPrimaryKey[]>`
-   * so TypeScript allows writes (avoids TS2862 issues).
-   */
-  private getIndexMap(
-    name: BaseCache.TIndexKey<T>,
-  ): Record<string, BaseCache.TPrimaryKey[]> {
-    return (this.index[name] ??= Object.create(null) as Record<
-      string,
-      BaseCache.TPrimaryKey[]
-    >);
+  public ensureIndexName(indexName: BaseCache.Caching.Index.Name<Row>) {
+    if (!this.index[indexName]) this.index[indexName] = Object.create(null);
+    if (!this.loaded[indexName]) this.loaded[indexName] = new Set();
   }
 
   /**
@@ -300,15 +309,15 @@ export class BaseCache<T> {
    * to avoid collisions.
    */
   private hashPrimaryKeyParts(
-    primaryKeyParts: BaseCache.TPrimaryKeyParts,
-  ): BaseCache.TPrimaryKey {
-    return primaryKeyParts
-      .map(primaryKeyPart => {
-        if (primaryKeyPart === null) {
+    unhashedParts: BaseCache.Caching.PrimaryKey.UnhashedPart[],
+  ): BaseCache.Caching.PrimaryKey.Hashed {
+    return unhashedParts
+      .map(unhashedPart => {
+        if (unhashedPart === null) {
           return this.PRIMARY_KEY_HASH_NIL;
         }
 
-        const string = String(primaryKeyPart);
+        const string = String(unhashedPart);
 
         return (
           string
@@ -332,12 +341,19 @@ export class BaseCache<T> {
    *
    * Selects the configured primary key parts from a row in the defined order.
    */
-  private selectPrimaryKeyParts(item: T): BaseCache.TPrimaryKeyParts {
-    const parts: BaseCache.TPrimaryKeyParts = [];
-    for (const PRIMARY_KEY_PART of this.primaryKeyParts) {
-      parts.push(item[PRIMARY_KEY_PART] as BaseCache.TPrimaryKeyPart);
+  private selectUnhashedPrimaryKeyParts(
+    row: Row,
+  ): BaseCache.Caching.PrimaryKey.UnhashedPart[] {
+    const UNHASHED_PARTS: BaseCache.Caching.PrimaryKey.UnhashedPart[] = [];
+
+    for (const PRIMARY_KEY_PART of this.config.database.primaryKeyParts) {
+      const PRIMARY_KEY_VALUED_PART = row[
+        PRIMARY_KEY_PART
+      ] as BaseCache.Caching.PrimaryKey.UnhashedPart;
+
+      UNHASHED_PARTS.push(PRIMARY_KEY_VALUED_PART);
     }
-    return parts;
+    return UNHASHED_PARTS;
   }
 
   /**
@@ -346,8 +362,8 @@ export class BaseCache<T> {
    * Computes the hashed primary key string for a given row according to the
    * configured `primaryKeyParts`.
    */
-  private getHashedPrimaryKey(item: T): BaseCache.TPrimaryKey {
-    return this.hashPrimaryKeyParts(this.selectPrimaryKeyParts(item));
+  private getHashedPrimaryKey(row: Row): BaseCache.Caching.PrimaryKey.Hashed {
+    return this.hashPrimaryKeyParts(this.selectUnhashedPrimaryKeyParts(row));
   }
 
   /**
@@ -360,22 +376,24 @@ export class BaseCache<T> {
    *  - (scalar[])[] (tuple[]) → [[...t1], [...t2], …]
    * Nullish values are ignored; duplicate scalars are deduplicated by signature.
    */
-  private normalizeToKeyPartsList(raw: unknown): BaseCache.TPrimaryKeyParts[] {
-    if (!Array.isArray(raw)) {
-      const s = this.toPkPart(raw);
+  private normalizeToKeyPartsList(
+    rawIndexKey: unknown,
+  ): BaseCache.TPrimaryKeyParts<Row>[] {
+    if (!Array.isArray(rawIndexKey)) {
+      const s = this.toIndexKey(rawIndexKey);
       return s == null ? [] : [[s]];
     }
 
-    if (raw.length === 0) return [];
+    if (rawIndexKey.length === 0) return [];
 
-    if (Array.isArray(raw[0])) {
+    if (Array.isArray(rawIndexKey[0])) {
       // array of tuples
-      const out: BaseCache.TPrimaryKeyParts[] = [];
-      for (const tupleLike of raw as unknown[]) {
+      const out: BaseCache.TPrimaryKeyParts<Row>[] = [];
+      for (const tupleLike of rawIndexKey as unknown[]) {
         if (!Array.isArray(tupleLike) || tupleLike.length === 0) continue;
-        const tuple: BaseCache.TPrimaryKeyPart[] = [];
+        const tuple: BaseCache.TPrimaryKeyPart<Row>[] = [];
         for (const v of tupleLike) {
-          const p = this.toPkPart(v);
+          const p = this.toIndexKey(v);
           if (p == null) continue;
           tuple.push(p);
         }
@@ -385,9 +403,9 @@ export class BaseCache<T> {
     } else {
       // array of scalars
       const seen = new Set<string>();
-      const out: BaseCache.TPrimaryKeyParts[] = [];
-      for (const v of raw as unknown[]) {
-        const p = this.toPkPart(v);
+      const out: BaseCache.TPrimaryKeyParts<Row>[] = [];
+      for (const v of rawIndexKey as unknown[]) {
+        const p = this.toIndexKey(v);
         if (p == null) continue;
         const sig = this.sigOfScalar(p);
         if (seen.has(sig)) continue;
@@ -405,19 +423,23 @@ export class BaseCache<T> {
    * Returns `null` for unsupported types if you want to be strict; here we
    * allow a tolerant fallback by stringifying other values.
    */
-  private toPkPart(v: unknown): BaseCache.TPrimaryKeyPart | null {
-    if (v == null) return null;
+  private toIndexKey(
+    rawIndexKey: unknown,
+  ): BaseCache.TPrimaryKeyPart<Row> | null {
+    if (rawIndexKey == null) return null;
+
     if (
-      typeof v === "string" ||
-      typeof v === "number" ||
-      typeof v === "boolean" ||
-      typeof v === "bigint" ||
-      v instanceof Date
+      typeof rawIndexKey === "string" ||
+      typeof rawIndexKey === "number" ||
+      typeof rawIndexKey === "boolean" ||
+      typeof rawIndexKey === "bigint" ||
+      rawIndexKey instanceof Date
     ) {
-      return v as BaseCache.TPrimaryKeyPart;
+      return rawIndexKey as BaseCache.TPrimaryKeyPart<Row>;
     }
+
     // tolerant fallback: stringify unknown scalar-likes
-    return String(v) as unknown as BaseCache.TPrimaryKeyPart;
+    return String(rawIndexKey) as unknown as BaseCache.TPrimaryKeyPart<Row>;
   }
 
   /**
@@ -426,7 +448,7 @@ export class BaseCache<T> {
    * Produces a stable signature string for deduplicating scalar values.
    * Dates are compared via time value; bigint by decimal string.
    */
-  private sigOfScalar(v: BaseCache.TPrimaryKeyPart): string {
+  private sigOfScalar(v: BaseCache.TPrimaryKeyPart<Row>): string {
     return v instanceof Date
       ? `date:${v.getTime()}`
       : typeof v === "bigint"
@@ -466,8 +488,8 @@ export class BaseCache<T> {
    * Inserts or updates a **single row** and maintains all specified indices.
    * Optionally also tracks `loaded` scope values derived from the actual index values.
    *
-   * @param item The normalized row to insert or update.
-   * @param indices Index keys (columns) to maintain (buckets updated accordingly).
+   * @param row The normalized row to insert or update.
+   * @param indexNames Index keys (columns) to maintain (buckets updated accordingly).
    * @param opts.trackLoadedFromIndices If `true`, store derived loaded marks per index value.
    *                                    Defaults to `false` to keep behavior minimal.
    * @returns The hashed primary key for the item.
@@ -475,28 +497,25 @@ export class BaseCache<T> {
    * cache.upsert(row, ["user_id", "type"], { trackLoadedFromIndices: true });
    */
   public upsert(
-    item: T,
-    indices: BaseCache.TIndexKey<T>[],
+    row: Row,
+    indexNames: BaseCache.Caching.Index.Name<Row>[],
     opts?: { trackLoadedFromIndices?: boolean },
-  ): BaseCache.TPrimaryKey {
+  ): BaseCache.Caching.PrimaryKey.Hashed {
     const shouldTrackLoaded = !!opts?.trackLoadedFromIndices;
 
-    // 1) Primary key build & store
-    const primaryKey = this.getHashedPrimaryKey(item);
-    const isExisting = this.byPrimaryKey[primaryKey] !== undefined;
+    const PRIMARY_KEY = this.getHashedPrimaryKey(row);
 
-    this.byPrimaryKey[primaryKey] = item;
-    if (!isExisting) this.allPrimaryKeys.push(primaryKey);
+    if (this.byPrimaryKey[PRIMARY_KEY] == undefined) {
+      this.allPrimaryKeys.push(PRIMARY_KEY);
+    }
 
-    // 2) Secondary indices
-    for (const INDEX of indices) {
-      const RAW = (item as any)[INDEX];
-      if (RAW == null) continue;
+    for (const INDEX_NAME of indexNames) {
+      this.ensureIndexName(INDEX_NAME);
 
-      this.ensureIndexKey(INDEX);
-      const map = this.getIndexMap(INDEX);
+      const RAW_SUBINDEX_KEY = row[INDEX_NAME];
+      if (RAW_SUBINDEX_KEY == null) continue;
 
-      const partsList = this.normalizeToKeyPartsList(RAW);
+      const partsList = this.normalizeToKeyPartsList(RAW_SUBINDEX_KEY);
       const ivSet = new Set<string>(); // dedupe hash writes per row
 
       for (const parts of partsList) {
@@ -504,17 +523,17 @@ export class BaseCache<T> {
         if (ivSet.has(iv)) continue;
         ivSet.add(iv);
 
-        const bucket = (map[iv] ??= []);
-        if (!bucket.includes(primaryKey)) bucket.push(primaryKey);
+        const bucket = (this.index[INDEX_NAME][iv] ??= []);
+        if (!bucket.includes(PRIMARY_KEY)) bucket.push(PRIMARY_KEY);
 
         if (shouldTrackLoaded) {
           const loadedVal = this.toLoadedValue(parts);
-          if (loadedVal != null) this.loaded[INDEX]!.add(loadedVal);
+          if (loadedVal != null) this.loaded[INDEX_NAME]!.add(loadedVal);
         }
       }
     }
 
-    return primaryKey;
+    return PRIMARY_KEY;
   }
 
   /**
@@ -525,8 +544,8 @@ export class BaseCache<T> {
    * @param indices Index keys to maintain for each row.
    */
   public upsertMany(
-    rows: readonly T[],
-    indices: BaseCache.TIndexKey<T>[],
+    rows: readonly Row[],
+    indices: BaseCache.Caching.Index.Name<Row>[],
   ): void {
     for (const row of rows) this.upsert(row, indices);
   }
@@ -540,12 +559,15 @@ export class BaseCache<T> {
    */
   public markLoaded(
     marks:
-      | ReadonlyArray<{ scope: BaseCache.TIndexKey<T>; value: string | number }>
+      | ReadonlyArray<{
+          scope: BaseCache.Caching.Index.Name<Row>;
+          value: string | number;
+        }>
       | undefined,
   ): void {
     if (!marks) return;
     for (const m of marks) {
-      this.ensureIndexKey(m.scope);
+      this.ensureIndexName(m.scope);
       this.loaded[m.scope]!.add(m.value);
     }
   }
@@ -570,13 +592,13 @@ export class BaseCache<T> {
    * });
    * @author Lukas Diegelmann
    */
-  public merge<TFull = T, TRaw = T>(
+  public merge<TFull = Row, TRaw = Row>(
     source: readonly TRaw[] | TFull,
-    opts?: BaseCache.IMergeOptions<T, TFull, TRaw>,
+    opts?: BaseCache.IMergeOptions<Row, TFull, TRaw>,
   ): BaseCache.IMergeStats {
     const {
       selectRows,
-      normalizeRow = (x: any) => x as unknown as T,
+      normalizeRow = (x: any) => x as unknown as Row,
       indices = [],
       markLoadedFromFull,
       markLoadedFromRow,
@@ -599,7 +621,7 @@ export class BaseCache<T> {
     if (!rawRows.length) return { inserted: 0, updated: 0, touched: 0 };
 
     // Normalize rows
-    const rows: T[] = rawRows.map(r => normalizeRow(r));
+    const rows: Row[] = rawRows.map(r => normalizeRow(r));
 
     // Upsert + loaded tracking
     let inserted = 0;
@@ -609,7 +631,7 @@ export class BaseCache<T> {
       const id = this.getHashedPrimaryKey(row);
       const isExisting = this.byPrimaryKey[id] !== undefined;
 
-      this.upsert(row, indices as BaseCache.TIndexKey<T>[], {
+      this.upsert(row, indices as BaseCache.Caching.Index.Name<Row>[], {
         trackLoadedFromIndices: shouldTrackLoadedFromIndices,
       });
 
@@ -634,7 +656,7 @@ export class BaseCache<T> {
    * @param keyParts Index value as PK-part tuple (for composite index keys).
    */
   public idsByIndex(
-    indexName: BaseCache.TIndexKey<T>,
+    indexName: BaseCache.Caching.Index.Name<Row>,
     keyParts: BaseCache.TPrimaryKeyParts,
   ): readonly BaseCache.TPrimaryKey[] {
     const ix = this.index[indexName];
@@ -648,15 +670,13 @@ export class BaseCache<T> {
    *
    * Returns the concrete rows for a given index value by mapping ids through
    * the primary store. This is a convenience wrapper over `idsByIndex`.
-   * @param indexName Index (column) name to read from.
+   * @param indexKey Index (column) name to read from.
    * @param keyParts Index value as PK-part tuple (for composite index keys).
    */
   public rowsByIndex(
-    indexName: BaseCache.TIndexKey<T>,
+    indexKey: BaseCache.Caching.Index.Name<Row>,
     keyParts: BaseCache.TPrimaryKeyParts,
-  ): T[] {
-    return this.idsByIndex(indexName, keyParts).map(
-      id => this.byPrimaryKey[id],
-    );
+  ): Row[] {
+    return this.idsByIndex(indexKey, keyParts).map(id => this.byPrimaryKey[id]);
   }
 }

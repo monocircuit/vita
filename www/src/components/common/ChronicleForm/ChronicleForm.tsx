@@ -1,5 +1,5 @@
-import { i$Chroncile, iTChronicle } from "@/utils/supabase/api/tables/chronicles/_mapping";
-import createChronicle from "@/utils/supabase/api/tables/chronicles/createChronicle";
+import { i$Chroncile, iTChronicle } from "@/utils/supabase/tables/chronicles/mapping";
+import createChronicle from "@/utils/supabase/tables/chronicles/createChronicle";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input } from "@monolithium/next/components";
 import React from "react";

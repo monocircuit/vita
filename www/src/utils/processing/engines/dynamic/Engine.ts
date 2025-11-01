@@ -33,7 +33,7 @@ import {
   oTChronicle,
   oTLinearChronicle,
   TLinearChronicleKnots,
-} from "@/utils/supabase/api/tables/chronicles/_mapping";
+} from "@/utils/supabase/tables/chronicles/mapping";
 import filterChronicles from "../../data/chronicles/filterChronicles";
 import { getLinearChronicleLeftDelta } from "../../data/chronicles/getLinearChronicleDeltas";
 import alignLinearChronicles from "../../data/chronicles/alignLinearChronicles";
@@ -43,8 +43,8 @@ import Butterfly, {
 } from "@/utils/structures/Butterfly";
 import { BipolarLinkedListPolartity } from "@/utils/structures/BipolarDoublyLinkedList";
 import zod from "zod";
-import { fetchById } from "@/utils/supabase/api/tables/chronicles";
-import { oTVitaFragmentDynamic } from "@/utils/supabase/api/tables/vitas/shards/dynamic/_mapping";
+import { fetchById } from "@/utils/supabase/tables/chronicles";
+import { oTVitaFragmentDynamic } from "@/utils/supabase/tables/vitas/shards/dynamic/_mapping";
 
 interface IEngineProjectionSlice {
   y: number;

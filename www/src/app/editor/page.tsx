@@ -6,7 +6,7 @@ import useEngine from "@/utils/processing/engines/dynamic/useEngine";
 import { drawBranch } from "@/utils/drawing/dynamic/drawBranch";
 import { Viewport } from "pixi-viewport";
 import { ButterflyCell } from "@/utils/structures/Butterfly";
-import { oTLinearChronicle, useReadOwnChronicles } from "@/utils/supabase/api/tables/chronicles";
+import { oTLinearChronicle, useReadOwnChronicles } from "@/utils/supabase/tables/chronicles";
 import filterChronicles from "@/utils/processing/data/chronicles/filterChronicles";
 import { load } from "text-to-svg";
 

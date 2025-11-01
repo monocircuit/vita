@@ -11,8 +11,8 @@ import {
   TableRow,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useOwnProfileData } from "@/utils/supabase/api/tables/profiles/getOwnProfile";
-import { useReadOwnVitas } from "@/utils/supabase/api/tables/vitas";
+import { useOwnProfileData } from "@/utils/supabase/tables/profiles/getOwnProfile";
+import { useReadOwnVitas } from "@/utils/supabase/tables/vitas";
 
 interface Props {}
 
