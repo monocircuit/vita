@@ -10,10 +10,189 @@ import { useReadOwnChronicles } from "@/utils/supabase/api/tables/chronicles";
 import filterChronicles from "@/utils/processing/data/chronicles/filterChronicles";
 import { drawConnection } from "@/utils/drawing/dynamic/drawConnection";
 
+// --- Konfiguration ---
+const CONNECTION_COLOR = 0x000000;
+const CONNECTION_THICKNESS = 2;
+const BRANCH_COLOR = 0x000000;
+const BRANCH_THICKNESS = 2;
+const LAYER_DISTANCE = 30; // Abstand zwischen Layern in Pixeln
+
+// --- Typ-Aliase für bessere Lesbarkeit ---
+type ChronicleCell = ButterflyCell<{
+  id: string;
+  knots: { start: number; end: number };
+}>;
+
+type DrawingContext = {
+  viewport: Viewport;
+  aknot: number;
+  distance: number;
+  screenWidth: number;
+  centerY: number;
+  isRenderedChronicles: Set<string>;
+};
+
+// --- Hilfsfunktionen für das Zeichnen (ausgelagert) ---
+
+/**
+ * Zeichnet rekursiv alle vorherigen (prev) Chronicles und deren Verbindungen.
+ */
+const drawPreviousChronicles = (
+  context: DrawingContext,
+  nextChronicle: ChronicleCell,
+  chronicle: ChronicleCell,
+  prevLevelIndex: number
+) => {
+  const { viewport, aknot, distance, screenWidth, centerY } = context;
+
+  const nknots = normalize(nextChronicle.$.knots, aknot, distance);
+  const nknotsPrev = normalize(chronicle.$.knots, aknot, distance);
+
+  const StartX = nknotsPrev[0] * screenWidth;
+  const EndX = nknotsPrev[1] * screenWidth;
+
+  const nextStartX = nknots[0] * screenWidth;
+  const nextEndX = nknots[1] * screenWidth;
+
+  const nextConnStartX = connectionEndpointX(nextStartX, nextEndX);
+  const ConnEndX = connectionEndpointX(EndX, StartX);
+
+  // Verbindung zeichnen
+  drawConnection(viewport, {
+    startPoint: {
+      x: nextConnStartX,
+      y: centerY - nextChronicle.y * LAYER_DISTANCE,
+    },
+    endPoint: { x: ConnEndX, y: centerY - chronicle.y * LAYER_DISTANCE },
+    color: CONNECTION_COLOR,
+    thickness: CONNECTION_THICKNESS,
+  });
+
+  // Ast (Branch) zeichnen
+  drawBranch(viewport, {
+    start: nknotsPrev[0] * screenWidth,
+    end: nknotsPrev[1] * screenWidth,
+    shift: centerY - prevLevelIndex * LAYER_DISTANCE,
+    title: "t", // TODO: Dynamischer Titel?
+    color: BRANCH_COLOR,
+    thickness: BRANCH_THICKNESS,
+  });
+
+  // Rekursion, falls weitere 'prev' vorhanden sind
+  if (chronicle.prev) {
+    drawPreviousChronicles(context, chronicle, chronicle.prev, chronicle.prev.y);
+  }
+};
+
+/**
+ * Zeichnet rekursiv alle nächsten (next) Chronicles und deren Verbindungen.
+ */
+const drawNextChronicles = (
+  context: DrawingContext,
+  prevChronicle: ChronicleCell,
+  chronicle: ChronicleCell
+) => {
+  const { viewport, aknot, distance, screenWidth, centerY } = context;
+
+  const nknots = normalize(prevChronicle.$.knots, aknot, distance);
+  const nknotsNext = normalize(chronicle.$.knots, aknot, distance);
+
+  const nextStartX = nknots[0] * screenWidth;
+  const nextEndX = nknotsNext[1] * screenWidth;
+  const nextConnEndX = connectionEndpointX(nextEndX, nextStartX);
+
+  // Verbindung zeichnen
+  drawConnection(viewport, {
+    startPoint: {
+      x: nknots[0] * screenWidth,
+      y: centerY - prevChronicle.y * LAYER_DISTANCE,
+    },
+    endPoint: {
+      x: nextConnEndX,
+      y: centerY - chronicle.y * LAYER_DISTANCE,
+    },
+    color: CONNECTION_COLOR,
+    thickness: CONNECTION_THICKNESS,
+  });
+
+  // Ast (Branch) zeichnen
+  drawBranch(viewport, {
+    start: nknotsNext[0] * screenWidth,
+    end: nknotsNext[1] * screenWidth,
+    shift: centerY - chronicle.y * LAYER_DISTANCE,
+    title: "t", // TODO: Dynamischer Titel?
+    color: BRANCH_COLOR,
+    thickness: BRANCH_THICKNESS,
+  });
+
+  // Rekursion, falls weitere 'next' vorhanden sind
+  if (chronicle.next) {
+    drawNextChronicles(context, chronicle, chronicle.next);
+  } else {
+    // Markiert das Ende der Kette (wie im Originalcode)
+    chronicle.flag = () => true;
+  }
+};
+
+/**
+ * Hauptfunktion zum Zeichnen einer einzelnen Chronicle und Anstoßen der
+ * rekursiven Zeichnung von 'prev' und 'next'.
+ */
+const drawChronicle = (
+  context: DrawingContext,
+  chronicle: ChronicleCell,
+  levelIndex: number
+) => {
+  const {
+    viewport,
+    aknot,
+    distance,
+    screenWidth,
+    centerY,
+    isRenderedChronicles,
+  } = context;
+
+  // Überspringen, falls bereits gerendert
+  if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
+
+  // Nur zeichnen, wenn nicht geflaggt
+  if (!chronicle.isFlagged) {
+    const nknots = normalize(chronicle.$.knots, aknot, distance);
+
+    // Den Haupt-Ast (Branch) für diese Chronicle zeichnen
+    drawBranch(viewport, {
+      start: nknots[0] * screenWidth,
+      end: nknots[1] * screenWidth,
+      shift: centerY - levelIndex * LAYER_DISTANCE,
+      title: "t", // TODO: Dynamischer Titel?
+      color: BRANCH_COLOR,
+      thickness: BRANCH_THICKNESS,
+    });
+
+    // Rekursives Zeichnen der 'prev'-Kette starten
+    if (chronicle.prev && !chronicle.isFlagged) {
+      drawPreviousChronicles(context, chronicle, chronicle.prev, chronicle.prev.y);
+    }
+
+    // Rekursives Zeichnen der 'next'-Kette starten
+    if (chronicle.next && !chronicle.isFlagged) {
+      drawNextChronicles(context, chronicle, chronicle.next);
+    } else {
+      // Markiert das Ende der Kette (wie im Originalcode)
+      chronicle.flag = () => true;
+    }
+  }
+
+  // Nach dem Zeichnen zur Rendered-Liste hinzufügen
+  chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
+};
+
+// --- React Komponente ---
+
 function Page() {
   /** ANCHOR: References */
   const pixiContainer = useRef<HTMLDivElement>(null);
-  const appRef = useRef<Application | null>(null); // Ref for the app
+  const appRef = useRef<Application | null>(null);
   const viewportRef = useRef<Viewport | null>(null);
 
   /** ANCHOR: Fetched Data */
@@ -21,42 +200,42 @@ function Page() {
 
   /** ANCHOR: Engines */
   const { init, engine } = useEngine();
-  const [isEngineReady, setEngineReady] = useState(false); // State to track engine readiness
+  const [isEngineReady, setEngineReady] = useState(false);
 
+  // Effect 1: Engine initialisieren, wenn Daten geladen sind
   useEffect(() => {
-    if (!isLoading && ownChronicles.length > 0) {
+    if (!isLoading && ownChronicles.length > 0 && !isEngineReady) {
       console.warn("Engine activated");
       const { linear } = filterChronicles(ownChronicles);
       console.log("Linear Chronicles:", linear);
       init(linear);
-      setEngineReady(true); // Signal that the engine has been initialized
+      setEngineReady(true);
     }
-  }, [ownChronicles, init]);
+  }, [ownChronicles, isLoading, init, isEngineReady]);
 
-
-
-  // Effect 1: Initialize Pixi Application and Viewport (runs only once)
+  // Effect 2: Pixi Application und Viewport initialisieren (läuft nur einmal)
   useEffect(() => {
     if (!pixiContainer.current || appRef.current) {
-      return; // Abort if container is not ready or app is already initialized
+      return;
     }
 
     const app = new Application();
     appRef.current = app;
 
     const initializePixi = async () => {
+      const container = pixiContainer.current!;
       await app.init({
-        resizeTo: pixiContainer.current!,
+        resizeTo: container,
         backgroundColor: 0xffffff,
         autoDensity: true,
         resolution: window.devicePixelRatio || 1,
       });
-      pixiContainer.current!.appendChild(app.canvas);
+      container.appendChild(app.canvas);
 
       const viewport = new Viewport({
-        screenWidth: pixiContainer.current!.clientWidth,
-        screenHeight: pixiContainer.current!.clientHeight,
-        worldWidth: 1000,
+        screenWidth: container.clientWidth,
+        screenHeight: container.clientHeight,
+        worldWidth: 1000, // Weltgröße (kann angepasst werden)
         worldHeight: 1000,
         events: app.renderer.events,
       });
@@ -64,7 +243,7 @@ function Page() {
 
       app.stage.addChild(viewport);
       viewport.drag().pinch().wheel().decelerate();
-      viewport.fit().moveCenter(500, 500);
+      viewport.fit().moveCenter(500, 500); // Zentriert die Welt
     };
 
     initializePixi();
@@ -74,24 +253,26 @@ function Page() {
       appRef.current = null;
       viewportRef.current = null;
     };
-  }, []); // Empty dependency array ensures this runs only once
+  }, []); // Leeres Array stellt sicher, dass dies nur einmal ausgeführt wird
 
-
-
-  // Effect 2: Draw content when the engine is ready (or data changes)
+  // Effect 3: Inhalt zeichnen, wenn die Engine bereit ist
   useEffect(() => {
-    if (!isEngineReady || !viewportRef.current) {
-      return; // Abort if engine isn't ready or viewport is not set up
+    const viewport = viewportRef.current;
+    const container = pixiContainer.current;
+
+    // Abbrechen, wenn Engine oder Viewport nicht bereit sind
+    if (!isEngineReady || !viewport || !container) {
+      return;
     }
 
-    //Viewport define
-    const viewport = viewportRef.current;
-    viewport.removeChildren(); // Clear previous drawings
+    viewport.removeChildren(); // Vorherige Zeichnungen löschen
 
+    // --- Normalisierungsparameter berechnen ---
     let aknot = 0;
-    let distance = 1; // Avoid division by zero
+    let distance = 1; // Standard-Distanz (vermeidet Division durch Null)
 
-    if (engine.current.getLevel(0) != null) {
+    const level0 = engine.current.getLevel(0);
+    if (level0 && level0.length > 0) {
       aknot = engine.current.get(0, 0)?.$.knots.start ?? 0;
       const lastKnot =
         engine.current.getLastCell(0)?.$.knots.end ?? aknot;
@@ -99,171 +280,57 @@ function Page() {
       if (distance === 0) distance = 1;
     }
 
+    // --- Dimensionen und Kontext für das Zeichnen vorbereiten ---
     const positiveLayerHeight = engine.current.yDimensions.positive;
     const negativeLayerHeight = engine.current.yDimensions.negative;
 
-    const isRenderedChronicles = new Set<string>();
+    const screenWidth = container.clientWidth;
+    const screenHeight = container.clientHeight;
+    const centerY = screenHeight / 2;
 
-
-    /*
-    This Function starts the drawing of one Chonicle.
-    One Chronicle can Contain multiple Branches. 
-    So it needs to be able to call itself recursivly until all Branches are drawn.
-    */
-
-    const drawChronicles = (
-      chronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
-      levelIndex: number) => {
-
-      //Draw Previous Logic:
-      const drawPreviousChronicles = (
-        nextChronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
-        chronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
-        prevlevelIndex: number
-      ) => {
-
-        const nknots = normalize(nextChronicle.$.knots, aknot, distance);
-        const nknotsPrev = normalize(chronicle.$.knots, aknot, distance);
-
-        const StartX = nknotsPrev[0] * window.innerWidth;
-        const EndX = nknotsPrev[1] * window.innerWidth;
-
-        const nextStartX = nknots[0] * window.innerWidth;
-        const nextEndX = nknots[1] * window.innerWidth;
-
-        const nextConnStartX = connectionEndpointX(nextStartX, nextEndX);
-        const ConnEndX = connectionEndpointX(EndX, StartX);
-
-
-        //Drawing the connection and the Branch on Screen then if another previous exist do it also for it
-        drawConnection(viewport, {
-          startPoint: { x: nextConnStartX, y: window.innerHeight / 2 - nextChronicle.y * 50 },
-          endPoint: { x: ConnEndX, y: window.innerHeight / 2 - chronicle.y * 50 },
-          color: 0xFF0000,
-          thickness: 2
-        });
-        drawBranch(viewport, {
-          start: nknotsPrev[0] * window.innerWidth,
-          end: nknotsPrev[1] * window.innerWidth,
-          shift: window.innerHeight / 2 - prevlevelIndex * 50,
-          title: "t",
-        });
-
-
-        if (chronicle.prev) {
-          drawPreviousChronicles(chronicle, chronicle.prev, chronicle.prev.y);
-        }
-      };
-
-      //Draw Next Logic:
-      const drawNextChronicles = (
-        prevChronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
-        chronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>
-      ) => {
-        const nknots = normalize(prevChronicle.$.knots, aknot, distance);
-        const nknotsNext = normalize(chronicle.$.knots, aknot, distance);
-
-        const nextStartX = nknots[0] * window.innerWidth;
-        const nextEndX = nknotsNext[1] * window.innerWidth;
-        const nextConnEndX = connectionEndpointX(nextEndX, nextStartX);
-
-
-
-        //Drawing the connection and the Branch on Screen then if another previous exist do it also for it
-        drawConnection(viewport, {
-          startPoint: { x: nknots[0] * window.innerWidth, y: window.innerHeight / 2 - prevChronicle.y * 100 },
-          endPoint: { x: nextConnEndX, y: window.innerHeight / 2 - chronicle.y * 100 },
-          color: 0xFF0000,
-          thickness: 2
-        });
-        drawBranch(viewport, {
-          start: nknotsNext[0] * window.innerWidth,
-          end: nknotsNext[1] * window.innerWidth,
-          shift: window.innerHeight / 2 - chronicle.y * 100,
-          title: "t",
-        });
-        if (chronicle.next) {
-          drawNextChronicles(chronicle, chronicle.next);
-        } else {
-          chronicle.flag = () => true
-
-        }
-      };
-
-      if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
-
-
-      //Drawing the Branch on the Screen only if is unflagged!
-      if (!chronicle.isFlagged) {
-        const nknots = normalize(chronicle.$.knots, aknot, distance);
-        drawBranch(viewport, {
-          start: nknots[0] * window.innerWidth,
-          end: nknots[1] * window.innerWidth,
-          shift: window.innerHeight / 2 - levelIndex * 50,
-          title: "t",
-        });
-
-        if (chronicle.prev && !chronicle.isFlagged) {
-          drawPreviousChronicles(chronicle, chronicle.prev, chronicle.prev.y)
-        }
-
-        if (chronicle.next && !chronicle.isFlagged) {
-          drawNextChronicles(chronicle, chronicle.next)
-        } else {
-          chronicle.flag = () => true
-        }
-      }
-
-
+    const drawingContext: DrawingContext = {
+      viewport,
+      aknot,
+      distance,
+      screenWidth,
+      centerY,
+      isRenderedChronicles: new Set<string>(),
     };
 
-    // Render level 0
-    engine.current.getLevel(0)?.forEach((chronicle, i, arr) => {
+    // --- Render-Schleifen ---
+
+    // Level 0 rendern
+    // HINWEIS: Die spezielle Logik für 'start'/'end' im Originalcode
+    // (Zeilen 208-218) wurde entfernt, da sie nicht verwendet wurde.
+    // 'drawChronicle' berechnet die Positionen selbst.
+    level0?.forEach((chronicle) => {
       console.log("chronicle:", chronicle.$.id);
-      const nknots = normalize(chronicle.$.knots, aknot, distance);
-      let start = nknots[0] * window.innerWidth;
-      let end = nknots[1] * window.innerWidth;
-
-      if (arr.length === 1) {
-        start = 0;
-        end = window.innerWidth;
-      } else if (i === 0) {
-        start = 0;
-      } else if (i === arr.length - 1) {
-        end = window.innerWidth;
-      }
-
-      drawChronicles(chronicle, chronicle.y);
-
-      chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
+      drawChronicle(drawingContext, chronicle, chronicle.y);
     });
 
-    // Render positive levels
+    // Positive Level rendern (1, 2, 3...)
     for (let i = 0; i < positiveLayerHeight; i++) {
       const levelIndex = i + 1;
       const level = engine.current.getLevel(levelIndex);
       level?.forEach((chronicle) => {
-        if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
-        drawChronicles(chronicle, chronicle.y);
-        chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
+        drawChronicle(drawingContext, chronicle, chronicle.y);
       });
-
     }
 
-    // Render negative levels
+    // Negative Level rendern (-1, -2, -3...)
     for (let i = 0; i < negativeLayerHeight; i++) {
-      const levelIndex = i - 1;
-      const level = engine.current.getLevel(-levelIndex);
+      const levelIndex = i + 1; // Index ist positiv
+      const level = engine.current.getLevel(-levelIndex); // Zugriff mit negativem Index
       level?.forEach((chronicle) => {
-        if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
-        chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
+        drawChronicle(drawingContext, chronicle, chronicle.y);
       });
     }
-
-  }, [isEngineReady]);
+  }, [isEngineReady, engine]); // Abhängigkeit von 'engine' hinzugefügt, falls sich die Engine-Instanz ändert
 
   return <div className="w-full h-screen" ref={pixiContainer}></div>;
 }
+
+// --- Unveränderte Hilfsfunktionen ---
 
 const normalize = (
   knots: { start: number; end: number },
@@ -277,19 +344,13 @@ const normalize = (
 };
 
 /**
- * Compute connection endpoint X for a branch.
- * - If branch length <= 300px: use 25% of length
- * - If branch length > 300px: use 75px
- *
- * @param startX left or source x coordinate
- * @param endX right or target x coordinate
- * @returns x coordinate for connection endpoint starting from startX toward endX
- */
+* Berechnet den X-Endpunkt für eine Verbindungslinie an einem Ast.
+* (Originalfunktion unverändert)
+*/
 const connectionEndpointX = (startX: number, endX: number): number => {
   const length = Math.abs(endX - startX);
-  const offset = Math.min(length * 0.25, 75); // 25% or cap at 75px
+  const offset = Math.min(length * 0.25, 75); // 25% oder maximal 75px
   return startX < endX ? startX + offset : startX - offset;
 };
 
 export default Page;
-
