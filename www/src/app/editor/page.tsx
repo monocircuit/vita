@@ -17,6 +17,9 @@ const BRANCH_COLOR = 0x000000;
 const BRANCH_THICKNESS = 2;
 const LAYER_DISTANCE = 30; // Abstand zwischen Layern in Pixeln
 
+// Maximale Pixel-Lücke, die noch als "direkte" Geschwister-Verbindung gilt
+const MAX_SIBLING_PIXEL_GAP = 10;
+
 // --- Typ-Aliase für bessere Lesbarkeit ---
 type ChronicleCell = ButterflyCell<{
   id: string;
@@ -187,6 +190,109 @@ const drawChronicle = (
   chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
 };
 
+
+/**
+ * Zeichnet eine "Abzweigungs"-Verbindung (Fork) von der zentralen Achse (Layer 0)
+ * zum Anfang eines Astes auf Layer Y.
+ */
+const drawForkFromCenterline = (
+  context: DrawingContext,
+  chronicle: ChronicleCell
+) => {
+  const { viewport, aknot, distance, screenWidth, centerY } = context;
+
+  // Normalisiere die Positionen des Ziel-Astes
+  const nknots = normalize(chronicle.$.knots, aknot, distance);
+  const branchStartX = nknots[0] * screenWidth;
+  const branchEndX = nknots[1] * screenWidth;
+
+  // Startpunkt: Auf Layer 0, an der X-Position des Ast-Anfangs
+  const startX_onLayer0 = branchStartX;
+  const startY_onLayer0 = centerY; // Y-Position von Layer 0
+
+  // Endpunkt: Der Anfang des Astes auf Layer Y
+  // Wir nutzen connectionEndpointX, um den Ankerpunkt am Ast zu finden
+  const endX_onBranch = connectionEndpointX(branchStartX, branchEndX);
+  const endY_onBranch = centerY - chronicle.y * LAYER_DISTANCE;
+
+  // Simuliere einen Ankerpunkt auf Layer 0 für die Kurve
+  const startAnchorX = connectionEndpointX(startX_onLayer0, startX_onLayer0 + 10); // +10 simuliert "vorwärts"
+
+  drawConnection(viewport, {
+    startPoint: { x: startAnchorX, y: startY_onLayer0 },
+    endPoint: { x: endX_onBranch, y: endY_onBranch },
+    color: 0xAAAAAA, // Leichtes Grau für Fork/Merge
+    thickness: CONNECTION_THICKNESS - 1, // Etwas dünner
+  });
+};
+
+/**
+ * Zeichnet eine "Rückkehr"-Verbindung (Merge) vom Ende eines Astes 
+ * auf Layer Y zurück zur zentralen Achse (Layer 0).
+ */
+const drawMergeToCenterline = (
+  context: DrawingContext,
+  chronicle: ChronicleCell
+) => {
+  const { viewport, aknot, distance, screenWidth, centerY } = context;
+
+  // Normalisiere die Positionen des Quell-Astes
+  const nknots = normalize(chronicle.$.knots, aknot, distance);
+  const branchStartX = nknots[0] * screenWidth;
+  const branchEndX = nknots[1] * screenWidth;
+
+  // Startpunkt: Das Ende des Astes auf Layer Y
+  // Wir nutzen connectionEndpointX, um den Ankerpunkt am Ast zu finden
+  const startX_onBranch = connectionEndpointX(branchEndX, branchStartX); // (Ende -> Start)
+  const startY_onBranch = centerY - chronicle.y * LAYER_DISTANCE;
+
+  // Endpunkt: Auf Layer 0, an der X-Position des Ast-Endes
+  const endX_onLayer0 = branchEndX;
+  const endY_onLayer0 = centerY; // Y-Position von Layer 0
+
+  // Simuliere einen Ankerpunkt auf Layer 0 für die Kurve
+  const endAnchorX = connectionEndpointX(endX_onLayer0, endX_onLayer0 - 10); // -10 simuliert "rückwärts"
+
+  drawConnection(viewport, {
+    startPoint: { x: startX_onBranch, y: startY_onBranch },
+    endPoint: { x: endAnchorX, y: endY_onLayer0 },
+    color: 0xAAAAAA, // Leichtes Grau für Fork/Merge
+    thickness: CONNECTION_THICKNESS - 1, // Etwas dünner
+  });
+};
+
+/**
+ * Zeichnet eine horizontale Verbindung zwischen zwei Geschwister-Chronicles auf dem selben Layer.
+ */
+const drawSiblingConnection = (
+  context: DrawingContext,
+  prevChronicle: ChronicleCell,
+  currentChronicle: ChronicleCell
+) => {
+  const { viewport, aknot, distance, screenWidth, centerY } = context;
+
+  // Beide sind auf demselben Y-Level
+  const yPos = centerY - currentChronicle.y * LAYER_DISTANCE;
+
+  // Ende des vorherigen Elements
+  const nknotsPrev = normalize(prevChronicle.$.knots, aknot, distance);
+  const prevEndX = nknotsPrev[1] * screenWidth;
+
+  // Start des aktuellen Elements
+  const nknotsCurrent = normalize(currentChronicle.$.knots, aknot, distance);
+  const currentStartX = nknotsCurrent[0] * screenWidth;
+
+  // Zeichne die horizontale Verbindung
+  drawConnection(viewport, {
+    startPoint: { x: prevEndX, y: yPos },
+    endPoint: { x: currentStartX, y: yPos },
+    color: CONNECTION_COLOR, // TIPP: Ändere dies z.B. auf 0xAAAAAA (ein Grau)
+    thickness: CONNECTION_THICKNESS, // TIPP: Mache dies evtl. dünner (z.B. 1)
+  });
+};
+
+
+
 // --- React Komponente ---
 
 function Page() {
@@ -253,7 +359,7 @@ function Page() {
       appRef.current = null;
       viewportRef.current = null;
     };
-  }, []); // Leeres Array stellt sicher, dass dies nur einmal ausgeführt wird
+  }, []);
 
   // Effect 3: Inhalt zeichnen, wenn die Engine bereit ist
   useEffect(() => {
@@ -267,6 +373,7 @@ function Page() {
 
     viewport.removeChildren(); // Vorherige Zeichnungen löschen
 
+    const drawingTasks: (() => void)[] = [];
     // --- Normalisierungsparameter berechnen ---
     let aknot = 0;
     let distance = 1; // Standard-Distanz (vermeidet Division durch Null)
@@ -297,40 +404,120 @@ function Page() {
       isRenderedChronicles: new Set<string>(),
     };
 
-    // --- Render-Schleifen ---
+    const processLevel = (level: ChronicleCell[] | undefined) => {
+      if (!level || level.length === 0) return;
 
-    // Level 0 rendern
-    // HINWEIS: Die spezielle Logik für 'start'/'end' im Originalcode
-    // (Zeilen 208-218) wurde entfernt, da sie nicht verwendet wurde.
-    // 'drawChronicle' berechnet die Positionen selbst.
-    level0?.forEach((chronicle) => {
-      console.log("chronicle:", chronicle.$.id);
-      drawChronicle(drawingContext, chronicle, chronicle.y);
+      level.forEach((chronicle, j, arr) => {
+        if (!chronicle) {
+          console.warn("Skipping undefined chronicle at index", j);
+          return;
+        }
+
+        // HIER ÄNDERUNG: Nicht direkt zeichnen, sondern Task zur Liste hinzufügen
+        drawingTasks.push(() => {
+          drawChronicle(drawingContext, chronicle, chronicle.y);
+        });
+
+        if (chronicle.y === 0) return;
+
+        const prevChronicle = (j > 0) ? arr[j - 1] : undefined;
+
+        // FORK MERGE Sibling Logic
+        if (prevChronicle) {
+          const nknotsPrev = normalize(prevChronicle.$.knots, aknot, distance);
+          const prevEndX = nknotsPrev[1] * screenWidth;
+
+          const nknotsCurr = normalize(chronicle.$.knots, aknot, distance);
+          const currStartX = nknotsCurr[0] * screenWidth;
+
+          const gap = currStartX - prevEndX;
+
+          if (gap > MAX_SIBLING_PIXEL_GAP) {
+            // HIER ÄNDERUNG: Tasks hinzufügen
+            drawingTasks.push(() => {
+              drawMergeToCenterline(drawingContext, prevChronicle);
+            });
+            if (!chronicle.prev) {
+              drawingTasks.push(() => {
+                drawForkFromCenterline(drawingContext, chronicle);
+              });
+            }
+          } else {
+            // HIER ÄNDERUNG: Task hinzufügen
+            drawingTasks.push(() => {
+              drawSiblingConnection(drawingContext, prevChronicle, chronicle);
+            });
+          }
+
+        } else {
+          if (!chronicle.prev) {
+            // HIER ÄNDERUNG: Task hinzufügen
+            drawingTasks.push(() => {
+              drawForkFromCenterline(drawingContext, chronicle);
+            });
+          }
+        }
+
+        // --- B. END-Logik (Merge) ---
+        if (j === arr.length - 1) {
+          if (!chronicle.next) {
+            // HIER ÄNDERUNG: Task hinzufügen
+            drawingTasks.push(() => {
+              drawMergeToCenterline(drawingContext, chronicle);
+            });
+          }
+        }
+      });
+    };
+
+    // --- Führe die Verarbeitung für alle Level aus ---
+
+    // Level 0 (hier gilt die Fork/Merge-Logik nicht, nur die Geschwister)
+    level0?.forEach((chronicle, i, arr) => {
+      // HIER ÄNDERUNG: Task hinzufügen
+      drawingTasks.push(() => {
+        drawChronicle(drawingContext, chronicle, chronicle.y);
+      });
+      if (i > 0) {
+        // HIER ÄNDERUNG: Task hinzufügen
+        drawingTasks.push(() => {
+          drawSiblingConnection(drawingContext, chronicle.prev ? chronicle.prev : chronicle, chronicle);
+        });
+      }
     });
 
-    // Positive Level rendern (1, 2, 3...)
+    // Positive Level
     for (let i = 0; i < positiveLayerHeight; i++) {
-      const levelIndex = i + 1;
-      const level = engine.current.getLevel(levelIndex);
-      level?.forEach((chronicle) => {
-        drawChronicle(drawingContext, chronicle, chronicle.y);
-      });
+      processLevel(engine.current.getLevel(i + 1));
     }
 
-    // Negative Level rendern (-1, -2, -3...)
+    // Negative Level
     for (let i = 0; i < negativeLayerHeight; i++) {
-      const levelIndex = i + 1; // Index ist positiv
-      const level = engine.current.getLevel(-levelIndex); // Zugriff mit negativem Index
-      level?.forEach((chronicle) => {
-        drawChronicle(drawingContext, chronicle, chronicle.y);
-      });
+      processLevel(engine.current.getLevel(-(i + 1)));
     }
-  }, [isEngineReady, engine]); // Abhängigkeit von 'engine' hinzugefügt, falls sich die Engine-Instanz ändert
+
+    // --- NEU: Tasks nacheinander mit Verzögerung ausführen ---
+    let taskIndex = 0;
+    const intervalId = setInterval(() => {
+      if (taskIndex < drawingTasks.length) {
+        drawingTasks[taskIndex](); // Führe den nächsten Zeichen-Befehl aus
+        taskIndex++;
+      } else {
+        clearInterval(intervalId); // Alle Tasks erledigt
+      }
+    }, 150); // Zeichne alle 50ms ein neues Element. Passe diese Zahl an!
+
+    // WICHTIG: Cleanup-Funktion für das Interval
+    // Diese wird ausgeführt, wenn die Komponente unmountet oder der Effect neu läuft
+    return () => {
+      clearInterval(intervalId);
+    };
+
+  }, [isEngineReady, engine]);
 
   return <div className="w-full h-screen" ref={pixiContainer}></div>;
 }
 
-// --- Unveränderte Hilfsfunktionen ---
 
 const normalize = (
   knots: { start: number; end: number },
@@ -345,7 +532,6 @@ const normalize = (
 
 /**
 * Berechnet den X-Endpunkt für eine Verbindungslinie an einem Ast.
-* (Originalfunktion unverändert)
 */
 const connectionEndpointX = (startX: number, endX: number): number => {
   const length = Math.abs(endX - startX);

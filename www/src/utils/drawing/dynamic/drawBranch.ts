@@ -17,10 +17,6 @@ export const drawBranch = (
   graphics.moveTo(start, shift);
   graphics.lineTo(end, shift);
   graphics.stroke({ width: thickness, color: color });
-  graphics.eventMode = 'static';
-  graphics.on('pointerover', () => {
-    console.log('Sprite clicked!');
-  });
 
   if (title) {
     const text = new PIXI.Text({
@@ -36,5 +32,4 @@ export const drawBranch = (
   }
 
   container.addChild(graphics);
-  return graphics;
 };
