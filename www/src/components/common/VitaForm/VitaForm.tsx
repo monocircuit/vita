@@ -1,5 +1,4 @@
 import { $VitaDynamic, VitaDynamic } from "@/utils/schemas/VitaDynamic";
-import {} from "@/utils/supabase/tables/vitas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input } from "@monolithium/next/components";
 import React from "react";
@@ -21,7 +20,6 @@ const VitaForm = (props: Props) => {
     <form
       id="vita-form"
       className="size-full flex flex-col gap-[10px] overflow-hidden"
-      onSubmit={handleSubmit(createDynamicVita)}
     >
       <div
         id="vita-form__title"

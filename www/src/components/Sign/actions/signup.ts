@@ -2,7 +2,7 @@
 
 import { User, Session } from "@supabase/supabase-js";
 
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/shared/supabase/server";
 import SignUpFormSchema from "@/components/Sign/schemas/SignInFormSchema";
 import zod, { ZodError } from "zod";
 

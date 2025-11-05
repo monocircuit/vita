@@ -11,12 +11,14 @@
             "id": "dd654cd3aea2c072",
             "type": "leaf",
             "state": {
-              "type": "excalidraw",
+              "type": "markdown",
               "state": {
-                "file": "Excalidraw/normalize() 2025-08-04 14.15.48.excalidraw.md"
+                "file": "Supabase/Data Fetching/Fetcher.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "excalidraw-icon",
-              "title": "normalize() 2025-08-04 14.15.48.excalidraw"
+              "icon": "lucide-file",
+              "title": "Fetcher"
             }
           }
         ]
@@ -164,7 +166,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 271.5
+    "width": 271.5,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -182,6 +185,8 @@
   "active": "dd654cd3aea2c072",
   "lastOpenFiles": [
     "Excalidraw/normalize() 2025-08-04 14.15.48.excalidraw.md",
+    "Supabase/Data Fetching/Fetcher.md",
+    "Supabase/Data Fetching",
     "Vita/Dynamic/Engine/normalize().md",
     "Vita/Dynamic/Engine/Inferring the Dynamic Vita_Sketch.md",
     "Vita/Dynamic/Engine/Inferring the Dynamic Vita.md",
@@ -208,9 +213,7 @@
     "Vita/Dynamic/Engine",
     "Vita/Dynamic/Structures/ButterlyStack.md",
     "Vita/Dynamic/Structures",
-    "Vita/Dynamic/Maneuvers.md",
     "Vita/Dynamic/Elements",
-    "Untitled",
     "Supabase",
     "Excalidraw",
     "Untitled.canvas",

@@ -1,0 +1,1 @@
+A [[Fetcher]] always returns entire rows of the corresponding supabase table.

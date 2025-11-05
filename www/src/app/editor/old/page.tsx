@@ -7,7 +7,7 @@ import { Application, extend, PixiReactElementProps, useExtend } from "@pixi/rea
 import { Container, Graphics } from "pixi.js";
 import React, { JSX, useEffect, useRef } from "react";
 import { Viewport } from "pixi-viewport";
-import { TLinearChronicle } from "@/utils/supabase/tables/chronicles/mapping";
+import { TLinearChronicle } from "@/shared/supabase/tables/chronicles/mapping";
 
 
 const Page: React.FunctionComponent = () => {

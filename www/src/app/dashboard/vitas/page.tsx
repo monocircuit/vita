@@ -11,15 +11,15 @@ import {
   TableRow,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useOwnProfileData } from "@/utils/supabase/tables/profiles/getOwnProfile";
-import { useReadOwnVitas } from "@/utils/supabase/tables/vitas";
+import useOwnProfile from "@/shared/supabase/tables/profiles/read/useOwnProfile";
+import useOwnVitas from "@/shared/supabase/tables/vitas/$read/useOwnVitas";
 
 interface Props {}
 
 const Vitas = (props: Props) => {
   /** ANCHOR: Data */
-  const { ownProfile } = useOwnProfileData();
-  const { vitas: ownVitas } = useReadOwnVitas();
+  const { data: ownProfile } = useOwnProfile();
+  const { data: ownVitas } = useOwnVitas();
 
   /** ANCHOR: Router */
   const router = useRouter();

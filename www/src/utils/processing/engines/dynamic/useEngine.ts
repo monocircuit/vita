@@ -1,7 +1,7 @@
 import {
   iTChronicle,
   oTLinearChronicle,
-} from "@/utils/supabase/tables/chronicles/mapping";
+} from "@/shared/supabase/tables/chronicles/mapping";
 import Engine from "./Engine";
 import { useEffect, useRef, useState } from "react";
 

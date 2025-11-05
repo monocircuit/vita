@@ -21,7 +21,7 @@ import MonocircuitLogo from "../../../../public/static/icons/monocircuit.svg";
 import useOnScrollbarVisible from "@/hooks/useOnScrollbarVisible";
 import SignIn from "@/components/SignIn";
 import SignUp from "@/components/SignUp";
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@/shared/supabase/client";
 
 import Sign from "../../Sign/Sign";
 

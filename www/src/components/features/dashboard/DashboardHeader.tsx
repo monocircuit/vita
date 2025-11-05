@@ -1,13 +1,12 @@
-import { useOwnProfileData } from "@/utils/supabase/tables/profiles/getOwnProfile";
 import Profile from "@/components/common/Profile";
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@monolithium/next/components";
+import useOwnProfile from "@/shared/supabase/tables/profiles/read/useOwnProfile";
 
 interface Props {}
 
 const DashboardHeader = (props: Props) => {
-  const { ownProfile, ownProfileError, isOwnProfileLoading } =
-    useOwnProfileData();
+  const { data: ownProfile } = useOwnProfile();
 
   return (
     <div id="dashboard-header" className="size-full flex">

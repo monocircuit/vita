@@ -6,9 +6,11 @@ import useEngine from "@/utils/processing/engines/dynamic/useEngine";
 import { drawBranch } from "@/utils/drawing/dynamic/drawBranch";
 import { Viewport } from "pixi-viewport";
 import { ButterflyCell } from "@/utils/structures/Butterfly";
-import { oTLinearChronicle, useReadOwnChronicles } from "@/utils/supabase/tables/chronicles";
+import { oTLinearChronicle } from "@/shared/supabase/tables/chronicles";
 import filterChronicles from "@/utils/processing/data/chronicles/filterChronicles";
 import { load } from "text-to-svg";
+import { useOwnChronicles } from "@/shared/supabase/tables/chronicles";
+import { useStoreDynamicShards } from "@/shared/supabase/tables/vitas/shards/dynamic";
 
 function Page() {
   /** ANCHOR: References */
@@ -16,8 +18,11 @@ function Page() {
   const appRef = useRef<Application | null>(null); // Ref for the app
   const viewportRef = useRef<Viewport | null>(null);
 
-  /** ANCHOR: Fetched Data */
-  const { chronicles: ownChronicles , isLoading } = useReadOwnChronicles();
+  /** ANCHOR: Readers */
+  const { data: ownChronicles, isLoading } = useOwnChronicles();
+
+  /** ANCHOR: Writers */
+  const { mutate } = useStoreDynamicShards();
 
   /** ANCHOR: Engines */
   const { init, engine } = useEngine();
@@ -25,12 +30,15 @@ function Page() {
   const [isAppInitialized, setAppInitialized] = useState(false); // State to track app initialization
 
   useEffect(() => {
-    if (!isLoading && ownChronicles.length > 0) {
+    if (ownChronicles && ownChronicles.length > 0) {
       console.warn("Engine activated");
       const { linear, untied } = filterChronicles(ownChronicles);
       console.log("Linear Chronicles:", linear);
       init(linear);
       setEngineReady(true); // Signal that the engine has been initialized
+
+      // Testing grounds for uploading vita dynamic shards to supabase
+      mutate();
     }
   }, [ownChronicles, init]);
 
@@ -92,8 +100,7 @@ function Page() {
 
     if (engine.current.getLevel(0) != null) {
       aknot = engine.current.get(0, 0)?.$.knots.start ?? 0;
-      const lastKnot =
-        engine.current.getLastCell(0)?.$.knots.end ?? aknot;
+      const lastKnot = engine.current.getLastCell(0)?.$.knots.end ?? aknot;
       distance = lastKnot - aknot;
       if (distance === 0) distance = 1;
     }
@@ -104,8 +111,9 @@ function Page() {
     const isRenderedChronicles = new Set<string>();
 
     const drawChronicles = (
-      chronicle: { id: string, knots: { start: number; end: number; } },
-      levelIndex: number) => {
+      chronicle: { id: string; knots: { start: number; end: number } },
+      levelIndex: number,
+    ) => {
       if (isRenderedChronicles.has(chronicle.id.toString())) return;
 
       const nknots = normalize(chronicle.knots, aknot, distance);
@@ -118,20 +126,25 @@ function Page() {
     };
 
     const drawPreviousChronicles = (
-      chronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
-      levelIndex: number
+      chronicle: ButterflyCell<{
+        id: string;
+        knots: { start: number; end: number };
+      }>,
+      levelIndex: number,
     ) => {
       console.log("Recursing Previous:", levelIndex);
       drawChronicles(chronicle.$, levelIndex);
       if (chronicle.prev) {
-
         drawPreviousChronicles(chronicle.prev, chronicle.prev.y);
       }
     };
 
     const drawNextChronicles = (
-      chronicle: ButterflyCell<{ id: string, knots: { start: number; end: number; } }>,
-      levelIndex: number
+      chronicle: ButterflyCell<{
+        id: string;
+        knots: { start: number; end: number };
+      }>,
+      levelIndex: number,
     ) => {
       drawChronicles(chronicle.$, levelIndex);
       if (chronicle.next) {
@@ -174,7 +187,7 @@ function Page() {
     for (let i = 0; i < positiveLayerHeight; i++) {
       const levelIndex = i + 1;
       const level = engine.current.getLevel(levelIndex);
-      level?.forEach((chronicle) => {
+      level?.forEach(chronicle => {
         if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
 
         drawChronicles(chronicle.$, chronicle.y);
@@ -191,14 +204,13 @@ function Page() {
 
         chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
       });
-
     }
 
     // Render negative levels
     for (let i = 0; i < negativeLayerHeight; i++) {
       const levelIndex = i - 1;
       const level = engine.current.getLevel(-levelIndex);
-      level?.forEach((chronicle) => {
+      level?.forEach(chronicle => {
         if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
 
         drawChronicles(chronicle.$, levelIndex);
@@ -221,7 +233,7 @@ function Page() {
 const normalize = (
   knots: { start: number; end: number },
   aKnot: number,
-  distance: number
+  distance: number,
 ) => {
   const normalizedKnots = [0, 0];
   normalizedKnots[0] = (knots.start - aKnot) / distance;
@@ -230,4 +242,3 @@ const normalize = (
 };
 
 export default Page;
-

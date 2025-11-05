@@ -3,13 +3,13 @@
 import ChronicleForm from "@/components/common/ChronicleForm/ChronicleForm";
 import Card from "@/components/common/Card";
 import CardText from "@/components/common/Card/CardText";
-import { useOwnChroniclesData } from "@/utils/supabase/api/tables/chronicles/readOwnChronicles";
 import { Button, Popover, Scrollable } from "@monolithium/next/components";
 import React, { useState } from "react";
+import { useOwnChronicles } from "@/shared/supabase/tables/chronicles";
 
 const Page = () => {
   /** ANCHOR: Data */
-  const { ownChronicles } = useOwnChroniclesData();
+  const { data: ownChronicles } = useOwnChronicles();
 
   /** ANCHOR: State */
   const [isAddPopoverActive, setIsAddPopoverActive] = useState(false);

@@ -1,5 +1,5 @@
 import zod from "zod";
-import { $VitaType } from "../supabase/enumerated-types/VitaType";
+import { $VitaType } from "../../shared/supabase/enumerated-types/VitaType";
 
 /* Schemas */
 export const $Vita = zod.object({

@@ -1,7 +1,7 @@
 "use client";
 
 import { redirect } from "next/navigation";
-import { createClient } from "../../../utils/supabase/client";
+import { createClient } from "../../../shared/supabase/client";
 import { z, ZodType } from "zod";
 
 export interface signInFormData {

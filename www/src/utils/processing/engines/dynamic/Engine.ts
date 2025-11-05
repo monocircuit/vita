@@ -25,16 +25,10 @@
  */
 
 import {
-  $LinearChronicleKnots,
-  iTChronicle,
-  iTLinearChronicle,
-  o$Chronicle,
   o$LinearChronicle,
-  oTChronicle,
   oTLinearChronicle,
   TLinearChronicleKnots,
-} from "@/utils/supabase/tables/chronicles/mapping";
-import filterChronicles from "../../data/chronicles/filterChronicles";
+} from "@/shared/supabase/tables/chronicles/mapping";
 import { getLinearChronicleLeftDelta } from "../../data/chronicles/getLinearChronicleDeltas";
 import alignLinearChronicles from "../../data/chronicles/alignLinearChronicles";
 import Butterfly, {
@@ -43,7 +37,6 @@ import Butterfly, {
 } from "@/utils/structures/Butterfly";
 import { BipolarLinkedListPolartity } from "@/utils/structures/BipolarDoublyLinkedList";
 import zod from "zod";
-import { fetchById } from "@/utils/supabase/tables/chronicles";
 import { oTVitaFragmentDynamic } from "@/utils/supabase/tables/vitas/shards/dynamic/_mapping";
 
 interface IEngineProjectionSlice {
@@ -54,12 +47,12 @@ interface IEngineProjectionSlice {
 const $EngineChronicle = o$LinearChronicle.omit({
   category: true,
   scope: true,
-  created_at: true,
-  updated_at: true,
+  createdAt: true,
+  updatedAt: true,
   description: true,
-  entity_id: true,
+  entityId: true,
   title: true,
-  user_id: true,
+  userId: true,
 });
 
 type TEngineChronicle = zod.infer<typeof $EngineChronicle>;

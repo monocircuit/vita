@@ -1,5 +1,7 @@
-import { i$Chroncile, iTChronicle } from "@/utils/supabase/tables/chronicles/mapping";
-import createChronicle from "@/utils/supabase/tables/chronicles/createChronicle";
+import {
+  i$Chroncile,
+  iTChronicle,
+} from "@/shared/supabase/tables/chronicles/mapping";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input } from "@monolithium/next/components";
 import React from "react";
@@ -19,7 +21,6 @@ const ChronicleForm = () => {
     <form
       id="chronicle-form"
       className="size-full flex flex-col gap-[10px] overflow-hidden"
-      onSubmit={handleSubmit(createChronicle)}
     >
       <div
         id="chronicle-form__title"
@@ -60,7 +61,7 @@ const ChronicleForm = () => {
         placeholder="Entity"
         className="h-[40px] ml-[5px] mr-[5px]"
         register={register("entity_id", { required: true })}
-        error={errors.entity_id?.message}
+        error={errors.entityId?.message}
       />
       {/* <Input
         name="knots"

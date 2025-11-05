@@ -1,5 +1,5 @@
 import zod from "zod";
-import { $Scope } from "../supabase/enumerated-types/Scope";
+import { $Scope } from "../../shared/supabase/enumerated-types/Scope";
 
 /** Schemas */
 export const $VitaDynamicOverhead = zod.object({
