@@ -1,116 +1,8 @@
-import BipolarDoublyLinkedList from "./BipolarDoublyLinkedList";
-import { DoublyLinkedList } from "./DoublyLinkedList";
-
-export interface IButterflyDepth {
-  x: number;
-  y: number;
-}
-
-/**
- * @author Lukas Diegelmann
- *
- * The `ButterflyLinkage` connects two cells that do not have consecutive x coordinates
- * and are in the same y coordinate. It can be used to semantically group different cells
- * depending on the use case.
- *
- * Should the `next` or `prev` connection not exist (meaning the user of `Butterfly`) did
- * not instantiate such a connection, these functions will return `null`, indicating that
- * there is no connection.
- */
-export interface IButterflyLinkage<T> {
-  next: ButterflyCell<T> | null;
-  prev: ButterflyCell<T> | null;
-}
-
-/**
- * @author Lukas Diegelmann
- *
- * A `ButterflyCell` represents a single entry in the `Butterfly` data structure
- * at coordinates `(y, x)`, where:
- * - `y` is the vertical position (the layer in the stack),
- * - `x` is the horizontal position within that layer.
- *
- * Each cell contains:
- * - The actual `content` of type `Value`
- * - Linkage information (`next` and `prev`) inherited from {@link IButterflyLinkage},
- *   which can be used to establish semantic connections between cells on the same
- *   Y-level that are not directly adjacent in the X-dimension.
- *
- * If no linkage was defined, the `next` and `prev` functions will return `null`.
- *
- * @typeParam Value - The type of the content stored inside the cell.
- */
-export class ButterflyCell<T> implements IButterflyLinkage<T>, IButterflyDepth {
-  public readonly $: T;
-
-  /* Making the `ButterflyCell` able to connect with other `ButterflyCells`
-     inside the `Butterfly`. */
-  public prev: null | ButterflyCell<T> = null;
-  public next: null | ButterflyCell<T> = null;
-
-  /* Making the `ButterflyCell` aware of its own depth inside the `Butterfly` */
-  public x: number = NaN;
-  public y: number = NaN;
-
-  /* Enable flagging of a `ButterflyCell` */
-  private _flag: boolean = false;
-
-  constructor(
-    $: T,
-    options?: { depth: IButterflyDepth; linkage?: IButterflyLinkage<T> },
-  ) {
-    this.$ = $;
-
-    if (options?.linkage) {
-      this.next = options?.linkage.next;
-      this.prev = options?.linkage.prev;
-    }
-
-    if (options?.depth) {
-      this.x = options.depth.x;
-      this.y = options.depth.y;
-    }
-  }
-
-  get isFlagged() {
-    return this._flag;
-  }
-
-  public flag(): boolean {
-    this._flag = true;
-    return this._flag;
-  }
-
-  public unflag() {
-    this._flag = false;
-    return this._flag;
-  }
-}
-
-/**
- * @author ChatGPT5
- *
- * A `ButterflyLevel` is a horizontal row of cells in the Butterfly structure.
- * It extends a standard {@link DoublyLinkedList}, but provides iterators
- * that expose both the X-coordinate and the associated `ButterflyCell<Value>`.
- *
- * @typeParam Value The type of content stored inside each ButterflyCell.
- */
-class ButterflyLevel<T> extends DoublyLinkedList<
-  ButterflyCell<T>,
-  { x: number; cell: ButterflyCell<T> }
-> {
-  constructor() {
-    super();
-  }
-
-  protected project(
-    cell: ButterflyCell<T>,
-    index: number,
-  ): { x: number; cell: ButterflyCell<T> } {
-    return { x: index, cell };
-  }
-}
+import Emitter from "@/utils/Emitter";
+import BipolarDoublyLinkedList from "../BipolarDoublyLinkedList";
+import ButterflyCell from "./ButterflyCell";
+import ButterflyLevel from "./ButterflyLevel";
+import { ButterflyChange } from "./types";
 
 /**
  * @author Lukas Diegelmann
@@ -127,13 +19,15 @@ class ButterflyLevel<T> extends DoublyLinkedList<
  * A one dimensional group of cells (`BipolarDoublyLinkedList<Value>`) is called a
  * level.
  */
-export default class Butterfly<T> {
+export default class Butterfly<T> extends Emitter<ButterflyChange> {
   private store: BipolarDoublyLinkedList<
     ButterflyLevel<T>,
     { y: number; level: ButterflyLevel<T> }
   >;
 
   constructor() {
+    super();
+
     this.store = new BipolarDoublyLinkedList({
       project: entry => {
         return { level: entry.value, y: entry.index };
@@ -221,7 +115,7 @@ export default class Butterfly<T> {
    * butterfly.set(2, 0, { title: "Chronicle B", knots: { start: 200, end: 300 } });
    */
   public set(y: number, x: number, value: T): null | ButterflyCell<T> {
-    // Create Butterfly Cell
+    /* Create Butterfly Cell */
     const cell = new ButterflyCell(value, {
       depth: {
         x: x,
@@ -478,7 +372,6 @@ export default class Butterfly<T> {
     initialValue: Accumulator,
   ): Accumulator | undefined {
     // delegate to the store (BipolarLinkedList<BipolarLinkedList<Value>>)
-    console.log("reduceYToNeutral call");
     return this.store.reduceToNeutral<Accumulator>(
       startY,
       (acc, level, y) => reducer(acc, level, y, this),
@@ -606,6 +499,4 @@ export default class Butterfly<T> {
   public stepTowardZero(index: number): number {
     return this.store.stepTowardZero(index);
   }
-
-  public toJson() {}
 }

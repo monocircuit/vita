@@ -1,4 +1,4 @@
-import { oTDynamicShard } from "./mapping";
+import { iTDynamicShard, oTDynamicShard } from "./mapping";
 
 /**
  * Normalizes a raw Supabase `profiles` table row into a typed `oTProfile` object.
@@ -21,4 +21,14 @@ export const normalizeDynamicShard = (row: any): oTDynamicShard => ({
   y: row.y,
   createdAt: row.created_at ? new Date(row.created_at as string) : null,
   updatedAt: row.updated_at ? new Date(row.updated_at as string) : null,
+});
+
+export const denormalizeDynamicShard = (shard: iTDynamicShard): unknown => ({
+  id: shard.id,
+  chronicle_id: shard.chronicleId,
+  next_id: shard.nextId,
+  prev_id: shard.prevId,
+  vita_id: shard.vitaId,
+  x: shard.x,
+  y: shard.y,
 });

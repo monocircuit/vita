@@ -14,6 +14,8 @@ import { useDynamicShardsByVitaId } from "@/shared/supabase/tables/vitas/shards/
 const Home = () => {
   const { data: vitas } = useOwnVitas();
   const { data: shards } = useDynamicShardsByVitaId("1");
+  const { data: profile } = useOwnProfile();
+  const { data: chronicles } = useOwnChronicles();
 
   console.log(vitas, shards);
 
