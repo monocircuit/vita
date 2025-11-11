@@ -20,6 +20,6 @@ export type {
  * Export all schemas
  */
 export {
-  i$DynamicShard as i$VitaShardDynamic,
-  o$DynamicShard as o$VitaShardDynamic,
+  nw$DynamicShard as i$VitaShardDynamic,
+  $DynamicShard_normalized_read as o$VitaShardDynamic,
 } from "./mapping";

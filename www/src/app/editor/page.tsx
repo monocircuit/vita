@@ -5,7 +5,7 @@ import { Application, Graphics } from "pixi.js";
 import useEngine from "@/utils/processing/engines/dynamic/useEngine";
 import { drawBranch } from "@/utils/drawing/dynamic/drawBranch";
 import { Viewport } from "pixi-viewport";
-import { ButterflyCell } from "@/utils/structures/Butterfly";
+import { ButterflyCell } from "@/shared/structures/Butterfly/Butterfly";
 import { oTLinearChronicle } from "@/shared/supabase/tables/chronicles";
 import filterChronicles from "@/utils/processing/data/chronicles/filterChronicles";
 import { load } from "text-to-svg";
@@ -25,22 +25,18 @@ function Page() {
   const { mutate } = useStoreDynamicShards();
 
   /** ANCHOR: Engines */
-  const { init, engine } = useEngine();
-  const [isEngineReady, setEngineReady] = useState(false); // State to track engine readiness
-  const [isAppInitialized, setAppInitialized] = useState(false); // State to track app initialization
+  const engine = useEngine();
 
   useEffect(() => {
     if (ownChronicles && ownChronicles.length > 0) {
-      console.warn("Engine activated");
-      const { linear, untied } = filterChronicles(ownChronicles);
-      console.log("Linear Chronicles:", linear);
-      init(linear);
-      setEngineReady(true); // Signal that the engine has been initialized
+      console.warn("update");
+
+      engine.init(filterChronicles(ownChronicles).linear);
 
       // Testing grounds for uploading vita dynamic shards to supabase
-      mutate();
+      console.log(engine.toShards());
     }
-  }, [ownChronicles, init]);
+  }, [ownChronicles]);
 
   console.log("IsLoading:", isLoading);
 
@@ -87,7 +83,7 @@ function Page() {
 
   // Effect 2: Draw content when the engine is ready (or data changes)
   useEffect(() => {
-    if (!isEngineReady || !viewportRef.current) {
+    if (!engine.loaded || !viewportRef.current) {
       return; // Abort if engine isn't ready or viewport is not set up
     }
 
@@ -98,15 +94,15 @@ function Page() {
     let aknot = 0;
     let distance = 1; // Avoid division by zero
 
-    if (engine.current.getLevel(0) != null) {
-      aknot = engine.current.get(0, 0)?.$.knots.start ?? 0;
-      const lastKnot = engine.current.getLastCell(0)?.$.knots.end ?? aknot;
+    if (engine.getLevel(0) != null) {
+      aknot = engine.get(0, 0)?.$.knots.start ?? 0;
+      const lastKnot = engine.getLastCell(0)?.$.knots.end ?? aknot;
       distance = lastKnot - aknot;
       if (distance === 0) distance = 1;
     }
 
-    const positiveLayerHeight = engine.current.yDimensions.positive;
-    const negativeLayerHeight = engine.current.yDimensions.negative;
+    const positiveLayerHeight = engine.yDimensions.positive;
+    const negativeLayerHeight = engine.yDimensions.negative;
 
     const isRenderedChronicles = new Set<string>();
 
@@ -153,7 +149,7 @@ function Page() {
     };
 
     // Render level 0
-    engine.current.getLevel(0)?.forEach((chronicle, i, arr) => {
+    engine.getLevel(0)?.forEach((chronicle, i, arr) => {
       console.log("chronicle:", chronicle.$.id);
       const nknots = normalize(chronicle.$.knots, aknot, distance);
       let start = nknots[0] * window.innerWidth;
@@ -186,7 +182,7 @@ function Page() {
     // Render positive levels
     for (let i = 0; i < positiveLayerHeight; i++) {
       const levelIndex = i + 1;
-      const level = engine.current.getLevel(levelIndex);
+      const level = engine.getLevel(levelIndex);
       level?.forEach(chronicle => {
         if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
 
@@ -209,7 +205,7 @@ function Page() {
     // Render negative levels
     for (let i = 0; i < negativeLayerHeight; i++) {
       const levelIndex = i - 1;
-      const level = engine.current.getLevel(-levelIndex);
+      const level = engine.getLevel(-levelIndex);
       level?.forEach(chronicle => {
         if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
 
@@ -225,7 +221,7 @@ function Page() {
         chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
       });
     }
-  }, [isEngineReady]);
+  }, [engine, engine.loaded]);
 
   return <div className="w-full h-full" ref={pixiContainer}></div>;
 }

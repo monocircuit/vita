@@ -31,13 +31,15 @@ import {
 } from "@/shared/supabase/tables/chronicles/mapping";
 import { getLinearChronicleLeftDelta } from "../../data/chronicles/getLinearChronicleDeltas";
 import alignLinearChronicles from "../../data/chronicles/alignLinearChronicles";
-import Butterfly, {
+import {
+  Butterfly,
   ButterflyCell,
-  IButterflyDepth,
-} from "@/utils/structures/Butterfly";
-import { BipolarLinkedListPolartity } from "@/utils/structures/BipolarDoublyLinkedList";
+  ButterflyDepth,
+} from "@/shared/structures/Butterfly";
+import { BipolarLinkedListPolartity } from "@/shared/structures/BipolarDoublyLinkedList";
 import zod from "zod";
-import { oTVitaFragmentDynamic } from "@/utils/supabase/tables/vitas/shards/dynamic/_mapping";
+import { iTDynamicShard } from "@/shared/supabase/tables/vitas/shards/dynamic/mapping";
+import EventEmitter from "./EventEmitter";
 
 interface IEngineProjectionSlice {
   y: number;
@@ -80,14 +82,34 @@ class Engine extends Butterfly<TEngineChronicle> {
     this.MANEUVER_TAKEOVER_SPACE_FALL_MIN +
     this.MANEUVER_TAKEOVER_SPACE_REST_MIN;
 
+  /*
+   * Event Handling
+   */
+  private eventEmitter = new EventEmitter<void>();
+
   /**
    * State variables
    */
-  private loaded = false;
+  private _loaded = false;
+  private _updated = false;
+  private _version = 0;
 
   private chronicles: TEngineChronicle[] = [];
 
-  constructor() {
+  private idCounter = 0;
+
+  private listeners = new Set<() => void>();
+
+  public subscribe = (cb: () => void) => {
+    this.listeners.add(cb);
+    return () => this.listeners.delete(cb);
+  };
+
+  private notify = () => {
+    this.listeners.forEach(cb => cb());
+  };
+
+  public constructor() {
     super();
   }
 
@@ -99,11 +121,7 @@ class Engine extends Butterfly<TEngineChronicle> {
    */
   public init(chronicles: oTLinearChronicle[]) {
     /** The `Engine` is only supposed to load once, multiple loading is not possible */
-    if (this.loaded) return;
-    this.loaded = true;
-
-    console.log("test init");
-
+    if (this._loaded) return;
     /*
      * Parsing the passed chronicles to ensure that they are stripped of any overhang
      * for better memory usage.
@@ -121,6 +139,7 @@ class Engine extends Butterfly<TEngineChronicle> {
 
     /** The first linear Chronicle can always fit into the neutral lane */
     this.push(0, this.chronicles[0]);
+    this.idCounter++;
 
     /** Thus we start at the second linear Chronicle in line */
     /** The .getLatestPoints() function already ensures we get minimal depth */
@@ -154,6 +173,26 @@ class Engine extends Butterfly<TEngineChronicle> {
 
     console.warn("RESULT");
     this.log();
+
+    this.loaded = true;
+    this._updated = !this._updated;
+  }
+
+  /**
+   * @author Lukas Diegelmann
+   */
+  public get version() {
+    return this._version;
+  }
+
+  /**
+   * @author Lukas Diegelmann
+   *
+   * Sets the loaded state of the `Engine`. This is useful for asynchronous usage.
+   */
+  private set loaded(value: boolean) {
+    this._loaded = value;
+    this.notify();
   }
 
   /**
@@ -163,8 +202,8 @@ class Engine extends Butterfly<TEngineChronicle> {
    * is useful for asynchronous usage of the `Engine`, when only after some time
    * the `Engine` is ready to be used.
    */
-  public isLoaded() {
-    return this.loaded;
+  public get loaded() {
+    return this._loaded;
   }
 
   /**
@@ -179,9 +218,9 @@ class Engine extends Butterfly<TEngineChronicle> {
    */
   private getInsertionDepth(
     insertionChronicle: TEngineChronicle,
-  ): IButterflyDepth {
+  ): ButterflyDepth {
     const lastCells = this.getLastCells();
-    let insertionDepth: IButterflyDepth | null = null;
+    let insertionDepth: ButterflyDepth | null = null;
 
     /**
      * Find insertion point
@@ -411,7 +450,7 @@ class Engine extends Butterfly<TEngineChronicle> {
    */
   private getProjection(
     insertionChronicle: TEngineChronicle,
-    insertionDepth: IButterflyDepth,
+    insertionDepth: ButterflyDepth,
   ): IEngineProjectionSlice[] {
     const totalProjection = this.getTotalProjection(insertionDepth.y);
 
@@ -489,7 +528,7 @@ class Engine extends Butterfly<TEngineChronicle> {
 
   private getTakeoverPath(
     insertionChronicle: TEngineChronicle,
-    insertionDepth: IButterflyDepth,
+    insertionDepth: ButterflyDepth,
   ) {
     /** Find `projection` */
     const projection = this.getProjection(insertionChronicle, insertionDepth);
@@ -534,6 +573,7 @@ class Engine extends Butterfly<TEngineChronicle> {
         end: projection[0].knots.start,
       },
     });
+    this.idCounter++;
 
     /* Setting the pointers to the correct positions */
     if (result) {
@@ -630,56 +670,66 @@ class Engine extends Butterfly<TEngineChronicle> {
     }
   }
 
-  public toJson(): oTVitaFragmentDynamic[] {
-    const rows: oTVitaFragmentDynamic[] = [];
+  /**
+   * @author Lukas Diegelmann
+   */
+  public toShards(): iTDynamicShard[] {
+    const rows: iTDynamicShard[] = [];
 
     // Map: cell -> id (für Lookup von prev/next)
-    const cellToId = new Map<ButterflyCell<TEngineChronicle>, number>();
+    const cellToId = new Map<ButterflyCell<TEngineChronicle>, string>();
 
     // Parallel-Array: id -> cell (stabile Zuordnung im 2. Pass)
-    const idToCell: ButterflyCell<TEngineChronicle>[] = [];
+    const idToCell = new Map<string, ButterflyCell<TEngineChronicle>>();
 
-    let id = 0;
+    let cellId = 0;
 
-    // ---------- Pass 1: IDs vergeben, Zeilen anlegen ----------
+    /*
+     * Assign every cell a sequential unique ID, and create a map, making
+     * these IDs retrievable. ALso insert coordinates into the row data.
+     */
     for (const { y, level } of this.iterateY()) {
       for (const { cell } of level) {
-        const thisId = id++;
+        /* Maintain mapping from cell to id and vice versa */
+        cellToId.set(cell, String(cellId));
+        idToCell.set(String(cellId), cell);
 
-        cellToId.set(cell, thisId);
-        idToCell[thisId] = cell;
-
-        // defensiv: x extrahieren und in number[] casten
         const xArr = [cell.$.knots.start, cell.$.knots.end].filter(v =>
           Number.isFinite(v),
         );
 
         rows.push({
-          id: thisId,
-          prev_id: null, // wird in Pass 2 gesetzt
-          next_id: null, // wird in Pass 2 gesetzt
-          chronicle_id: cell.$.id,
+          /* Create Primary Key for the Shard */
+          id: String(cellId),
+          vitaId: "1",
+
+          prevId: null /* Will be set in second pass */,
+          nextId: null /* Will be set in second pass */,
+
+          chronicleId: cell.$.id,
+
           y,
           x: xArr,
         });
+
+        /* Generate sequential id */
+        cellId++;
       }
     }
 
-    // ---------- Pass 2: prev_id / next_id via Map auflösen ----------
-    for (let i = 0; i < rows.length; i++) {
-      const entry = rows[i];
-      const cell = idToCell[i];
+    /*
+     * Generate the previous and next link information for every row.
+     */
+    for (const row of rows) {
+      const cell = idToCell.get(row.id);
 
       if (!cell) continue;
 
-      const prev = cell.prev as ButterflyCell<TEngineChronicle> | null;
-      const next = cell.next as ButterflyCell<TEngineChronicle> | null;
-
-      if (prev) {
-        entry.prev_id = cellToId.get(prev) ?? null;
+      if (cell.prev) {
+        row.prevId = cellToId.get(cell.prev) ?? null;
       }
-      if (next) {
-        entry.next_id = cellToId.get(next) ?? null;
+      if (cell.next) {
+        row.nextId = cellToId.get(cell.next) ?? null;
       }
     }
 

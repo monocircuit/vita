@@ -1,68 +1,33 @@
 "use client";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+
 import type {
   ArgList,
   DataReader,
-  FetchResult,
+  DataReaderConfig,
   NetQueryFnReturn,
   ReaderReturn,
   SlimmedData,
 } from "./types";
-import type { Awaited } from "../types";
 
-import {
-  QueryKey,
-  useQuery,
-  useQueryClient,
-  UseQueryResult,
-} from "@tanstack/react-query";
 import { createClient } from "./client";
-import { useEffect } from "react";
-import { User } from "@supabase/supabase-js";
-
-export interface Config<
-  Row extends object,
-  Selector = undefined,
-  Single extends boolean | undefined = undefined,
-> {
-  fetch: (
-    client: Awaited<ReturnType<typeof createClient>>,
-    user: User,
-    ...selector: ArgList<Selector>
-  ) => FetchResult<Record<string, unknown>>; // your FetchResult<...> here
-
-  normalize: (row: Record<string, unknown>) => Row;
-
-  isSingleRow?: Single;
-
-  primaryKeyParts: (keyof Row)[];
-  queryBaseKey: () => QueryKey;
-  queryNetworkKey: (...selector: ArgList<Selector>) => QueryKey;
-}
-
-const getPrimaryKey = <Row>(row: Row, primaryKeyParts: (keyof Row)[]) => {
-  const primaryKey: Row[keyof Row][] = [];
-
-  for (const primaryKeyPart of primaryKeyParts) {
-    primaryKey.push(row[primaryKeyPart]);
-  }
-
-  return primaryKey;
-};
+import getPrimaryKey from "./getPrimaryKey";
 
 export function createDataReader<Row extends object, Args = undefined>(
-  config: Config<Row, Args, true>,
+  config: DataReaderConfig<Row, Args, true>,
 ): DataReader<Row, Args, true>;
 
 export function createDataReader<Row extends object, Args = undefined>(
-  config: Config<Row, Args, false | undefined>,
+  config: DataReaderConfig<Row, Args, false | undefined>,
 ): DataReader<Row, Args, false | undefined>;
 
 export function createDataReader<
   Row extends object,
   Args = undefined,
   Single extends boolean | undefined = undefined,
->(config: Config<Row, Args, Single>): DataReader<Row, Args, Single> {
+>(config: DataReaderConfig<Row, Args, Single>): DataReader<Row, Args, Single> {
   // This is the hook that we will be working with
   return (...selector: ArgList<Args>) => {
     // This code will be executed inside a component
@@ -137,6 +102,7 @@ export function createDataReader<
           const queryDepotKey = [
             "dpt",
             ...config.queryBaseKey(),
+            ...config.queryNetworkKey(...selector),
             ...primaryKey,
           ];
 
@@ -159,7 +125,7 @@ export function createDataReader<
          * key, since we do not want any duplicate data, it will only store an array
          * of references to the rows that have just been stored inside the depot.
          */
-        queryClient.setQueryData(queryNetworkKey(), _old => {
+        queryClient.setQueryData(queryNetworkKey(), () => {
           if (query.data) {
             const primaryKeys = [];
 
@@ -188,7 +154,12 @@ export function createDataReader<
       const rows = [];
 
       for (const primaryKey of primaryKeys) {
-        const queryDepotKey = ["dpt", ...config.queryBaseKey(), ...primaryKey];
+        const queryDepotKey = [
+          "dpt",
+          ...config.queryBaseKey(),
+          ...config.queryNetworkKey(...selector),
+          ...primaryKey,
+        ];
         const row = queryClient.getQueryData(queryDepotKey);
 
         if (!row)
