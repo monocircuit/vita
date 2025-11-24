@@ -47,6 +47,7 @@ export function mergeIntoCache(
   rows: any[],
   mark?: { all?: boolean; userId?: string; type?: string },
 ) {
+  console.log("rows", rows);
   for (const raw of rows) {
     const r = normalizeChronicle(raw);
     const id = r.id as unknown as string | number;

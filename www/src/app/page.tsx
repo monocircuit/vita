@@ -14,23 +14,21 @@ import filterChronicles from "@/utils/processing/data/chronicles/filterChronicle
 
 const Home = () => {
   /** ANCHOR: Fetched Data */
-  const { chronicles, loading } = useReadOwnChronicles();
+  const { chronicles, isLoading } = useReadOwnChronicles();
 
   /** ANCHOR: Mutate Data */
   const { mutate } = useCreateVitaShardsDynamic();
 
-  console.log("loading", loading);
-
   useEffect(() => {
-    if (chronicles && chronicles.length > 0) {
+    if (!isLoading) {
       console.log(chronicles);
 
       const { linear } = filterChronicles(chronicles);
 
-      const engine = new Engine();
-      engine.init(linear);
+      // const engine = new Engine();
+      // engine.init(linear);
 
-      mutate({ vitaId: "1", shards: engine.toJson() });
+      // mutate({ vitaId: "1", shards: engine.toJson() });
     }
   }, [chronicles, mutate]);
 

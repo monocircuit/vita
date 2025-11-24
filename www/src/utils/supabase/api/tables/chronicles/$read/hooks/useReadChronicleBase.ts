@@ -1,26 +1,26 @@
 "use client";
 
-import { useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
+import {
+  useQuery,
+  useQueryClient,
+  UseQueryResult,
+} from "@tanstack/react-query";
 import { oTChronicle } from "../../_mapping";
 import { emptyCache, IChronicleCache } from "../cache";
 import { chroniclesBaseKey } from "../keys";
 
 /**
- * @author ChatGPT5
- *
- * Hook for reactive access to the **shared base store** of chronicles.
+ * Liest synchronisiert aus dem Base-Store (normalisiert).
+ * Reicht die Netzwerk-Statuswerte explizit durch.
  */
 export function useReadChronicleBase<T = oTChronicle[]>(
-  queryResult: UseQueryResult<{
-    userId: string | null;
-    chronicles: any[];
-  }, Error>,
+  net: UseQueryResult<{ userId: string | null; chronicles: any[] }, Error>,
   select: (cache: IChronicleCache) => T,
   opts?: { enabled?: boolean; staleTime?: number },
 ) {
   const qc = useQueryClient();
 
-  const q = useQuery<IChronicleCache, Error, T, typeof chroniclesBaseKey>({
+  const base = useQuery<IChronicleCache, Error, T, typeof chroniclesBaseKey>({
     queryKey: chroniclesBaseKey,
     queryFn: () =>
       qc.getQueryData<IChronicleCache>(chroniclesBaseKey) ?? emptyCache(),
@@ -31,7 +31,15 @@ export function useReadChronicleBase<T = oTChronicle[]>(
   });
 
   return {
-    chronicles: (q.data as T) ?? ([] as unknown as T),
-    ...queryResult
+    // Daten aus Base-Store
+    chronicles: (base.data as T) ?? ([] as unknown as T),
+
+    // Netzwerk-Status klar durchreichen (kein Spread-Zufall)
+    isLoading: net.isLoading,
+    isFetching: net.isFetching,
+    isSuccess: net.isSuccess,
+    isError: net.isError,
+    error: net.error ?? null,
+    refetch: net.refetch,
   };
 }

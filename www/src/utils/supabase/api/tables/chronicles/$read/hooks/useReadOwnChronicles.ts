@@ -6,47 +6,77 @@ import { chroniclesBaseKey, netKey } from "../keys";
 import { useReadChronicleBase } from "./useReadChronicleBase";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchOwn } from "../fetchers/fetchOwn";
+import { oTChronicle } from "../../_mapping";
+
+type NetFull<T> = T & { _slim?: false };
+type NetSlim<T, K extends keyof T> = Pick<T, K> & {
+  ids: string[];
+  _slim: true;
+};
+type Net<T, K extends keyof T> = null | NetFull<T> | NetSlim<T, K>;
+
+interface Data {
+  userId: string;
+  chronicles: oTChronicle[];
+}
+
+function isFull<T, K extends keyof T>(data: Net<T, K>): data is NetFull<T> {
+  console.log("isFull", data);
+  return !!data && (data as any)._slim !== true;
+}
+
+function isSlim<T, K extends keyof T>(data: Net<T, K>): data is NetSlim<T, K> {
+  return !!data && (data as any)._slim === true;
+}
 
 /**
  * @author ChatGPT5
  *
  * Load (if necessary) only the **current user's** chronicles and return them.
  */
+// useReadOwnChronicles.ts
 export function useReadOwnChronicles() {
   const qc = useQueryClient();
-  const q = useQuery<{ userId: string | null; chronicles: any[] }>({
+
+  const q = useQuery<Net<Data, "userId">>({
     queryKey: netKey.own(),
     queryFn: fetchOwn,
+    staleTime: 5 * 60_000, // volle 10/10-Funktionalität
+    gcTime: 10 * 60_000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 
   useEffect(() => {
-    if (!q.data?.userId) return;
-    qc.setQueryData<IChronicleCache>(chroniclesBaseKey, (old: any) => {
-      const next = old
-        ? {
-          ...old,
-          loaded: {
-            ...old.loaded,
-            users: new Set(old.loaded.users),
-            types: new Set(old.loaded.types),
-          },
-        }
-        : emptyCache();
-      mergeIntoCache(next, q.data.chronicles, {
-        userId: q.data.userId ?? undefined,
+    if (q.isSuccess && isFull(q.data)) {
+      const data = q.data;
+
+      qc.setQueryData<IChronicleCache>(chroniclesBaseKey, old => {
+        const next = old ?? emptyCache();
+        mergeIntoCache(next, data.chronicles, {
+          userId: data.userId,
+        });
+        return next;
       });
-      return next;
-    });
-  }, [q.data, qc]);
 
+      const ids = data.chronicles.map(r => String(r.id));
+      qc.setQueryData(netKey.own(), {
+        userId: data.userId,
+        ids,
+        _slim: true,
+      });
+    }
+
+    // nur feuern, wenn echte neue Daten ankamen
+  }, [q.status, q.dataUpdatedAt]);
+
+  // Base lesen (volle Daten kommen immer aus dem Base-Store)
   return useReadChronicleBase(
-    q, 
+    q as any, // Status durchreichen
     cache => {
-    const ids = Array.from(cache.loaded.users).flatMap(
-      uid => cache.index.byUser[uid] ?? [],
-    );
-    const uniq = Array.from(new Set(ids));
-    return uniq.map(id => cache.byId[id]);
-
-  }, { enabled: !!q.data?.userId });
+      // optional: falls du net.data?.ids nutzen willst, kannst du sie hier verwerten
+      return Object.values(cache.byId); // oder deine bisherige Auswahl (byUser etc.)
+    },
+    { enabled: true },
+  );
 }
