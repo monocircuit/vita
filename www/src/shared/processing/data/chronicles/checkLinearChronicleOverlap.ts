@@ -1,8 +1,8 @@
-import { TLinearChronicle } from "@/shared/supabase/tables/chronicles/mapping";
+import { LinearChronicle } from "@/shared/supabase/tables/chronicles/map";
 
 const checkLinearChronicleOverlap = (
-  linearChronicleA: TLinearChronicle,
-  linearChronicleB: TLinearChronicle,
+  linearChronicleA: LinearChronicle,
+  linearChronicleB: LinearChronicle,
 ) => {
   if (!linearChronicleA.knots.end && linearChronicleB.knots.end) {
     return linearChronicleB.knots.end > linearChronicleA.knots.start;

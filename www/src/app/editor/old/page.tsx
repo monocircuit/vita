@@ -1,13 +1,13 @@
 "use client";
 
 import Branch from "@/utils/drawing/dynamic/Branch";
-import useEngine from "@/utils/processing/engines/dynamic/useEngine";
+import useEngine from "@/shared/processing/engines/dynamic/useEngine";
 import { useOwnChroniclesData } from "@/utils/supabase/api/tables/chronicles/readOwnChronicles";
 import { Application, extend, PixiReactElementProps, useExtend } from "@pixi/react";
 import { Container, Graphics } from "pixi.js";
 import React, { JSX, useEffect, useRef } from "react";
 import { Viewport } from "pixi-viewport";
-import { TLinearChronicle } from "@/shared/supabase/tables/chronicles/mapping";
+import { LinearChronicle } from "@/shared/supabase/tables/chronicles/map";
 
 
 const Page: React.FunctionComponent = () => {
@@ -54,7 +54,7 @@ const Page: React.FunctionComponent = () => {
 
 
 
-  const drawChronicles = (chronicle: TLinearChronicle, levelIndex: number) => {
+  const drawChronicles = (chronicle: LinearChronicle, levelIndex: number) => {
     //Is this Chronicle already rendered?
     if (isRenderedChronicles.has(chronicle.id.toString())) {
       return <></>
@@ -77,11 +77,11 @@ const Page: React.FunctionComponent = () => {
     );
   }
 
-  const drawPreviousChronicles = (chronicle: TLinearChronicle, levelIndex: number) => {
+  const drawPreviousChronicles = (chronicle: LinearChronicle, levelIndex: number) => {
 
   }
 
-  const drawNextChronicles = (chronicle: TLinearChronicle, levelIndex: number) => {
+  const drawNextChronicles = (chronicle: LinearChronicle, levelIndex: number) => {
   }
 
 

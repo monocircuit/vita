@@ -1,12 +1,12 @@
 import {
-  TLinearChronicle,
-  TLinearChronicleKnots,
-} from "@/shared/supabase/tables/chronicles/mapping";
+  LinearChronicle,
+  LinearChronicleKnots,
+} from "@/shared/supabase/tables/chronicles/map";
 
 const getLinearChronicleOverlap = (
-  a: TLinearChronicle,
-  b: TLinearChronicle,
-): TLinearChronicleKnots | null => {
+  a: LinearChronicle,
+  b: LinearChronicle,
+): LinearChronicleKnots | null => {
   /**
    * Simple intervall intersection.
    */

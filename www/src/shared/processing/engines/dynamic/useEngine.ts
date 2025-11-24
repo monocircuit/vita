@@ -1,7 +1,7 @@
 import {
   iTChronicle,
   oTLinearChronicle,
-} from "@/shared/supabase/tables/chronicles/mapping";
+} from "@/shared/supabase/tables/chronicles/map";
 import Engine from "./Engine";
 import {
   useCallback,

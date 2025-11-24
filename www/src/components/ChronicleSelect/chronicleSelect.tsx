@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { iTChronicle, TChronicleOverhead } from "@/shared/supabase/tables/chronicles/mapping";
+import { iTChronicle, TChronicleOverhead } from "@/shared/supabase/tables/chronicles/map";
 import { getChronicles } from "@/utils/supabase/api/tables/chronicles/readOwnChronicles";
 import { Button, Popover, Scrollable } from "@monolithium/next/components";
 import CardText from "../common/Card/CardText";

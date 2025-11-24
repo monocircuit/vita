@@ -1,4 +1,4 @@
-import { TLinearChronicle } from "@/shared/supabase/tables/chronicles/mapping";
+import { LinearChronicle } from "@/shared/supabase/tables/chronicles/map";
 
 /**
  * TODO: At the moment all functions only work with the `x2` setting, they need to be
@@ -30,8 +30,8 @@ import { TLinearChronicle } from "@/shared/supabase/tables/chronicles/mapping";
  * left delta would be positive. Keep in mind that a delta always measures the overlap!
  */
 export const getLinearChronicleLeftDelta = (
-  primary: TLinearChronicle,
-  secondary: TLinearChronicle,
+  primary: LinearChronicle,
+  secondary: LinearChronicle,
 ) => {
   if (!secondary.knots.end) {
     return Infinity;
@@ -45,8 +45,8 @@ export const getLinearChronicleLeftDelta = (
 };
 
 export const getLinearChronicleRightDelta = (
-  primary: TLinearChronicle,
-  secondary: TLinearChronicle,
+  primary: LinearChronicle,
+  secondary: LinearChronicle,
 ) => {
   if (!secondary.knots.end) {
     return Infinity;
@@ -60,8 +60,8 @@ export const getLinearChronicleRightDelta = (
 };
 
 const getLinearChronicleDeltas = (
-  primary: TLinearChronicle,
-  secondary: TLinearChronicle,
+  primary: LinearChronicle,
+  secondary: LinearChronicle,
 ) => {
   return {
     left: getLinearChronicleLeftDelta(primary, secondary),

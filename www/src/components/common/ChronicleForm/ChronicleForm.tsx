@@ -1,7 +1,7 @@
 import {
   i$Chroncile,
   iTChronicle,
-} from "@/shared/supabase/tables/chronicles/mapping";
+} from "@/shared/supabase/tables/chronicles/map";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input } from "@monolithium/next/components";
 import React from "react";

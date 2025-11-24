@@ -1,4 +1,4 @@
-import Engine from "@/utils/processing/engines/dynamic/Engine";
+import Engine from "@/shared/processing/engines/dynamic/Engine";
 import { Application } from "@pixi/react";
 import React, { useEffect, useRef } from "react";
 import Branch from "./Branch";

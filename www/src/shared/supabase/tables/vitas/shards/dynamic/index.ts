@@ -14,7 +14,7 @@ export { default as useStoreDynamicShards } from "./$write/useStoreDynamicShards
 export type {
   iTDynamicShard as iTVitaShardDynamic,
   oTDynamicShard as oTVitaShardDynamic,
-} from "./mapping";
+} from "./map";
 
 /*
  * Export all schemas
@@ -22,4 +22,4 @@ export type {
 export {
   nw$DynamicShard as i$VitaShardDynamic,
   $DynamicShard_normalized_read as o$VitaShardDynamic,
-} from "./mapping";
+} from "./map";

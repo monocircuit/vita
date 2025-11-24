@@ -2,12 +2,12 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Application, Graphics } from "pixi.js";
-import useEngine from "@/utils/processing/engines/dynamic/useEngine";
+import useEngine from "@/shared/processing/engines/dynamic/useEngine";
 import { drawBranch } from "@/utils/drawing/dynamic/drawBranch";
 import { Viewport } from "pixi-viewport";
 import { ButterflyCell } from "@/shared/structures/Butterfly/Butterfly";
 import { oTLinearChronicle } from "@/shared/supabase/tables/chronicles";
-import filterChronicles from "@/utils/processing/data/chronicles/filterChronicles";
+import filterChronicles from "@/shared/processing/data/chronicles/filterChronicles";
 import { load } from "text-to-svg";
 import { useOwnChronicles } from "@/shared/supabase/tables/chronicles";
 import { useStoreDynamicShards } from "@/shared/supabase/tables/vitas/shards/dynamic";

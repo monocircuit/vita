@@ -1,15 +1,16 @@
 import { createClient } from "@/shared/supabase/client";
-import Engine from "@/utils/processing/engines/dynamic/Engine";
+import Engine from "@/shared/processing/engines/dynamic/Engine";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { iTDynamicShard } from "../mapping";
-import { denormalizeDynamicShard } from "../normalization";
+import { VitasShardsDynamic } from "../map";
 
 const useStoreDynamicShards = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (shards: iTDynamicShard[]) => {
-      const denormalizedShards = shards.map(denormalizeDynamicShard);
+    mutationFn: async (shards: VitasShardsDynamic["Normalized"][]) => {
+      const denormalizedShards: ShardDynamic.Denormalized[] = shards.map(
+        denormalizeDynamicShard,
+      );
 
       const client = createClient();
 

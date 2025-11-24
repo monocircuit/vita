@@ -14,6 +14,7 @@ import type {
 
 import { createClient } from "./client";
 import getPrimaryKey from "./getPrimaryKey";
+import { snakeToCamelFromObject } from "@/utils/case-conversions/snakeCaseToCamelCase";
 
 export function createDataReader<Row extends object, Args = undefined>(
   config: DataReaderConfig<Row, Args, true>,
@@ -42,6 +43,8 @@ export function createDataReader<
     const query = useQuery<NetQueryFnReturn<Row>>({
       queryKey: queryNetworkKey(),
       queryFn: async () => {
+        console.log("query fire");
+
         /*
          * Injecting a supabase clientside cient into the fetch function to
          * save on duplicate code.
@@ -62,19 +65,30 @@ export function createDataReader<
         if (!user) throw new Error("No user logged in");
 
         /* Fetch the data by using the fetcher */
-        const data = await config.fetch(client, user, ...selector);
+        const fetched = await config.fetch(client, user, ...selector);
+
+        if (!fetched) {
+          return null;
+        }
 
         /*
          * If the data has been correctly processed and passed by the fetcher
          * continue to normalize the data array and pass it back to tanstack
          * in order to be put into the cache.
          */
-        if (Array.isArray(data)) {
-          return data.map(config.normalize);
+        const data: any[] = [];
+        try {
+          fetched.forEach(row => {
+            data.push(config.dataSchema.parse(row));
+          });
+        } catch (err) {
+          console.error(err);
         }
 
+        console.log("normalized", data);
+
         /* Should the data not have been processed correctly return null */
-        return null;
+        return data;
       },
       staleTime: 5 * 60_000,
       gcTime: 10 * 60_000,

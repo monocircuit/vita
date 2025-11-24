@@ -1,10 +1,9 @@
 "use client";
 
 import { createDataReader } from "@/shared/supabase/createDataReader";
-import { normalizeVita } from "../normalization";
-import { oTVita } from "../mapping";
+import { $Vitas, Vitas } from "../map";
 
-const useOwnVitas = createDataReader<oTVita>({
+const useOwnVitas = createDataReader<Vitas["Normalized"]>({
   async fetch(client, user) {
     const { data, error } = await client
       .from("vitas")
@@ -15,9 +14,7 @@ const useOwnVitas = createDataReader<oTVita>({
 
     return data;
   },
-
-  normalize: normalizeVita,
-
+  dataSchema: $Vitas.Normalized,
   primaryKeyParts: ["id"],
 
   queryBaseKey: () => ["vitas"],

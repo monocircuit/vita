@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "supabase": "npx supabase gen types typescript --db-url \"postgresql://postgres:BigMacBannDenWeg@194.164.54.103:5432/postgres\" > ./database.types.d.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

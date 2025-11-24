@@ -2,7 +2,7 @@
 
 import { oTChronicle } from "@/shared/supabase/tables/chronicles";
 import { createDataReader } from "@/shared/supabase/createDataReader";
-import { normalizeChronicle } from "../normalization";
+import { $Chronicles } from "../map";
 
 const useChroniclesByUserId = createDataReader<oTChronicle, [userid: string]>({
   async fetch(client, _currentUser, userid) {
@@ -19,7 +19,7 @@ const useChroniclesByUserId = createDataReader<oTChronicle, [userid: string]>({
     return data;
   },
 
-  normalize: normalizeChronicle,
+  dataSchema: $Chronicles.Normalized,
 
   primaryKeyParts: ["id"],
 

@@ -2,11 +2,12 @@
 
 import { oTVitaShardDynamic } from "@/shared/supabase/tables/vitas/shards/dynamic";
 import { createDataReader } from "@/shared/supabase/createDataReader";
-import { normalizeDynamicShard } from "../normalization";
+import { $VitasShardsDynamic, VitasShardsDynamic } from "../map";
 
-type Args = [vitaId: string];
-
-const useDynamicShardsByVitaId = createDataReader<oTVitaShardDynamic, Args>({
+const useDynamicShardsByVitaId = createDataReader<
+  VitasShardsDynamic["Normalized"],
+  [vitaId: string]
+>({
   async fetch(client, _user, vitaId) {
     const { data, error } = await client
       .from("vitas_shards_dynamic")
@@ -21,7 +22,7 @@ const useDynamicShardsByVitaId = createDataReader<oTVitaShardDynamic, Args>({
     return data;
   },
 
-  normalize: normalizeDynamicShard,
+  dataSchema: $VitasShardsDynamic.Normalized,
 
   primaryKeyParts: ["id"],
 

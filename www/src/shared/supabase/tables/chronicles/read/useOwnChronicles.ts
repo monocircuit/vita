@@ -1,10 +1,9 @@
 "use client";
 
-import { oTChronicle } from "@/shared/supabase/tables/chronicles";
 import { createDataReader } from "@/shared/supabase/createDataReader";
-import { normalizeChronicle } from "../normalization";
+import { $Chronicles, Chronicles } from "../map";
 
-const useOwnChronicles = createDataReader<oTChronicle>({
+const useOwnChronicles = createDataReader<Chronicles["Normalized"]>({
   async fetch(client, user) {
     const { data, error } = await client
       .from("chronicles")
@@ -19,7 +18,7 @@ const useOwnChronicles = createDataReader<oTChronicle>({
     return data;
   },
 
-  normalize: normalizeChronicle,
+  dataSchema: $Chronicles.Normalized,
 
   primaryKeyParts: ["id"],
 

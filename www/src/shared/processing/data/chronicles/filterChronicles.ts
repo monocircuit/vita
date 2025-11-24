@@ -1,15 +1,6 @@
-import {
-  iTChronicle,
-  iTLinearChronicle,
-  iTUntiedChronicle,
-  o$UntiedChronicle,
-  oTChronicle,
-  oTLinearChronicle,
-  oTUntiedChronicle,
-} from "@/shared/supabase/tables/chronicles/mapping";
+import { Chronicles } from "@/shared/supabase/tables/chronicles/map";
 
-type InputChronicle = iTChronicle | oTChronicle;
-type ResultFor<T extends InputChronicle> = T extends oTChronicle
+type ResultFor<T extends Chronicles["Normalized"]> = T extends oTChronicle
   ? { linear: oTLinearChronicle[]; untied: oTUntiedChronicle[] }
   : { linear: iTLinearChronicle[]; untied: iTUntiedChronicle[] };
 
@@ -45,7 +36,7 @@ type ResultFor<T extends InputChronicle> = T extends oTChronicle
  *  - `linear`: normalized array of {@link oTLinearChronicle}
  *  - `static`: array of validated {@link oTUntiedChronicles}
  */
-const filterChronicles = <T extends InputChronicle>(
+const filterChronicles = <T extends Chronicles["Normalized"]>(
   chronicles: T[],
 ): ResultFor<T> => {
   const linearChronicles: any[] = [];

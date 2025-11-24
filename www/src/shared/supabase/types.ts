@@ -1,7 +1,7 @@
 import { User } from "@supabase/supabase-js";
 import { QueryKey, UseQueryResult } from "@tanstack/react-query";
 import { createClient } from "./client";
-import { ZodSchema } from "zod";
+import { ZodEffects, ZodSchema } from "zod";
 
 /**
  * @author Lukas Diegelmann
@@ -64,7 +64,7 @@ export interface DataReaderConfig<
     ...selector: ArgList<Selector>
   ) => FetchResult<Record<string, unknown>>; // your FetchResult<...> here
 
-  normalize: (row: Record<string, unknown>) => Row;
+  dataSchema: ZodEffects<any, any, any>;
 
   isSingleRow?: Single;
 
@@ -79,4 +79,14 @@ export interface DataWriterConfig<Row extends object> {
   mutate: (rows: Row[]) => Promise<void>;
 
   denormalize: (row: Row) => Record<string, unknown>;
+}
+
+export interface Bridge {
+  toApp: <Row>(
+    rawRows: Record<string, unknown>[],
+    schema: ZodSchema,
+  ) => Error | null | Row[];
+  toDatabase: <Row>(
+    normalizedRows: Record<string, unknown>[],
+  ) => Error | null | Row[];
 }

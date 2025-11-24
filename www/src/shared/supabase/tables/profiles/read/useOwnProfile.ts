@@ -1,10 +1,9 @@
 "use client";
 
-import { oTProfile } from "@/shared/supabase/tables/profiles/mapping";
+import { $Profiles, Profiles } from "@/shared/supabase/tables/profiles/map";
 import { createDataReader } from "@/shared/supabase/createDataReader";
-import { normalizeProfile } from "../normalization";
 
-const useOwnProfile = createDataReader<oTProfile>({
+const useOwnProfile = createDataReader<Profiles["Normalized"]>({
   async fetch(client, user) {
     const { data, error } = await client
       .from("profiles")
@@ -17,7 +16,7 @@ const useOwnProfile = createDataReader<oTProfile>({
     return [data];
   },
 
-  normalize: normalizeProfile,
+  dataSchema: $Profiles.Normalized,
 
   primaryKeyParts: ["id"],
 

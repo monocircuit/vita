@@ -8,7 +8,7 @@ export { default as useChroniclesByUserId } from "./read/useChroniclesByUserId";
  * Export all types
  */
 export type {
-  TLinearChronicleKnots,
+  LinearChronicleKnots as TLinearChronicleKnots,
   iTChronicle,
   iTLinearChronicle,
   iTTiedChronicle,
@@ -17,7 +17,7 @@ export type {
   oTLinearChronicle,
   oTTiedChronicle,
   oTUntiedChronicle,
-} from "./mapping";
+} from "./map";
 
 /*
  * Export all schemas
@@ -32,4 +32,4 @@ export {
   i$TiedChronicle,
   i$UntiedChronicle,
   $LinearChronicleKnots,
-} from "./mapping";
+} from "./map";

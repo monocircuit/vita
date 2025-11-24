@@ -25,10 +25,11 @@
  */
 
 import {
-  o$LinearChronicle,
-  oTLinearChronicle,
-  TLinearChronicleKnots,
-} from "@/shared/supabase/tables/chronicles/mapping";
+  $LinearChronicle,
+  Chronicles,
+  LinearChronicle,
+  LinearChronicleKnots,
+} from "@/shared/supabase/tables/chronicles/map";
 import { getLinearChronicleLeftDelta } from "../../data/chronicles/getLinearChronicleDeltas";
 import alignLinearChronicles from "../../data/chronicles/alignLinearChronicles";
 import {
@@ -38,15 +39,15 @@ import {
 } from "@/shared/structures/Butterfly";
 import { BipolarLinkedListPolartity } from "@/shared/structures/BipolarDoublyLinkedList";
 import zod from "zod";
-import { iTDynamicShard } from "@/shared/supabase/tables/vitas/shards/dynamic/mapping";
 import EventEmitter from "./EventEmitter";
+import { VitasShardsDynamic } from "@/shared/supabase/tables/vitas/shards/dynamic/map";
 
 interface IEngineProjectionSlice {
   y: number;
-  knots: TLinearChronicleKnots;
+  knots: LinearChronicleKnots;
 }
 
-const $EngineChronicle = o$LinearChronicle.omit({
+const $EngineChronicle = $LinearChronicle.omit({
   category: true,
   scope: true,
   createdAt: true,
@@ -71,7 +72,7 @@ type TEngineChronicle = zod.infer<typeof $EngineChronicle>;
  * it only holds knowledge about the `id` and `knots` of a chronicle. This makes it
  * more memory efficient.
  */
-class Engine extends Butterfly<TEngineChronicle> {
+class Engine extends Butterfly<Pick<Chronicles["Normalized"], "id" | "knots">> {
   /**
    * Space for Constants
    */
@@ -94,7 +95,7 @@ class Engine extends Butterfly<TEngineChronicle> {
   private _updated = false;
   private _version = 0;
 
-  private chronicles: TEngineChronicle[] = [];
+  private chronicles: Pick<Chronicles["Normalized"], "id" | "knots">[] = [];
 
   private idCounter = 0;
 
@@ -119,15 +120,17 @@ class Engine extends Butterfly<TEngineChronicle> {
    * Initiates the calculations for filling the inner `ButterflyStack` with
    * the correct chronicle information.
    */
-  public init(chronicles: oTLinearChronicle[]) {
+  public init(chronicles: Pick<Chronicles["Normalized"], "id" | "knots">[]) {
     /** The `Engine` is only supposed to load once, multiple loading is not possible */
     if (this._loaded) return;
     /*
      * Parsing the passed chronicles to ensure that they are stripped of any overhang
      * for better memory usage.
      */
-    console.log("chronicles", chronicles);
-    this.chronicles = $EngineChronicle.array().parse(chronicles);
+    this.chronicles = chronicles.map(chronicle => ({
+      id: chronicle.id,
+      knots: chronicle.knots,
+    }));
 
     /*
      * Saving all passed chronicles into the chronicle store and align them by the
@@ -673,8 +676,8 @@ class Engine extends Butterfly<TEngineChronicle> {
   /**
    * @author Lukas Diegelmann
    */
-  public toShards(): iTDynamicShard[] {
-    const rows: iTDynamicShard[] = [];
+  public toShards(): VitasShardsDynamic["Normalized"][] {
+    const rows: VitasShardsDynamic["Normalized"][] = [];
 
     // Map: cell -> id (für Lookup von prev/next)
     const cellToId = new Map<ButterflyCell<TEngineChronicle>, string>();
@@ -700,8 +703,10 @@ class Engine extends Butterfly<TEngineChronicle> {
 
         rows.push({
           /* Create Primary Key for the Shard */
-          id: String(cellId),
-          vitaId: "1",
+          id: cellId,
+          vitaId: 1,
+
+          createdAt: null,
 
           prevId: null /* Will be set in second pass */,
           nextId: null /* Will be set in second pass */,

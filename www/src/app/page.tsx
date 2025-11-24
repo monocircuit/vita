@@ -10,14 +10,13 @@ import useOwnProfile from "@/shared/supabase/tables/profiles/read/useOwnProfile"
 import { useOwnChronicles } from "@/shared/supabase/tables/chronicles/";
 import useOwnVitas from "@/shared/supabase/tables/vitas/$read/useOwnVitas";
 import { useDynamicShardsByVitaId } from "@/shared/supabase/tables/vitas/shards/dynamic";
+import { useEffect } from "react";
 
 const Home = () => {
   const { data: vitas } = useOwnVitas();
-  const { data: shards } = useDynamicShardsByVitaId("1");
-  const { data: profile } = useOwnProfile();
   const { data: chronicles } = useOwnChronicles();
 
-  console.log(vitas, shards);
+  console.log(vitas);
 
   return (
     <Scrollable shouldScrollY classNameScrollbar={styles["scrollbar"]}>
