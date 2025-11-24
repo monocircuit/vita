@@ -14,7 +14,7 @@ import { drawConnection } from "@/utils/drawing/dynamic/drawConnection";
 const CONNECTION_COLOR = 0x000000;
 const CONNECTION_THICKNESS = 2;
 const BRANCH_COLOR = 0x000000;
-const BRANCH_THICKNESS = 2;
+const BRANCH_THICKNESS = 4;
 const LAYER_DISTANCE = 30; // Abstand zwischen Layern in Pixeln
 
 // Maximale Pixel-Lücke, die noch als "direkte" Geschwister-Verbindung gilt
@@ -32,116 +32,15 @@ type DrawingContext = {
   distance: number;
   screenWidth: number;
   centerY: number;
-  isRenderedChronicles: Set<string>;
+  //isRenderedChronicles: Set<string>;
 };
 
 // --- Hilfsfunktionen für das Zeichnen (ausgelagert) ---
-
-/**
- * Zeichnet rekursiv alle vorherigen (prev) Chronicles und deren Verbindungen.
- */
-const drawPreviousChronicles = (
-  context: DrawingContext,
-  nextChronicle: ChronicleCell,
-  chronicle: ChronicleCell,
-  prevLevelIndex: number
-) => {
-  const { viewport, aknot, distance, screenWidth, centerY } = context;
-
-  const nknots = normalize(nextChronicle.$.knots, aknot, distance);
-  const nknotsPrev = normalize(chronicle.$.knots, aknot, distance);
-
-  const StartX = nknotsPrev[0] * screenWidth;
-  const EndX = nknotsPrev[1] * screenWidth;
-
-  const nextStartX = nknots[0] * screenWidth;
-  const nextEndX = nknots[1] * screenWidth;
-
-  const nextConnStartX = connectionEndpointX(nextStartX, nextEndX);
-  const ConnEndX = connectionEndpointX(EndX, StartX);
-
-  // Verbindung zeichnen
-  drawConnection(viewport, {
-    startPoint: {
-      x: nextConnStartX,
-      y: centerY - nextChronicle.y * LAYER_DISTANCE,
-    },
-    endPoint: { x: ConnEndX, y: centerY - chronicle.y * LAYER_DISTANCE },
-    color: CONNECTION_COLOR,
-    thickness: CONNECTION_THICKNESS,
-  });
-
-  // Ast (Branch) zeichnen
-  drawBranch(viewport, {
-    start: nknotsPrev[0] * screenWidth,
-    end: nknotsPrev[1] * screenWidth,
-    shift: centerY - prevLevelIndex * LAYER_DISTANCE,
-    title: "t", // TODO: Dynamischer Titel?
-    color: BRANCH_COLOR,
-    thickness: BRANCH_THICKNESS,
-  });
-
-  // Rekursion, falls weitere 'prev' vorhanden sind
-  if (chronicle.prev) {
-    drawPreviousChronicles(context, chronicle, chronicle.prev, chronicle.prev.y);
-  }
-};
-
-/**
- * Zeichnet rekursiv alle nächsten (next) Chronicles und deren Verbindungen.
- */
-const drawNextChronicles = (
-  context: DrawingContext,
-  prevChronicle: ChronicleCell,
-  chronicle: ChronicleCell
-) => {
-  const { viewport, aknot, distance, screenWidth, centerY } = context;
-
-  const nknots = normalize(prevChronicle.$.knots, aknot, distance);
-  const nknotsNext = normalize(chronicle.$.knots, aknot, distance);
-
-  const nextStartX = nknots[0] * screenWidth;
-  const nextEndX = nknotsNext[1] * screenWidth;
-  const nextConnEndX = connectionEndpointX(nextEndX, nextStartX);
-
-  // Verbindung zeichnen
-  drawConnection(viewport, {
-    startPoint: {
-      x: nknots[0] * screenWidth,
-      y: centerY - prevChronicle.y * LAYER_DISTANCE,
-    },
-    endPoint: {
-      x: nextConnEndX,
-      y: centerY - chronicle.y * LAYER_DISTANCE,
-    },
-    color: CONNECTION_COLOR,
-    thickness: CONNECTION_THICKNESS,
-  });
-
-  // Ast (Branch) zeichnen
-  drawBranch(viewport, {
-    start: nknotsNext[0] * screenWidth,
-    end: nknotsNext[1] * screenWidth,
-    shift: centerY - chronicle.y * LAYER_DISTANCE,
-    title: "t", // TODO: Dynamischer Titel?
-    color: BRANCH_COLOR,
-    thickness: BRANCH_THICKNESS,
-  });
-
-  // Rekursion, falls weitere 'next' vorhanden sind
-  if (chronicle.next) {
-    drawNextChronicles(context, chronicle, chronicle.next);
-  } else {
-    // Markiert das Ende der Kette (wie im Originalcode)
-    chronicle.flag = () => true;
-  }
-};
-
 /**
  * Hauptfunktion zum Zeichnen einer einzelnen Chronicle und Anstoßen der
  * rekursiven Zeichnung von 'prev' und 'next'.
  */
-const drawChronicle = (
+const drawChronicleBranch = (
   context: DrawingContext,
   chronicle: ChronicleCell,
   levelIndex: number
@@ -152,43 +51,35 @@ const drawChronicle = (
     distance,
     screenWidth,
     centerY,
-    isRenderedChronicles,
+    //isRenderedChronicles,
   } = context;
 
-  // Überspringen, falls bereits gerendert
-  if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
 
+  // Überspringen, falls bereits gerendert (obwohl bei neuer Logik evtl. unnötig)
+  //if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
+  console.log("Drawing Chronicle:", chronicle.$);
   // Nur zeichnen, wenn nicht geflaggt
   if (!chronicle.isFlagged) {
     const nknots = normalize(chronicle.$.knots, aknot, distance);
 
     // Den Haupt-Ast (Branch) für diese Chronicle zeichnen
-    drawBranch(viewport, {
+    const test = drawBranch(viewport, {
       start: nknots[0] * screenWidth,
       end: nknots[1] * screenWidth,
       shift: centerY - levelIndex * LAYER_DISTANCE,
-      title: "t", // TODO: Dynamischer Titel?
-      color: BRANCH_COLOR,
+      title: chronicle.$.id,
+      color: Math.floor(Math.random() * 0xFFFFFF),
       thickness: BRANCH_THICKNESS,
     });
 
-    // Rekursives Zeichnen der 'prev'-Kette starten
-    if (chronicle.prev && !chronicle.isFlagged) {
-      drawPreviousChronicles(context, chronicle, chronicle.prev, chronicle.prev.y);
+    test.onclick = () => {
+      console.log("Clicked on branch of Chronicle:");
     }
-
-    // Rekursives Zeichnen der 'next'-Kette starten
-    if (chronicle.next && !chronicle.isFlagged) {
-      drawNextChronicles(context, chronicle, chronicle.next);
-    } else {
-      // Markiert das Ende der Kette (wie im Originalcode)
-      chronicle.flag = () => true;
-    }
+    test.interactive = true;
   }
-
-  // Nach dem Zeichnen zur Rendered-Liste hinzufügen
-  chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
+  //chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
 };
+
 
 
 /**
@@ -226,10 +117,7 @@ const drawForkFromCenterline = (
   });
 };
 
-/**
- * Zeichnet eine "Rückkehr"-Verbindung (Merge) vom Ende eines Astes 
- * auf Layer Y zurück zur zentralen Achse (Layer 0).
- */
+
 const drawMergeToCenterline = (
   context: DrawingContext,
   chronicle: ChronicleCell
@@ -290,10 +178,6 @@ const drawSiblingConnection = (
     thickness: CONNECTION_THICKNESS, // TIPP: Mache dies evtl. dünner (z.B. 1)
   });
 };
-
-
-
-// --- React Komponente ---
 
 function Page() {
   /** ANCHOR: References */
@@ -378,19 +262,6 @@ function Page() {
     let aknot = 0;
     let distance = 1; // Standard-Distanz (vermeidet Division durch Null)
 
-    const level0 = engine.current.getLevel(0);
-    if (level0 && level0.length > 0) {
-      aknot = engine.current.get(0, 0)?.$.knots.start ?? 0;
-      const lastKnot =
-        engine.current.getLastCell(0)?.$.knots.end ?? aknot;
-      distance = lastKnot - aknot;
-      if (distance === 0) distance = 1;
-    }
-
-    // --- Dimensionen und Kontext für das Zeichnen vorbereiten ---
-    const positiveLayerHeight = engine.current.yDimensions.positive;
-    const negativeLayerHeight = engine.current.yDimensions.negative;
-
     const screenWidth = container.clientWidth;
     const screenHeight = container.clientHeight;
     const centerY = screenHeight / 2;
@@ -401,118 +272,139 @@ function Page() {
       distance,
       screenWidth,
       centerY,
-      isRenderedChronicles: new Set<string>(),
+      //isRenderedChronicles: new Set<string>(),
     };
 
-    const processLevel = (level: ChronicleCell[] | undefined) => {
-      if (!level || level.length === 0) return;
+    const allChroniclesByLevel = new Map<number, ChronicleCell[]>();
+    const allChronicles: ChronicleCell[] = [];
 
-      level.forEach((chronicle, j, arr) => {
-        if (!chronicle) {
-          console.warn("Skipping undefined chronicle at index", j);
-          return;
-        }
+    const level0 = engine.current.getLevel(0) as ChronicleCell[] | undefined;
+    if (level0) {
+      allChroniclesByLevel.set(0, Array.from(level0)); // <-- KORREKTUR: In Array umwandeln
+      allChronicles.push(...level0);
+    }
 
-        // HIER ÄNDERUNG: Nicht direkt zeichnen, sondern Task zur Liste hinzufügen
-        drawingTasks.push(() => {
-          drawChronicle(drawingContext, chronicle, chronicle.y);
-        });
+    // Positive Level
+    const positiveLayerHeight = engine.current.yDimensions.positive;
+    for (let i = 0; i < positiveLayerHeight; i++) {
+      const level = engine.current.getLevel(i + 1) as ChronicleCell[] | undefined;
+      if (level) {
+        allChroniclesByLevel.set(i + 1, Array.from(level)); // <-- KORREKTUR: In Array umwandeln
+        allChronicles.push(...level);
+      }
+    }
+    // Negative Level
+    const negativeLayerHeight = engine.current.yDimensions.negative;
+    for (let i = 0; i < negativeLayerHeight; i++) {
+      const level = engine.current.getLevel(-(i + 1)) as ChronicleCell[] | undefined;
+      if (level) {
+        allChroniclesByLevel.set(-(i + 1), Array.from(level)); // <-- KORREKTUR: In Array umwandeln
+        allChronicles.push(...level);
+      }
+    }
 
-        if (chronicle.y === 0) return;
 
-        const prevChronicle = (j > 0) ? arr[j - 1] : undefined;
+    if (level0 && level0.length > 0) {
+      // Stelle sicher, dass auf $ und knots geprüft wird
+      const firstCell = engine.current.get(0, 0);
+      const lastCell = engine.current.getLastCell(0);
 
-        // FORK MERGE Sibling Logic
-        if (prevChronicle) {
-          const nknotsPrev = normalize(prevChronicle.$.knots, aknot, distance);
-          const prevEndX = nknotsPrev[1] * screenWidth;
+      if (firstCell && firstCell.$ && lastCell && lastCell.$) {
+        drawingContext.aknot = firstCell.$.knots.start;
+        const lastKnot = lastCell.$.knots.end;
+        drawingContext.distance = lastKnot - drawingContext.aknot;
+        if (drawingContext.distance === 0) drawingContext.distance = 1;
+      }
+    }
 
-          const nknotsCurr = normalize(chronicle.$.knots, aknot, distance);
-          const currStartX = nknotsCurr[0] * screenWidth;
+    // ========== PASS 1: Alle Äste (Branches) zeichnen ==========
+    // Wir verwenden `allChronicles`, um JEDEN Ast genau einmal zu zeichnen.
 
-          const gap = currStartX - prevEndX;
+    console.log(allChronicles)
+    allChronicles.forEach((chronicle) => {
+      console.log(chronicle.cell);
 
-          if (gap > MAX_SIBLING_PIXEL_GAP) {
-            // HIER ÄNDERUNG: Tasks hinzufügen
-            drawingTasks.push(() => {
-              drawMergeToCenterline(drawingContext, prevChronicle);
-            });
-            if (!chronicle.prev) {
-              drawingTasks.push(() => {
-                drawForkFromCenterline(drawingContext, chronicle);
-              });
-            }
-          } else {
-            // HIER ÄNDERUNG: Task hinzufügen
-            drawingTasks.push(() => {
-              drawSiblingConnection(drawingContext, prevChronicle, chronicle);
-            });
-          }
-
-        } else {
-          if (!chronicle.prev) {
-            // HIER ÄNDERUNG: Task hinzufügen
-            drawingTasks.push(() => {
-              drawForkFromCenterline(drawingContext, chronicle);
-            });
-          }
-        }
-
-        // --- B. END-Logik (Merge) ---
-        if (j === arr.length - 1) {
-          if (!chronicle.next) {
-            // HIER ÄNDERUNG: Task hinzufügen
-            drawingTasks.push(() => {
-              drawMergeToCenterline(drawingContext, chronicle);
-            });
-          }
-        }
-      });
-    };
-
-    // --- Führe die Verarbeitung für alle Level aus ---
-
-    // Level 0 (hier gilt die Fork/Merge-Logik nicht, nur die Geschwister)
-    level0?.forEach((chronicle, i, arr) => {
-      // HIER ÄNDERUNG: Task hinzufügen
-      drawingTasks.push(() => {
-        drawChronicle(drawingContext, chronicle, chronicle.y);
-      });
-      if (i > 0) {
-        // HIER ÄNDERUNG: Task hinzufügen
-        drawingTasks.push(() => {
-          drawSiblingConnection(drawingContext, chronicle.prev ? chronicle.prev : chronicle, chronicle);
-        });
+      if (chronicle.cell) {
+        drawChronicleBranch(drawingContext, chronicle.cell, chronicle.cell.y);
       }
     });
 
-    // Positive Level
-    for (let i = 0; i < positiveLayerHeight; i++) {
-      processLevel(engine.current.getLevel(i + 1));
-    }
+    // ========== PASS 2: Alle Verbindungen (Connections) zeichnen (NEUE LOGIK) ==========
+    allChroniclesByLevel.forEach((level, levelY) => {
+      if (!level || level.length === 0) return;
 
-    // Negative Level
-    for (let i = 0; i < negativeLayerHeight; i++) {
-      processLevel(engine.current.getLevel(-(i + 1)));
-    }
+      level.forEach((chronicle, j, arr) => {
+        // Robuste Prüfung
+        if (!chronicle || !chronicle.$) return;
 
-    // --- NEU: Tasks nacheinander mit Verzögerung ausführen ---
-    let taskIndex = 0;
-    const intervalId = setInterval(() => {
-      if (taskIndex < drawingTasks.length) {
-        drawingTasks[taskIndex](); // Führe den nächsten Zeichen-Befehl aus
-        taskIndex++;
-      } else {
-        clearInterval(intervalId); // Alle Tasks erledigt
-      }
-    }, 150); // Zeichne alle 50ms ein neues Element. Passe diese Zahl an!
+        // --- Fall A: Sonderbehandlung für Layer 0 (Hauptachse) ---
+        if (levelY === 0) {
+          // Auf Layer 0 wollen wir nur Sibling-Verbindungen, wenn sie nah genug sind
+          if (j > 0) {
+            const prevChronicle = arr[j - 1];
+            if (prevChronicle && prevChronicle.$) {
+              // Berechne den Gap
+              const nknotsPrev = normalize(prevChronicle.$.knots, drawingContext.aknot, drawingContext.distance);
+              const prevEndX = nknotsPrev[1] * screenWidth;
+              const nknotsCurr = normalize(chronicle.$.knots, drawingContext.aknot, drawingContext.distance);
+              const currStartX = nknotsCurr[0] * screenWidth;
+              const gap = currStartX - prevEndX;
 
-    // WICHTIG: Cleanup-Funktion für das Interval
-    // Diese wird ausgeführt, wenn die Komponente unmountet oder der Effect neu läuft
-    return () => {
-      clearInterval(intervalId);
-    };
+              // Regel: Verbinde, wenn Abstand klein genug
+              if (gap <= MAX_SIBLING_PIXEL_GAP) {
+                drawSiblingConnection(drawingContext, prevChronicle, chronicle);
+              }
+              // Wenn der Gap groß ist, passiert auf Layer 0 nichts.
+            }
+          }
+        }
 
+        // --- Fall B: Logik für alle anderen Layer (Layer != 0) ---
+        else {
+
+          // Regel 1: Erster Branch im Layer
+          if (j === 0) {
+            // "Wenn der Branch der erste in einem Layer ist erstelle einen Fork"
+            drawForkFromCenterline(drawingContext, chronicle);
+          }
+
+          // KORREKTUR: Debug-console.log entfernt und ursprüngliche Logik wiederhergestellt
+          // Regel 2: Alle folgenden Branches
+          else {
+            // Wir *müssen* einen prevChronicle haben, da j > 0
+            // Dies funktioniert jetzt, da 'arr' ein echtes Array ist.
+            const prevChronicle = arr[j - 1];
+            if (!prevChronicle || !prevChronicle.$) return; // Sicherheits-Check
+
+            // Berechne den Gap zum Vorgänger
+            const nknotsPrev = normalize(prevChronicle.$.knots, drawingContext.aknot, drawingContext.distance);
+            const prevEndX = nknotsPrev[1] * screenWidth;
+            const nknotsCurr = normalize(chronicle.$.knots, drawingContext.aknot, drawingContext.distance);
+            const currStartX = nknotsCurr[0] * screenWidth;
+            const gap = currStartX - prevEndX;
+
+            // Regel 2a: Kleiner Gap
+            if (gap <= MAX_SIBLING_PIXEL_GAP) {
+              // "verbinde wenn der Abstand klein genug die Branches jeweils auf einer Linie."
+              drawSiblingConnection(drawingContext, prevChronicle, chronicle);
+            }
+            // Regel 2b: Großer Gap
+            else {
+              // "Dann merge wieder auf den abgeleiteten Branch zurück..."
+              drawMergeToCenterline(drawingContext, prevChronicle);
+              // "...und Forke wieder neu"
+              drawForkFromCenterline(drawingContext, chronicle);
+            }
+          }
+
+          // Regel 3: Letzter Branch im Layer muss immer mergen
+          if (j === arr.length - 1) {
+            // Der "Abstand zum Nächsten" ist unendlich groß, also mergen.
+            drawMergeToCenterline(drawingContext, chronicle);
+          }
+        }
+      });
+    });
   }, [isEngineReady, engine]);
 
   return <div className="w-full h-screen" ref={pixiContainer}></div>;
@@ -530,9 +422,8 @@ const normalize = (
   return normalizedKnots;
 };
 
-/**
-* Berechnet den X-Endpunkt für eine Verbindungslinie an einem Ast.
-*/
+
+
 const connectionEndpointX = (startX: number, endX: number): number => {
   const length = Math.abs(endX - startX);
   const offset = Math.min(length * 0.25, 75); // 25% oder maximal 75px
