@@ -125,7 +125,7 @@ const drawMergeToCenterline = (
   const { viewport, aknot, distance, screenWidth, centerY } = context;
 
   // Normalisiere die Positionen des Quell-Astes
-  const nknots = normalize(chronicle.$.knots, aknot, distance);
+  const nknots = normalize(chronicle.cell.$.knots, aknot, distance);
   const branchStartX = nknots[0] * screenWidth;
   const branchEndX = nknots[1] * screenWidth;
 
@@ -163,7 +163,7 @@ const drawSiblingConnection = (
   const yPos = centerY - currentChronicle.y * LAYER_DISTANCE;
 
   // Ende des vorherigen Elements
-  const nknotsPrev = normalize(prevChronicle.$.knots, aknot, distance);
+  const nknotsPrev = normalize(prevChronicle.cell.knots, aknot, distance);
   const prevEndX = nknotsPrev[1] * screenWidth;
 
   // Start des aktuellen Elements
@@ -332,10 +332,9 @@ function Page() {
     // ========== PASS 2: Alle Verbindungen (Connections) zeichnen (NEUE LOGIK) ==========
     allChroniclesByLevel.forEach((level, levelY) => {
       if (!level || level.length === 0) return;
-
       level.forEach((chronicle, j, arr) => {
         // Robuste Prüfung
-        if (!chronicle || !chronicle.$) return;
+        if (!chronicle || !chronicle.cell) return;
 
         // --- Fall A: Sonderbehandlung für Layer 0 (Hauptachse) ---
         if (levelY === 0) {
@@ -344,9 +343,9 @@ function Page() {
             const prevChronicle = arr[j - 1];
             if (prevChronicle && prevChronicle.$) {
               // Berechne den Gap
-              const nknotsPrev = normalize(prevChronicle.$.knots, drawingContext.aknot, drawingContext.distance);
+              const nknotsPrev = normalize(prevChronicle.cell.knots, drawingContext.aknot, drawingContext.distance);
               const prevEndX = nknotsPrev[1] * screenWidth;
-              const nknotsCurr = normalize(chronicle.$.knots, drawingContext.aknot, drawingContext.distance);
+              const nknotsCurr = normalize(chronicle.cell.knots, drawingContext.aknot, drawingContext.distance);
               const currStartX = nknotsCurr[0] * screenWidth;
               const gap = currStartX - prevEndX;
 
@@ -361,11 +360,12 @@ function Page() {
 
         // --- Fall B: Logik für alle anderen Layer (Layer != 0) ---
         else {
-
+          console.log("Processing Chronicle on Layer", levelY, ":", chronicle.cell);
           // Regel 1: Erster Branch im Layer
           if (j === 0) {
             // "Wenn der Branch der erste in einem Layer ist erstelle einen Fork"
-            drawForkFromCenterline(drawingContext, chronicle);
+            drawForkFromCenterline(drawingContext, chronicle.cell);
+            console.log("Drew fork for first branch in layer", levelY);
           }
 
           // KORREKTUR: Debug-console.log entfernt und ursprüngliche Logik wiederhergestellt
@@ -374,23 +374,26 @@ function Page() {
             // Wir *müssen* einen prevChronicle haben, da j > 0
             // Dies funktioniert jetzt, da 'arr' ein echtes Array ist.
             const prevChronicle = arr[j - 1];
+            console.log(!prevChronicle ? "No prevChronicle found!" : "Found prevChronicle:", !prevChronicle.$);
             if (!prevChronicle || !prevChronicle.$) return; // Sicherheits-Check
 
             // Berechne den Gap zum Vorgänger
-            const nknotsPrev = normalize(prevChronicle.$.knots, drawingContext.aknot, drawingContext.distance);
+            const nknotsPrev = normalize(prevChronicle.cell.knots, drawingContext.aknot, drawingContext.distance);
             const prevEndX = nknotsPrev[1] * screenWidth;
-            const nknotsCurr = normalize(chronicle.$.knots, drawingContext.aknot, drawingContext.distance);
+            const nknotsCurr = normalize(chronicle.cell.knots, drawingContext.aknot, drawingContext.distance);
             const currStartX = nknotsCurr[0] * screenWidth;
             const gap = currStartX - prevEndX;
 
             // Regel 2a: Kleiner Gap
             if (gap <= MAX_SIBLING_PIXEL_GAP) {
               // "verbinde wenn der Abstand klein genug die Branches jeweils auf einer Linie."
+              console.log("Drew sibling connection for Chronicle on Layer", levelY, ":", chronicle.cell);
               drawSiblingConnection(drawingContext, prevChronicle, chronicle);
             }
             // Regel 2b: Großer Gap
             else {
               // "Dann merge wieder auf den abgeleiteten Branch zurück..."
+              console.log("Drew merge for Chronicle on Layer", levelY, ":", chronicle.cell);
               drawMergeToCenterline(drawingContext, prevChronicle);
               // "...und Forke wieder neu"
               drawForkFromCenterline(drawingContext, chronicle);
@@ -400,6 +403,7 @@ function Page() {
           // Regel 3: Letzter Branch im Layer muss immer mergen
           if (j === arr.length - 1) {
             // Der "Abstand zum Nächsten" ist unendlich groß, also mergen.
+            console.log("Drew merge for last branch in layer", levelY, ":", chronicle.cell);
             drawMergeToCenterline(drawingContext, chronicle);
           }
         }

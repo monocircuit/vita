@@ -54,6 +54,7 @@ export class ButterflyCell<T> implements IButterflyLinkage<T>, IButterflyDepth {
 
   /* Enable flagging of a `ButterflyCell` */
   private _flag: boolean = false;
+  cell: any;
 
   constructor(
     $: T,
