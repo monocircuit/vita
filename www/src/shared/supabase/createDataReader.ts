@@ -14,7 +14,6 @@ import type {
 
 import { createClient } from "./client";
 import getPrimaryKey from "./getPrimaryKey";
-import { snakeToCamelFromObject } from "@/utils/case-conversions/snakeCaseToCamelCase";
 
 export function createDataReader<Row extends object, Args = undefined>(
   config: DataReaderConfig<Row, Args, true>,
@@ -79,7 +78,7 @@ export function createDataReader<
         const data: any[] = [];
         try {
           fetched.forEach(row => {
-            data.push(config.dataSchema.parse(row));
+            data.push(config.normalizer.parse(row));
           });
         } catch (err) {
           console.error(err);

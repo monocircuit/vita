@@ -1,14 +1,11 @@
 import zod from "zod";
-import createZodSchemaFromTable, {
-  InferZodTableSchema,
-} from "../../createZodSchemaFromTable";
+import { InferZodTableSchema, table } from "../../createZodSchemaFromTable";
 
-export const { $Chronicles } = await createZodSchemaFromTable(
-  "chronicles",
-  raw => ({
-    knots: raw.knots.map(knot => new Date(knot).getTime()),
-  }),
-);
+export const { $Chronicles } = await table("chronicles")
+  .column("knots")
+  .normalize(knots => knots.map(knot => new Date(knot).getTime()))
+  .denormalize(knots => knots.map(knot => new Date(knot).toISOString()))
+  .build();
 
 export type Chronicles = InferZodTableSchema<typeof $Chronicles>;
 
@@ -22,7 +19,7 @@ export type Chronicles = InferZodTableSchema<typeof $Chronicles>;
  * This schema is used for input only, since output Tied chronicles are always
  * of the type `o$TiedChronicle`.
  */
-export const $TiedChronicle = $Chronicles.Normalized._def.schema.extend({
+export const $TiedChronicle = $Chronicles.Normalize._def.schema.extend({
   knots: zod
     .array(zod.number())
     .describe("List of date strings as knots.")
@@ -52,7 +49,7 @@ export type LinearChronicleKnots = zod.infer<typeof $LinearChronicleKnots>;
  * This schema extends the default chronicle schema to a linear chronicle schema, making use
  * of the `LinearChronicleKnots` schema for the `knots` property.
  */
-export const $LinearChronicle = $Chronicles.Normalized._def.schema.extend({
+export const $LinearChronicle = $Chronicles.Normalize._def.schema.extend({
   knots: $LinearChronicleKnots,
 });
 
@@ -65,7 +62,7 @@ export type LinearChronicle = zod.infer<typeof $LinearChronicle>;
  * A `UntiedChronicle` of the output type that does not contain any knot information, rendering
  * it unable to be processed by the `Engine`.
  */
-export const $UntiedChronicle = $Chronicles.Normalized._def.schema.omit({
+export const $UntiedChronicle = $Chronicles.Normalize._def.schema.omit({
   knots: true,
 });
 

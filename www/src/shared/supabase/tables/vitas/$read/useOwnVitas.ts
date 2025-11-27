@@ -14,7 +14,7 @@ const useOwnVitas = createDataReader<Vitas["Normalized"]>({
 
     return data;
   },
-  dataSchema: $Vitas.Normalized,
+  normalizer: $Vitas.Normalize,
   primaryKeyParts: ["id"],
 
   queryBaseKey: () => ["vitas"],

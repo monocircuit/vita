@@ -5,12 +5,12 @@ import { DataWriterConfig } from "./types";
 import { createClient } from "./client";
 
 export function createDataWriter<
-  NormalizedRow extends object,
-  DenormalizedRow extends object,
->(config: DataWriterConfig<NormalizedRow>) {
+  NormalizedTableRow extends object,
+  RawTableRow extends object,
+>(config: DataWriterConfig<NormalizedTableRow>) {
   return () => {
     const mutation = useMutation({
-      mutationFn: async (rows: NormalizedRow[]) => {
+      mutationFn: async (rows: NormalizedTableRow[]) => {
         /* denormalization */
         const denormalizedRows = rows.map(config.denormalize);
 

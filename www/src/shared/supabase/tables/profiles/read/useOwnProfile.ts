@@ -16,7 +16,7 @@ const useOwnProfile = createDataReader<Profiles["Normalized"]>({
     return [data];
   },
 
-  dataSchema: $Profiles.Normalized,
+  normalizer: $Profiles.Normalize,
 
   primaryKeyParts: ["id"],
 

@@ -18,7 +18,7 @@ const useOwnChronicles = createDataReader<Chronicles["Normalized"]>({
     return data;
   },
 
-  dataSchema: $Chronicles.Normalized,
+  normalizer: $Chronicles.Normalize,
 
   primaryKeyParts: ["id"],
 

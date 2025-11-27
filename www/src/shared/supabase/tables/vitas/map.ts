@@ -1,6 +1,4 @@
-import createZodSchemaFromTable, {
-  InferZodTableSchema,
-} from "../../createZodSchemaFromTable";
+import { InferZodTableSchema, table } from "../../createZodSchemaFromTable";
 
-export const { $Vitas } = await createZodSchemaFromTable("vitas");
+export const { $Vitas } = await table("vitas").build();
 export type Vitas = InferZodTableSchema<typeof $Vitas>;

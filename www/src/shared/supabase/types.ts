@@ -64,7 +64,7 @@ export interface DataReaderConfig<
     ...selector: ArgList<Selector>
   ) => FetchResult<Record<string, unknown>>; // your FetchResult<...> here
 
-  dataSchema: ZodEffects<any, any, any>;
+  normalizer: ZodEffects<any, any, any>;
 
   isSingleRow?: Single;
 

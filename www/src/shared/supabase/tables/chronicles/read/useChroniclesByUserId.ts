@@ -19,7 +19,7 @@ const useChroniclesByUserId = createDataReader<oTChronicle, [userid: string]>({
     return data;
   },
 
-  dataSchema: $Chronicles.Normalized,
+  normalizer: $Chronicles.Normalize,
 
   primaryKeyParts: ["id"],
 

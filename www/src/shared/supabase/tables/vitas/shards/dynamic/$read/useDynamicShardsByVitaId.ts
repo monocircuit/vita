@@ -22,7 +22,7 @@ const useDynamicShardsByVitaId = createDataReader<
     return data;
   },
 
-  dataSchema: $VitasShardsDynamic.Normalized,
+  normalizer: $VitasShardsDynamic.Normalize,
 
   primaryKeyParts: ["id"],
 

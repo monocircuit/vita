@@ -1,7 +1,7 @@
 import zod from "zod";
 import mapObject from "../mapObject";
 
-function snakeToCamel(str: string): string {
+export function snakeToCamel(str: string): string {
   return str.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());
 }
 
