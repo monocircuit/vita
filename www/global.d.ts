@@ -18,4 +18,6 @@ declare global {
         ? A[K]
         : never;
   };
+
+  type Overwrite<T, R extends { [K in keyof T]?: any }> = Omit<T, keyof R> & R;
 }

@@ -1,8 +1,8 @@
 "use client";
 
 import { sqlToZodMap } from "@/utils/sqlToZod";
-import { createClient } from "./client";
-import { snakeToCamelFromObject } from "@/utils/case-conversions/snakeCaseToCamelCase";
+import { createClient } from "../../supabase/client";
+import { keysToCamelCase } from "@/utils/case-conversions";
 
 export interface ColumnMetaData {
   columnName: string;
@@ -56,7 +56,7 @@ async function fetchColumnMetaData(
     throw new Error(error.message);
   }
 
-  return data.map((row: any) => snakeToCamelFromObject(row)) as any;
+  return data.map((row: any) => keysToCamelCase(row)) as any;
 }
 
 export default fetchColumnMetaData;

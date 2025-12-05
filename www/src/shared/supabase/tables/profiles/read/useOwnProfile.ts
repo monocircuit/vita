@@ -1,29 +1,8 @@
 "use client";
 
-import { $Profiles, Profiles } from "@/shared/supabase/tables/profiles/map";
-import { createDataReader } from "@/shared/supabase/createDataReader";
+import makeOwn from "@/shared/tanstack/reader/makeOwn";
+import useProfileByUserId from "./useProfileByUserId";
 
-const useOwnProfile = createDataReader<Profiles["Normalized"]>({
-  async fetch(client, user) {
-    const { data, error } = await client
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    if (error) throw error;
-
-    return [data];
-  },
-
-  normalizer: $Profiles.Normalize,
-
-  primaryKeyParts: ["id"],
-
-  queryBaseKey: () => ["profiles"],
-  queryNetworkKey: () => ["own"],
-
-  isSingleRow: true,
-});
+const useOwnProfile = makeOwn(useProfileByUserId);
 
 export default useOwnProfile;

@@ -1,14 +1,10 @@
 "use client";
 
-import { oTVitaShardDynamic } from "@/shared/supabase/tables/vitas/shards/dynamic";
-import { createDataReader } from "@/shared/supabase/createDataReader";
-import { $VitasShardsDynamic, VitasShardsDynamic } from "../map";
+import TanstackReader from "@/shared/tanstack/reader/TanstackReader";
 
-const useDynamicShardsByVitaId = createDataReader<
-  VitasShardsDynamic["Normalized"],
-  [vitaId: string]
->({
-  async fetch(client, _user, vitaId) {
+const useDynamicShardsByVitaId = TanstackReader.withArgs<[vitaId: string]>()
+  .create("vitasShardsDynamic")
+  .fetcher(async (client, user, vitaId) => {
     const { data, error } = await client
       .from("vitas_shards_dynamic")
       .select("*")
@@ -20,16 +16,9 @@ const useDynamicShardsByVitaId = createDataReader<
     }
 
     return data;
-  },
-
-  normalizer: $VitasShardsDynamic.Normalize,
-
-  primaryKeyParts: ["id"],
-
-  queryBaseKey: () => ["vitas", "shards", "dynamic"],
-  queryNetworkKey: vitaId => ["vitaId", vitaId],
-
-  isSingleRow: false,
-});
+  })
+  .networkKey(vitaId => ["vitaId", vitaId])
+  .primaryKeyParts("id")
+  .isSingleRow();
 
 export default useDynamicShardsByVitaId;

@@ -1,7 +1,9 @@
 import { User } from "@supabase/supabase-js";
 import { QueryKey, UseQueryResult } from "@tanstack/react-query";
-import { createClient } from "./client";
+import { createClient } from "@/shared/supabase/client";
 import { ZodEffects, ZodSchema } from "zod";
+import type { Schemas } from "@/shared/supabase/schemas";
+import type { Pascalize } from "@/utils/case-conversions/types";
 
 /**
  * @author Lukas Diegelmann
@@ -36,6 +38,12 @@ export type ArgList<Selector> = [Selector] extends [undefined]
     ? Selector // tuple → same tuple
     : [Selector]; // single type → one arg
 
+export type SchemaKeyFor<Table extends keyof Database["public"]["Tables"]> =
+  `${Pascalize<Table>}` & keyof Schemas;
+
+export type NormalizedRowFor<Table extends keyof Database["public"]["Tables"]> =
+  Schemas[SchemaKeyFor<Table>]["Normalized"] & object;
+
 /**
  * @author Lukas Diegelmann
  *
@@ -64,7 +72,13 @@ export interface DataReaderConfig<
     ...selector: ArgList<Selector>
   ) => FetchResult<Record<string, unknown>>; // your FetchResult<...> here
 
-  normalizer: ZodEffects<any, any, any>;
+  // normalizer can be a Zod effects schema or a (possibly async) getter
+  // that returns the Zod effects schema. This allows lazy/dynamic import
+  // of schemas that may use top-level await without forcing a runtime
+  // import at module initialization time.
+  normalizer:
+    | ZodEffects<any, any, any>
+    | (() => ZodEffects<any, any, any> | Promise<ZodEffects<any, any, any>>);
 
   isSingleRow?: Single;
 
@@ -79,14 +93,4 @@ export interface DataWriterConfig<Row extends object> {
   mutate: (rows: Row[]) => Promise<void>;
 
   denormalize: (row: Row) => Record<string, unknown>;
-}
-
-export interface Bridge {
-  toApp: <Row>(
-    rawRows: Record<string, unknown>[],
-    schema: ZodSchema,
-  ) => Error | null | Row[];
-  toDatabase: <Row>(
-    normalizedRows: Record<string, unknown>[],
-  ) => Error | null | Row[];
 }

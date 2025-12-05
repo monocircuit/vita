@@ -26,6 +26,10 @@
             "scss"
         ],
         "json.validate.enable": false,
-        "svg.preview.background": "editor"
+        "svg.preview.background": "editor",
+        "powershell.cwd": "Next"
+    },
+    "extensions": {
+        "recommendations": []
     }
 }

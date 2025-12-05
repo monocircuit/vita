@@ -3,12 +3,16 @@
 import Branch from "@/utils/drawing/dynamic/Branch";
 import useEngine from "@/shared/processing/engines/dynamic/useEngine";
 import { useOwnChroniclesData } from "@/utils/supabase/api/tables/chronicles/readOwnChronicles";
-import { Application, extend, PixiReactElementProps, useExtend } from "@pixi/react";
+import {
+  Application,
+  extend,
+  PixiReactElementProps,
+  useExtend,
+} from "@pixi/react";
 import { Container, Graphics } from "pixi.js";
 import React, { JSX, useEffect, useRef } from "react";
 import { Viewport } from "pixi-viewport";
 import { LinearChronicle } from "@/shared/supabase/tables/chronicles/map";
-
 
 const Page: React.FunctionComponent = () => {
   /** ANCHOR: PixiJS Extensions */
@@ -48,25 +52,18 @@ const Page: React.FunctionComponent = () => {
       (engine.current.getLastVector(0)?.value.knots.end as number) - aknot; // subract last knot with first one to get the complete distance
   }
 
-
   const isRenderedChronicles = new Set<string>();
-
-
-
 
   const drawChronicles = (chronicle: LinearChronicle, levelIndex: number) => {
     //Is this Chronicle already rendered?
     if (isRenderedChronicles.has(chronicle.id.toString())) {
-      return <></>
+      return <></>;
     }
-
 
     const nknots = normalize(chronicle.knots, aknot, distance);
     console.log("drawChronicles", chronicle, levelIndex);
     return (
-      <React.Fragment
-        key={chronicle.id + Math.ceil(Math.random() * 100)}
-      >
+      <React.Fragment key={chronicle.id + Math.ceil(Math.random() * 100)}>
         <Branch
           start={nknots[0] * window.innerWidth}
           end={nknots[1] * window.innerWidth}
@@ -75,18 +72,17 @@ const Page: React.FunctionComponent = () => {
         />
       </React.Fragment>
     );
-  }
+  };
 
-  const drawPreviousChronicles = (chronicle: LinearChronicle, levelIndex: number) => {
+  const drawPreviousChronicles = (
+    chronicle: LinearChronicle,
+    levelIndex: number,
+  ) => {};
 
-  }
-
-  const drawNextChronicles = (chronicle: LinearChronicle, levelIndex: number) => {
-  }
-
-
-
-
+  const drawNextChronicles = (
+    chronicle: LinearChronicle,
+    levelIndex: number,
+  ) => {};
 
   return (
     <div ref={parentRef} className="size-full">
@@ -95,7 +91,7 @@ const Page: React.FunctionComponent = () => {
         backgroundColor={"#ffffff"}
         resizeTo={parentRef}
       >
-        <viewport events={applicationRef.}> 
+        <Viewport events={applicationRef}>
           {
             /** Render level 0 */
             engine.current
@@ -123,16 +119,16 @@ const Page: React.FunctionComponent = () => {
                   engine.current.get(0, 0) == chronicle
                 ) {
                   const nknots = normalize(chronicle.knots, aknot, distance);
-                  return (<React.Fragment>
-                    <Branch
-                      key={i}
-                      start={0}
-                      end={nknots[1] * window.innerWidth}
-                      shift={window.innerHeight / 2}
-                      title={chronicle.title}
-                    ></Branch>
-                  </React.Fragment>
-
+                  return (
+                    <React.Fragment>
+                      <Branch
+                        key={i}
+                        start={0}
+                        end={nknots[1] * window.innerWidth}
+                        shift={window.innerHeight / 2}
+                        title={chronicle.title}
+                      ></Branch>
+                    </React.Fragment>
                   );
                 }
 
@@ -154,7 +150,9 @@ const Page: React.FunctionComponent = () => {
                 }
 
                 // if its not the first nor the last element
-                else { return drawChronicles(chronicle, 0) }
+                else {
+                  return drawChronicles(chronicle, 0);
+                }
               })
               .toArrayNeutralToPositive() ?? <></>
           }
@@ -167,47 +165,38 @@ const Page: React.FunctionComponent = () => {
               if (!level) return <></>;
               return (
                 <>
-                  {
-                    level
-                      .mapNeutralToPositive(chronicle => {
-                        return drawChronicles(chronicle, levelIndex);
+                  {level
+                    .mapNeutralToPositive(chronicle => {
+                      return drawChronicles(chronicle, levelIndex);
 
-                        //Chronicle schon zu ende gerendert?
-                        //Chronicle previous 
-                        //Renderfunktion für Previous 
-                        //Bis Previous null
-                        //if (chronicle.prev) {
-                        //  drawPreviousChronicles(chronicle.prev, levelIndex + 1)
-                        //}
+                      //Chronicle schon zu ende gerendert?
+                      //Chronicle previous
+                      //Renderfunktion für Previous
+                      //Bis Previous null
+                      //if (chronicle.prev) {
+                      //  drawPreviousChronicles(chronicle.prev, levelIndex + 1)
+                      //}
 
-                        //Chronicle next
-                        //Chronicle next 
-                        //Renderfunktion für Previous 
-                        //Bis next null
+                      //Chronicle next
+                      //Chronicle next
+                      //Renderfunktion für Previous
+                      //Bis next null
 
+                      //if (chronicle.next) {
+                      //  drawNextChronicles(chronicle.next, levelIndex - 1)
+                      //}
 
-                        //if (chronicle.next) {
-                        //  drawNextChronicles(chronicle.next, levelIndex - 1)
-                        //}
+                      //Unzerteilt ist Id als string
+                      //Wenn Zerteilt dann Id-Segment als string (1-2 / 1-1)
 
-                        //Unzerteilt ist Id als string 
-                        //Wenn Zerteilt dann Id-Segment als string (1-2 / 1-1)
-
-
-                        //Packe diese Chronicle in diese schon gerendert Liste POGGERS
-                        chronicle.id && isRenderedChronicles.add(chronicle.id.toString())
-
-                      }
-
-
-                      )
-                      .toArrayNeutralToPositive()}
-
+                      //Packe diese Chronicle in diese schon gerendert Liste POGGERS
+                      chronicle.id &&
+                        isRenderedChronicles.add(chronicle.id.toString());
+                    })
+                    .toArrayNeutralToPositive()}
                 </>
-
-              )
+              );
             })
-
           }
           {
             /** Render negative levels */
@@ -268,13 +257,13 @@ const determineConnectionEndPoint = (
   nextElement: { knots: number[] } | undefined,
   layerIndex: number,
   overtakeWidth: number,
-  threshold: number = 50 // e.g., if gap is less than 50 units on the timeline
+  threshold: number = 50, // e.g., if gap is less than 50 units on the timeline
 ) => {
   const isPositiveLayer = layerIndex > 0;
   const parentLayerIndex = isPositiveLayer ? layerIndex - 1 : layerIndex + 1;
 
   // If it's the last element or the next element is too far, connect to the parent layer.
-  if (!nextElement || (nextElement.knots[0] - currentKnots[1] > threshold)) {
+  if (!nextElement || nextElement.knots[0] - currentKnots[1] > threshold) {
     return {
       x: currentKnots[1] + overtakeWidth,
       y: window.innerHeight / 2 + parentLayerIndex * 50,
@@ -287,9 +276,5 @@ const determineConnectionEndPoint = (
     y: window.innerHeight / 2 + layerIndex * 50,
   };
 };
-
-
-
-
 
 export default Page;

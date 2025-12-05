@@ -1,16 +1,14 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { Application, Graphics } from "pixi.js";
+import React, { useEffect, useRef } from "react";
+import { Application } from "pixi.js";
 import useEngine from "@/shared/processing/engines/dynamic/useEngine";
 import { drawBranch } from "@/utils/drawing/dynamic/drawBranch";
 import { Viewport } from "pixi-viewport";
-import { ButterflyCell } from "@/shared/structures/Butterfly/Butterfly";
-import { oTLinearChronicle } from "@/shared/supabase/tables/chronicles";
-import filterChronicles from "@/shared/processing/data/chronicles/filterChronicles";
-import { load } from "text-to-svg";
+import { ButterflyCell } from "@/shared/structures/Butterfly";
 import { useOwnChronicles } from "@/shared/supabase/tables/chronicles";
 import { useStoreDynamicShards } from "@/shared/supabase/tables/vitas/shards/dynamic";
+import { $Schemas } from "@/shared/supabase/schemas";
 
 function Page() {
   /** ANCHOR: References */
@@ -31,10 +29,11 @@ function Page() {
     if (ownChronicles && ownChronicles.length > 0) {
       console.warn("update");
 
-      engine.init(filterChronicles(ownChronicles).linear);
+      engine.init($Schemas.Chronicles.Mutations.Linear.To.parse(ownChronicles));
 
       // Testing grounds for uploading vita dynamic shards to supabase
-      console.log(engine.toShards());
+      const shards = engine.toShards();
+      console.log("Shards to upload:", shards);
     }
   }, [ownChronicles]);
 

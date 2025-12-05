@@ -1,9 +1,9 @@
-import { LinearChronicle } from "@/shared/supabase/tables/chronicles/map";
-
 /**
  * TODO: At the moment all functions only work with the `x2` setting, they need to be
  *       augmented to also work with `x1` in the future.
  */
+
+import { Schemas } from "@/shared/supabase/schemas";
 
 /**
  * These functions handle the calculation of the chronicle deltas. This is to illustrate
@@ -29,9 +29,9 @@ import { LinearChronicle } from "@/shared/supabase/tables/chronicles/map";
  * delta is equal to no overlap. (In this case the right delta would be negative and the)
  * left delta would be positive. Keep in mind that a delta always measures the overlap!
  */
-export const getLinearChronicleLeftDelta = (
-  primary: LinearChronicle,
-  secondary: LinearChronicle,
+export const getEngineChronicleLeftDelta = (
+  primary: Schemas["Chronicles"]["Mutations"]["Engine"],
+  secondary: Schemas["Chronicles"]["Mutations"]["Engine"],
 ) => {
   if (!secondary.knots.end) {
     return Infinity;
@@ -44,9 +44,9 @@ export const getLinearChronicleLeftDelta = (
   return secondary.knots.end - primary.knots.start;
 };
 
-export const getLinearChronicleRightDelta = (
-  primary: LinearChronicle,
-  secondary: LinearChronicle,
+export const getEngineChronicleRightDelta = (
+  primary: Schemas["Chronicles"]["Mutations"]["Engine"],
+  secondary: Schemas["Chronicles"]["Mutations"]["Engine"],
 ) => {
   if (!secondary.knots.end) {
     return Infinity;
@@ -59,14 +59,14 @@ export const getLinearChronicleRightDelta = (
   return primary.knots.end - secondary.knots.end;
 };
 
-const getLinearChronicleDeltas = (
-  primary: LinearChronicle,
-  secondary: LinearChronicle,
+const getEngineChronicleDeltas = (
+  primary: Schemas["Chronicles"]["Mutations"]["Engine"],
+  secondary: Schemas["Chronicles"]["Mutations"]["Engine"],
 ) => {
   return {
-    left: getLinearChronicleLeftDelta(primary, secondary),
-    right: getLinearChronicleRightDelta(primary, secondary),
+    left: getEngineChronicleLeftDelta(primary, secondary),
+    right: getEngineChronicleRightDelta(primary, secondary),
   };
 };
 
-export default getLinearChronicleDeltas;
+export default getEngineChronicleDeltas;

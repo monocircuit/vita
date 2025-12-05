@@ -1,13 +1,12 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { DataWriterConfig } from "./types";
-import { createClient } from "./client";
+import { DataWriterConfig } from "../reader/types";
+import { createClient } from "../../supabase/client";
 
-export function createDataWriter<
-  NormalizedTableRow extends object,
-  RawTableRow extends object,
->(config: DataWriterConfig<NormalizedTableRow>) {
+export function createDataWriter<NormalizedTableRow extends object>(
+  config: DataWriterConfig<NormalizedTableRow>,
+) {
   return () => {
     const mutation = useMutation({
       mutationFn: async (rows: NormalizedTableRow[]) => {

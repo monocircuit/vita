@@ -24,14 +24,7 @@
  *           -> static Chronicle
  */
 
-import {
-  $LinearChronicle,
-  Chronicles,
-  LinearChronicle,
-  LinearChronicleKnots,
-} from "@/shared/supabase/tables/chronicles/map";
-import { getLinearChronicleLeftDelta } from "../../data/chronicles/getLinearChronicleDeltas";
-import alignLinearChronicles from "../../data/chronicles/alignLinearChronicles";
+import alignLinearChronicles from "../../data/chronicles/alignEngineChronicles";
 import {
   Butterfly,
   ButterflyCell,
@@ -40,25 +33,13 @@ import {
 import { BipolarLinkedListPolartity } from "@/shared/structures/BipolarDoublyLinkedList";
 import zod from "zod";
 import EventEmitter from "./EventEmitter";
-import { VitasShardsDynamic } from "@/shared/supabase/tables/vitas/shards/dynamic/map";
+import { $Schemas, Schemas } from "@/shared/supabase/schemas";
+import { getEngineChronicleLeftDelta } from "../../data/chronicles/getEngineChronicleDeltas";
 
 interface IEngineProjectionSlice {
   y: number;
-  knots: LinearChronicleKnots;
+  knots: Schemas["Chronicles"]["Mutations"]["Engine"]["knots"];
 }
-
-const $EngineChronicle = $LinearChronicle.omit({
-  category: true,
-  scope: true,
-  createdAt: true,
-  updatedAt: true,
-  description: true,
-  entityId: true,
-  title: true,
-  userId: true,
-});
-
-type TEngineChronicle = zod.infer<typeof $EngineChronicle>;
 
 /**
  * @author Lukas Diegelmann
@@ -72,7 +53,7 @@ type TEngineChronicle = zod.infer<typeof $EngineChronicle>;
  * it only holds knowledge about the `id` and `knots` of a chronicle. This makes it
  * more memory efficient.
  */
-class Engine extends Butterfly<Pick<Chronicles["Normalized"], "id" | "knots">> {
+class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
   /**
    * Space for Constants
    */
@@ -95,7 +76,7 @@ class Engine extends Butterfly<Pick<Chronicles["Normalized"], "id" | "knots">> {
   private _updated = false;
   private _version = 0;
 
-  private chronicles: Pick<Chronicles["Normalized"], "id" | "knots">[] = [];
+  private chronicles: Schemas["Chronicles"]["Mutations"]["Engine"][] = [];
 
   private idCounter = 0;
 
@@ -120,7 +101,7 @@ class Engine extends Butterfly<Pick<Chronicles["Normalized"], "id" | "knots">> {
    * Initiates the calculations for filling the inner `ButterflyStack` with
    * the correct chronicle information.
    */
-  public init(chronicles: Pick<Chronicles["Normalized"], "id" | "knots">[]) {
+  public init(chronicles: Schemas["Chronicles"]["Mutations"]["Engine"][]) {
     /** The `Engine` is only supposed to load once, multiple loading is not possible */
     if (this._loaded) return;
     /*
@@ -220,7 +201,7 @@ class Engine extends Butterfly<Pick<Chronicles["Normalized"], "id" | "knots">> {
    * @returns ButterflyDepth (it will always find a spot to fit the chronicle in)
    */
   private getInsertionDepth(
-    insertionChronicle: TEngineChronicle,
+    insertionChronicle: Schemas["Chronicles"]["Mutations"]["Engine"],
   ): ButterflyDepth {
     const lastCells = this.getLastCells();
     let insertionDepth: ButterflyDepth | null = null;
@@ -233,7 +214,7 @@ class Engine extends Butterfly<Pick<Chronicles["Normalized"], "id" | "knots">> {
      */
     for (const lastCell of lastCells) {
       /** There is space in the layer to fit the linear Chronicle */
-      if (getLinearChronicleLeftDelta(insertionChronicle, lastCell.$) < 0) {
+      if (getEngineChronicleLeftDelta(insertionChronicle, lastCell.$) < 0) {
         /**
          * Should the found space be in the neutral layer, the insertion point is found
          * and the algorithm can break out of the loop.
@@ -266,7 +247,7 @@ class Engine extends Butterfly<Pick<Chronicles["Normalized"], "id" | "knots">> {
            * The layer exists, thus the algorithm needs to check if there is enough space for the
            * `insertionChronicle`.
            */
-          if (getLinearChronicleLeftDelta(insertionChronicle, lastCell.$)) {
+          if (getEngineChronicleLeftDelta(insertionChronicle, lastCell.$)) {
             /**
              * Now the algorithm has checked that there is in fact enough space to insert the
              * `insertionChronicle`, meaning now it makes sense to make a weight check, to see
@@ -452,7 +433,7 @@ class Engine extends Butterfly<Pick<Chronicles["Normalized"], "id" | "knots">> {
    * @returns A list of projection slices clipped to the insertion chronicle’s bounds.
    */
   private getProjection(
-    insertionChronicle: TEngineChronicle,
+    insertionChronicle: Schemas["Chronicles"]["Mutations"]["Engine"],
     insertionDepth: ButterflyDepth,
   ): IEngineProjectionSlice[] {
     const totalProjection = this.getTotalProjection(insertionDepth.y);
@@ -530,7 +511,7 @@ class Engine extends Butterfly<Pick<Chronicles["Normalized"], "id" | "knots">> {
   }
 
   private getTakeoverPath(
-    insertionChronicle: TEngineChronicle,
+    insertionChronicle: Schemas["Chronicles"]["Mutations"]["Engine"],
     insertionDepth: ButterflyDepth,
   ) {
     /** Find `projection` */
@@ -565,7 +546,9 @@ class Engine extends Butterfly<Pick<Chronicles["Normalized"], "id" | "knots">> {
     });
 
     /* Initialize temporary pointer to the null pointer */
-    let tmp: null | ButterflyCell<TEngineChronicle> = null;
+    let tmp: null | ButterflyCell<
+      Schemas["Chronicles"]["Mutations"]["Engine"]
+    > = null;
 
     /* Add the root element of the chronicle path, meaning the part of
        the lane comes before the first slice path */
@@ -649,7 +632,10 @@ class Engine extends Butterfly<Pick<Chronicles["Normalized"], "id" | "knots">> {
   public log() {
     for (const { level, y } of this.iterateY()) {
       // Collect items left-to-right
-      const items: Array<{ x: number; v: TEngineChronicle }> = [];
+      const items: Array<{
+        x: number;
+        v: Schemas["Chronicles"]["Mutations"]["Engine"];
+      }> = [];
 
       // Positive side 1, 2, …
       for (const { x, cell } of level) {
@@ -676,14 +662,20 @@ class Engine extends Butterfly<Pick<Chronicles["Normalized"], "id" | "knots">> {
   /**
    * @author Lukas Diegelmann
    */
-  public toShards(): VitasShardsDynamic["Normalized"][] {
-    const rows: VitasShardsDynamic["Normalized"][] = [];
+  public toShards(): Schemas["VitasShardsDynamic"]["Normalized"][] {
+    const rows: Schemas["VitasShardsDynamic"]["Normalized"][] = [];
 
     // Map: cell -> id (für Lookup von prev/next)
-    const cellToId = new Map<ButterflyCell<TEngineChronicle>, string>();
+    const cellToId = new Map<
+      ButterflyCell<Schemas["Chronicles"]["Mutations"]["Engine"]>,
+      number
+    >();
 
     // Parallel-Array: id -> cell (stabile Zuordnung im 2. Pass)
-    const idToCell = new Map<string, ButterflyCell<TEngineChronicle>>();
+    const idToCell = new Map<
+      number,
+      ButterflyCell<Schemas["Chronicles"]["Mutations"]["Engine"]>
+    >();
 
     let cellId = 0;
 
@@ -694,8 +686,8 @@ class Engine extends Butterfly<Pick<Chronicles["Normalized"], "id" | "knots">> {
     for (const { y, level } of this.iterateY()) {
       for (const { cell } of level) {
         /* Maintain mapping from cell to id and vice versa */
-        cellToId.set(cell, String(cellId));
-        idToCell.set(String(cellId), cell);
+        cellToId.set(cell, cellId);
+        idToCell.set(cellId, cell);
 
         const xArr = [cell.$.knots.start, cell.$.knots.end].filter(v =>
           Number.isFinite(v),

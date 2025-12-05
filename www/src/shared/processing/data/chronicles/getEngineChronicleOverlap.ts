@@ -1,12 +1,9 @@
-import {
-  LinearChronicle,
-  LinearChronicleKnots,
-} from "@/shared/supabase/tables/chronicles/map";
+import { Schemas } from "@/shared/supabase/schemas";
 
-const getLinearChronicleOverlap = (
-  a: LinearChronicle,
-  b: LinearChronicle,
-): LinearChronicleKnots | null => {
+const getEngineChronicleOverlap = (
+  a: Schemas["Chronicles"]["Mutations"]["Engine"],
+  b: Schemas["Chronicles"]["Mutations"]["Engine"],
+): Schemas["Chronicles"]["Mutations"]["Engine"]["knots"] | null => {
   /**
    * Simple intervall intersection.
    */
@@ -22,4 +19,4 @@ const getLinearChronicleOverlap = (
   return { start, end };
 };
 
-export default getLinearChronicleOverlap;
+export default getEngineChronicleOverlap;
