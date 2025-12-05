@@ -90,7 +90,10 @@ export interface DataReaderConfig<
 export interface DataWriterConfig<Row extends object> {
   schema: ZodSchema;
 
-  mutate: (rows: Row[]) => Promise<void>;
+  // `denormalize` transforms a normalized row into a plain object suitable
+  // for the database. `mutate` therefore receives the denormalized/raw
+  // records (as `Record<string, unknown>[]`).
+  mutate: (rows: Record<string, unknown>[]) => Promise<void>;
 
   denormalize: (row: Row) => Record<string, unknown>;
 }

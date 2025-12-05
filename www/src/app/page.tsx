@@ -6,35 +6,44 @@ import Infobar from "@/components/layout/Infobar";
 import Navbar from "@/components/layout/Navbar";
 
 import styles from "./page.module.scss";
-import useOwnProfile from "@/shared/supabase/tables/profiles/read/useOwnProfile";
 import { useOwnChronicles } from "@/shared/supabase/tables/chronicles/";
-import { useDynamicShardsByVitaId } from "@/shared/supabase/tables/vitas/shards/dynamic";
+import { useStoreDynamicShards } from "@/shared/supabase/tables/vitas/shards/dynamic";
 import { useEffect } from "react";
 import useOwnVitas from "@/shared/supabase/tables/vitas/$read/useOwnVitas";
-import { $Schemas, Schemas } from "@/shared/supabase/schemas";
+import { $Schemas } from "@/shared/supabase/schemas";
+import useEngine from "@/shared/processing/engines/dynamic/useEngine";
 
 const Home = () => {
-  const { data: vitas } = useOwnVitas();
+  const { data: ownVitas } = useOwnVitas();
   const { data: ownChronicles } = useOwnChronicles();
 
-  console.log(vitas);
+  const engine = useEngine();
 
+  const writer = useStoreDynamicShards();
+
+  // Nutze mutation.isIdle um nur einmal zu schreiben
+  // isIdle = noch nie gestartet, isPending = läuft gerade, isSuccess/isError = fertig
   useEffect(() => {
-    if (ownChronicles) {
-      console.log("Own Chronicles:", ownChronicles);
+    if (!(ownChronicles && ownVitas && writer.mutation.isIdle)) return;
 
-      const linear =
-        $Schemas.Chronicles.Mutations.Linear.To.parse(ownChronicles);
+    console.log("Own Chronicles:", ownChronicles);
 
-      const engine =
-        $Schemas.Chronicles.Mutations.Engine.To.parse(ownChronicles);
+    const linearChronicles =
+      $Schemas.Chronicles.Mutations.Linear.To.parse(ownChronicles);
 
-      const awd: Schemas["Chronicles"]["Mutations"]["Linear"][] = linear;
+    const engineChronicles =
+      $Schemas.Chronicles.Mutations.Engine.To.parse(ownChronicles);
 
-      console.log("linear", linear);
-      console.log("engine", engine);
-    }
-  }, [ownChronicles]);
+    engine.init(engineChronicles);
+
+    const shards = engine.toShards();
+
+    console.log("linear", linearChronicles);
+    console.log("engine", engineChronicles);
+    console.log("shards", shards);
+
+    writer.setDefaults({ vitaId: ownVitas[0].id }).write(shards);
+  }, [ownChronicles, ownVitas]);
 
   return (
     <Scrollable shouldScrollY classNameScrollbar={styles["scrollbar"]}>

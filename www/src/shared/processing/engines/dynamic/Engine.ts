@@ -76,6 +76,9 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
   private _updated = false;
   private _version = 0;
 
+  /** Controls whether debug logging is active (default: enabled) */
+  private _logsEnabled = false;
+
   private chronicles: Schemas["Chronicles"]["Mutations"]["Engine"][] = [];
 
   private idCounter = 0;
@@ -93,6 +96,32 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
 
   public constructor() {
     super();
+  }
+
+  /** Enable debug logging for this engine instance */
+  public enableLogs() {
+    this._logsEnabled = true;
+  }
+
+  /** Disable debug logging for this engine instance */
+  public disableLogs() {
+    this._logsEnabled = false;
+  }
+
+  private debugLog(...args: any[]) {
+    if (this._logsEnabled) console.log(...args);
+  }
+
+  private debugWarn(...args: any[]) {
+    if (this._logsEnabled) console.warn(...args);
+  }
+
+  private debugGroup(...args: any[]) {
+    if (this._logsEnabled) console.group(...args);
+  }
+
+  private debugGroupEnd() {
+    if (this._logsEnabled) console.groupEnd();
   }
 
   /**
@@ -119,7 +148,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
      */
     this.chronicles = alignLinearChronicles(this.chronicles);
 
-    console.log("linear chronicles", this.chronicles);
+    this.debugLog("linear chronicles", this.chronicles);
 
     /** The first linear Chronicle can always fit into the neutral lane */
     this.push(0, this.chronicles[0]);
@@ -129,13 +158,13 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
     /** The .getLatestPoints() function already ensures we get minimal depth */
     for (let i = 1; i < this.chronicles.length; i++) {
       const insertionChronicle = this.chronicles[i];
-      console.warn(insertionChronicle.id);
+      this.debugWarn(insertionChronicle.id);
 
       this.log();
 
       /** Find `insertionDepth` */
       const insertionDepth = this.getInsertionDepth(insertionChronicle);
-      console.log("insertionDepth", insertionDepth);
+      this.debugLog("insertionDepth", insertionDepth);
 
       /** Find `TakeoverPath` */
       const takeoverPath = this.getTakeoverPath(
@@ -151,11 +180,11 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
 
       // console.log("takeoverDepths", takeoverPath);
 
-      console.log("vertical insertion depth", insertionDepth.y);
+      this.debugLog("vertical insertion depth", insertionDepth.y);
       // this.push(insertionDepth.y, insertionChronicle);
     }
 
-    console.warn("RESULT");
+    this.debugWarn("RESULT");
     this.log();
 
     this.loaded = true;
@@ -517,7 +546,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
     /** Find `projection` */
     const projection = this.getProjection(insertionChronicle, insertionDepth);
 
-    console.log(
+    this.debugLog(
       "projectionData",
       projection.map(v => {
         const start = new Date(v.knots.start).toISOString();
@@ -642,28 +671,34 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
         items.push({ x, v: cell.$ });
       }
 
-      console.group(`y=${y}`);
+      this.debugGroup(`y=${y}`);
       for (const { x, v } of items) {
         // Assume v is a LinearChronicle
 
         const fmt = (ms: number) =>
           ms === Infinity ? "∞" : new Date(ms).toISOString().slice(0, 10);
 
-        console.log(v.knots);
+        this.debugLog(v.knots);
         const start = fmt(v.knots.start);
         const end = fmt(v.knots.end);
 
-        console.log(`x=${x}: ${v.id} | start=${start}, end=${end}`);
+        this.debugLog(`x=${x}: ${v.id} | start=${start}, end=${end}`);
       }
-      console.groupEnd();
+      this.debugGroupEnd();
     }
   }
 
   /**
    * @author Lukas Diegelmann
    */
-  public toShards(): Schemas["VitasShardsDynamic"]["Normalized"][] {
-    const rows: Schemas["VitasShardsDynamic"]["Normalized"][] = [];
+  public toShards(): Omit<
+    Schemas["VitasShardsDynamic"]["Normalized"],
+    "createdAt" | "vitaId"
+  >[] {
+    const rows: Omit<
+      Schemas["VitasShardsDynamic"]["Normalized"],
+      "createdAt" | "vitaId"
+    >[] = [];
 
     // Map: cell -> id (für Lookup von prev/next)
     const cellToId = new Map<
@@ -689,16 +724,9 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
         cellToId.set(cell, cellId);
         idToCell.set(cellId, cell);
 
-        const xArr = [cell.$.knots.start, cell.$.knots.end].filter(v =>
-          Number.isFinite(v),
-        );
-
         rows.push({
           /* Create Primary Key for the Shard */
           id: cellId,
-          vitaId: 1,
-
-          createdAt: null,
 
           prevId: null /* Will be set in second pass */,
           nextId: null /* Will be set in second pass */,
@@ -706,7 +734,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
           chronicleId: cell.$.id,
 
           y,
-          x: xArr,
+          x: cell.x,
         });
 
         /* Generate sequential id */

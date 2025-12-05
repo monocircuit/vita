@@ -2,6 +2,7 @@
 
 import { TanstackWriterBuilder } from "./TanstackWriterBuilder";
 import type { InsertRowFor } from "./types";
+import type { Camelize } from "@/utils/case-conversions/types";
 
 /**
  * TanstackWriter: Fluent API zum Erstellen typsicherer Supabase Write-Hooks.
@@ -61,7 +62,7 @@ export const TanstackWriter = {
    * ```
    */
   withDefaults<Table extends keyof Database["public"]["Tables"]>() {
-    return <D extends Partial<InsertRowFor<Table>>>(defaults: D) => {
+    return <D extends Partial<Camelize<InsertRowFor<Table>>>>(defaults: D) => {
       return new TanstackWriterBuilder<Table, D>(
         "" as Table, // wird überschrieben
       ).withDefaults(defaults);

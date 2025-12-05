@@ -1,15 +1,5 @@
-import {
-  iTChronicle,
-  oTLinearChronicle,
-} from "@/shared/supabase/tables/chronicles/map";
 import Engine from "./Engine";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useRef, useSyncExternalStore } from "react";
 
 /**
  * @author Lukas Diegelmann

@@ -59,12 +59,11 @@ export function hasFullPrimaryKey<T extends object>(
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Das Ergebnis eines Write-Vorgangs enthält die geschriebenen Rows
+ * Das Ergebnis eines Write-Vorgangs (upsert) enthält die geschriebenen Rows
  * mit allen Feldern (inkl. generierter IDs, timestamps, etc.)
  */
 export interface WriteResult<Row> {
-  inserted: Row[];
-  updated: Row[];
+  rows: Row[];
 }
 
 export type WriterReturn<Row> = UseMutationResult<
@@ -107,4 +106,9 @@ export type DataWriter<
    * Die zugrundeliegende Mutation für erweiterte Kontrolle
    */
   mutation: WriterReturn<Row>;
+
+  /**
+   * Setzt Default-Werte für nachfolgende Writes
+   */
+  setDefaults: (values: Partial<Input>) => void;
 };

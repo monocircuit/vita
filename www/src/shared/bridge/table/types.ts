@@ -178,7 +178,7 @@ export interface InferZodTableSchema<
     Raw: ZodTypeAny;
     Normalize: ZodTypeAny;
     Denormalize: ZodTypeAny;
-    Mutations?: Record<string, { To: ZodTypeAny; From: ZodTypeAny }>;
+    Mutations?: Record<string, { To: ZodTypeAny; From?: ZodTypeAny }>;
   },
 > {
   Raw: import("zod").infer<S["Raw"]>;
@@ -204,7 +204,7 @@ export type InferZodMap<
       Raw: ZodTypeAny;
       Normalize: ZodTypeAny;
       Denormalize: ZodTypeAny;
-      Mutations?: Record<string, { To: ZodTypeAny; From: ZodTypeAny }>;
+      Mutations?: Record<string, { To: ZodTypeAny; From?: ZodTypeAny }>;
     }
   >,
 > = {

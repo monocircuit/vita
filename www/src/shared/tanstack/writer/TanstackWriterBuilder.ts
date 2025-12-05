@@ -1,14 +1,18 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  UseMutationResult,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { createClient } from "@/shared/supabase/client";
-import { toPascalCase } from "@/utils/case-conversions";
-import type {
-  NormalizedRowFor,
-  InsertRowFor,
-  UpdateRowFor,
-  WriteResult,
-} from "./types";
+import {
+  keysToCamelCase,
+  toPascalCase,
+  toSnakeCase,
+} from "@/utils/case-conversions";
+import type { Camelize } from "@/utils/case-conversions/types";
+import type { NormalizedRowFor, InsertRowFor, WriteResult } from "./types";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Writer Builder
@@ -16,13 +20,14 @@ import type {
 
 export class TanstackWriterBuilder<
   Table extends keyof Database["public"]["Tables"],
-  Defaults extends Partial<InsertRowFor<Table>> = {},
+  Defaults extends Partial<Camelize<InsertRowFor<Table>>> = {},
 > {
   private _primaryKeyParts: (keyof NormalizedRowFor<Table> & string)[] = [
     "id" as any,
   ];
   private _defaults: Defaults = {} as Defaults;
   private _queryBaseKey: () => string[] = () => [this.tableName as string];
+  private _conflictParts?: (keyof NormalizedRowFor<Table> & string)[];
 
   constructor(private readonly tableName: Table) {}
 
@@ -41,13 +46,14 @@ export class TanstackWriterBuilder<
    * Setzt Default-Werte die bei jedem Write automatisch hinzugefügt werden.
    * Nützlich für z.B. `userId` bei eigenen Daten.
    */
-  withDefaults<D extends Partial<InsertRowFor<Table>>>(
+  withDefaults<D extends Partial<Camelize<InsertRowFor<Table>>>>(
     defaults: D,
   ): TanstackWriterBuilder<Table, D> {
     const builder = new TanstackWriterBuilder<Table, D>(this.tableName);
     builder._primaryKeyParts = this._primaryKeyParts;
     builder._defaults = defaults;
     builder._queryBaseKey = this._queryBaseKey;
+    builder._conflictParts = this._conflictParts;
     return builder;
   }
 
@@ -59,30 +65,99 @@ export class TanstackWriterBuilder<
     return this;
   }
 
+  conflictOn(
+    ...keys: (keyof NormalizedRowFor<Table> & string)[]
+  ): TanstackWriterBuilder<Table, Defaults> {
+    this._conflictParts = keys;
+    return this;
+  }
+
   /**
    * Baut den Writer Hook.
    */
   build() {
     const tableName = this.tableName;
     const primaryKeyParts = this._primaryKeyParts;
-    const defaults = this._defaults;
+    const buildTimeDefaults = this._defaults;
+    const conflictPartsDefault = this._conflictParts;
     const queryBaseKey = this._queryBaseKey;
 
     type Insert = InsertRowFor<Table>;
-    type Update = UpdateRowFor<Table>;
+    type CamelInsert = Camelize<Insert>;
     type Row = NormalizedRowFor<Table>;
+    type CamelRow = Camelize<Row>;
 
-    // Input-Typ: Insert ohne defaults oder Update mit PK
-    type InputWithoutDefaults = Omit<Insert, keyof Defaults>;
-    type InputWithDefaults = InputWithoutDefaults & Partial<Defaults>;
+    // Writer Instance Type mit akkumulierten Defaults
+    interface WriterInstance<AccumulatedDefaults extends Partial<CamelInsert>> {
+      /**
+       * Schreibt eine oder mehrere Rows (insert oder update via upsert).
+       * Erkennt automatisch ob ein Array übergeben wurde.
+       */
+      write: (
+        input:
+          | (Omit<CamelInsert, keyof AccumulatedDefaults> &
+              Partial<AccumulatedDefaults>)
+          | (Omit<CamelInsert, keyof AccumulatedDefaults> &
+              Partial<AccumulatedDefaults>)[],
+      ) => Promise<WriteResult<CamelRow>>;
 
-    return function useWriter() {
-      const queryClient = useQueryClient();
+      /**
+       * Die zugrundeliegende Mutation für erweiterte Kontrolle
+       */
+      mutation: UseMutationResult<
+        WriteResult<CamelRow>,
+        Error,
+        unknown[],
+        unknown
+      >;
 
-      const mutation = useMutation({
+      /**
+       * Setzt Default-Werte und gibt einen neuen Writer mit aktualisierten Types zurück.
+       * Die gesetzten Keys werden aus dem Input-Type von write() entfernt.
+       */
+      setDefaults: <NewDefaults extends Partial<CamelInsert>>(
+        newDefaults: NewDefaults,
+      ) => WriterInstance<AccumulatedDefaults & NewDefaults>;
+    }
+
+    // Shared state zwischen Writer-Instanzen (wird im Hook initialisiert)
+    let runtimeDefaults: Partial<CamelInsert> = { ...buildTimeDefaults };
+    let queryClientRef: ReturnType<typeof useQueryClient>;
+    let mutationRef: UseMutationResult<
+      WriteResult<CamelRow>,
+      Error,
+      unknown[],
+      unknown
+    >;
+
+    // Factory-Funktion um typisierte Writer-Instanzen zu erstellen
+    function createWriterInstance<
+      AccumulatedDefaults extends Partial<CamelInsert>,
+    >(): WriterInstance<AccumulatedDefaults> {
+      return {
+        write: (input: unknown) =>
+          Array.isArray(input)
+            ? mutationRef.mutateAsync(input)
+            : mutationRef.mutateAsync([input]),
+
+        mutation: mutationRef,
+
+        setDefaults: <NewDefaults extends Partial<CamelInsert>>(
+          newDefaults: NewDefaults,
+        ): WriterInstance<AccumulatedDefaults & NewDefaults> => {
+          runtimeDefaults = { ...runtimeDefaults, ...newDefaults };
+          return createWriterInstance<AccumulatedDefaults & NewDefaults>();
+        },
+      };
+    }
+
+    return function useWriter(): WriterInstance<Defaults> {
+      queryClientRef = useQueryClient();
+
+      mutationRef = useMutation({
         mutationFn: async (
-          inputs: InputWithDefaults[],
-        ): Promise<WriteResult<Row>> => {
+          inputs: unknown[],
+        ): Promise<WriteResult<CamelRow>> => {
           const client = createClient();
 
           // Auth check
@@ -107,114 +182,64 @@ export class TanstackWriterBuilder<
           }
 
           const denormalize = schemaEntry.Denormalize;
+          const normalize = schemaEntry.Normalize;
 
-          // Merge defaults und teile in inserts/updates auf
-          const inserts: Record<string, unknown>[] = [];
-          const updates: {
-            data: Record<string, unknown>;
-            pk: Record<string, unknown>;
-          }[] = [];
+          // Merge defaults und denormalize alle Inputs
+          const rows: Record<string, unknown>[] = inputs.map(input => {
+            const mergedCamel = {
+              ...runtimeDefaults,
+              ...(input as object),
+            } as CamelInsert;
+            return denormalize.parse(mergedCamel);
+          });
 
-          for (const input of inputs) {
-            // Merge mit defaults
-            const merged = { ...defaults, ...input } as Insert;
-
-            // Denormalize für DB-Format
-            const denormalized = denormalize.parse(merged);
-
-            // Prüfe ob alle PK-Teile vorhanden sind
-            const hasPk = primaryKeyParts.every(
-              key => key in merged && (merged as any)[key] != null,
-            );
-
-            if (hasPk) {
-              // Update: Extrahiere PK für WHERE clause
-              const pk: Record<string, unknown> = {};
-              for (const key of primaryKeyParts) {
-                pk[key] = denormalized[key];
-              }
-              updates.push({ data: denormalized, pk });
-            } else {
-              // Insert: Ohne PK oder mit partieller PK
-              inserts.push(denormalized);
-            }
-          }
-
-          const result: WriteResult<Row> = {
-            inserted: [],
-            updated: [],
-          };
-
-          // Führe Inserts aus
-          if (inserts.length > 0) {
-            const { data, error } = await client
-              .from(tableName as string)
-              .insert(inserts)
-              .select("*");
-
-            if (error) throw error;
-
-            // Normalize zurück für Cache
-            const normalize = schemaEntry.Normalize;
-            result.inserted = (data ?? []).map((row: any) =>
-              normalize.parse(row),
+          const conflictParts = conflictPartsDefault ?? primaryKeyParts;
+          if (!conflictParts.length) {
+            throw new Error(
+              `TanstackWriter: Kein ON CONFLICT für "${String(tableName)}" definiert`,
             );
           }
 
-          // Führe Updates aus (einzeln, da verschiedene PKs)
-          for (const { data: updateData, pk } of updates) {
-            let query = client.from(tableName as string).update(updateData);
+          const onConflictColumns = conflictParts
+            .map(key => toSnakeCase(String(key)))
+            .join(",");
 
-            // Baue WHERE clause für alle PK-Teile
-            for (const [key, value] of Object.entries(pk)) {
-              query = query.eq(key, value as any);
-            }
+          const { data, error } = await client
+            .from(tableName as string)
+            .upsert(rows, {
+              onConflict: onConflictColumns,
+              ignoreDuplicates: false, // Bei Konflikt: Update statt ignorieren
+            })
+            .select("*");
 
-            const { data, error } = await query.select("*").single();
+          if (error) throw error;
 
-            if (error) throw error;
+          // Normalize zurück für Cache
+          const normalizedRows: Row[] = (data ?? []).map((row: any) =>
+            normalize.parse(row),
+          );
 
-            // Normalize zurück für Cache
-            const normalize = schemaEntry.Normalize;
-            result.updated.push(normalize.parse(data));
-          }
-
-          return result;
+          const camelRows: CamelRow[] = keysToCamelCase(normalizedRows);
+          return { rows: camelRows };
         },
 
         onSuccess: result => {
+          console.log(["net", "public", ...queryBaseKey()], "writer:onSuccess");
           // Invalidiere relevante Queries
-          queryClient.invalidateQueries({
+          queryClientRef.invalidateQueries({
             queryKey: ["net", "public", ...queryBaseKey()],
           });
 
-          // Update depot entries für inserted/updated rows
-          const allRows = [...result.inserted, ...result.updated];
-          for (const row of allRows) {
+          // Update depot entries für alle upserted rows
+          for (const row of result.rows) {
             const pk = primaryKeyParts.map(key => (row as any)[key]);
             const depotKey = ["dpt", "public", ...queryBaseKey(), ...pk];
-            queryClient.setQueryData(depotKey, row);
+            queryClientRef.setQueryData(depotKey, row);
           }
         },
       });
 
-      return {
-        /**
-         * Schreibt eine einzelne Row (insert oder update)
-         */
-        write: (input: InputWithDefaults) => mutation.mutateAsync([input]),
-
-        /**
-         * Schreibt mehrere Rows (inserts und/oder updates)
-         */
-        writeMany: (inputs: InputWithDefaults[]) =>
-          mutation.mutateAsync(inputs),
-
-        /**
-         * Die zugrundeliegende Mutation für erweiterte Kontrolle
-         */
-        mutation,
-      };
+      return createWriterInstance<Defaults>();
     };
   }
 }

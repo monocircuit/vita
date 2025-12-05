@@ -437,32 +437,32 @@ export interface Database {
       vitas_shards_dynamic: {
         Row: {
           chronicle_id: number;
-          created_at: string;
+          created_at: string | null;
           id: number;
           next_id: number | null;
           prev_id: number | null;
           vita_id: number;
-          x: number[];
+          x: number | null;
           y: number;
         };
         Insert: {
           chronicle_id: number;
-          created_at?: string;
+          created_at?: string | null;
           id: number;
           next_id?: number | null;
           prev_id?: number | null;
           vita_id: number;
-          x: number[];
+          x?: number | null;
           y: number;
         };
         Update: {
           chronicle_id?: number;
-          created_at?: string;
+          created_at?: string | null;
           id?: number;
           next_id?: number | null;
           prev_id?: number | null;
           vita_id?: number;
-          x?: number[];
+          x?: number | null;
           y?: number;
         };
         Relationships: [
@@ -508,8 +508,13 @@ export interface Database {
           column_description: string;
           column_name: string;
           data_type: string;
+          is_nullable: boolean;
+          max_array_length: number;
           numeric_precision: number;
           numeric_scale: number;
+          udt_info: Json;
+          udt_name: string;
+          udt_schema: string;
         }[];
       };
       getcv: {
@@ -520,12 +525,12 @@ export interface Database {
         Args: { p_rows: Json; p_vita_id: number };
         Returns: {
           chronicle_id: number;
-          created_at: string;
+          created_at: string | null;
           id: number;
           next_id: number | null;
           prev_id: number | null;
           vita_id: number;
-          x: number[];
+          x: number | null;
           y: number;
         }[];
         SetofOptions: {
@@ -537,7 +542,12 @@ export interface Database {
       };
     };
     Enums: {
-      chronicle_category: "work experience" | "education" | "internship";
+      chronicle_category:
+        | "work experience"
+        | "education"
+        | "internship"
+        | "volunteering"
+        | "hobby";
       chronicle_orientation: "above" | "below" | "neutral";
       marital_status:
         | "single"
@@ -681,7 +691,13 @@ export const Constants = {
   },
   public: {
     Enums: {
-      chronicle_category: ["work experience", "education", "internship"],
+      chronicle_category: [
+        "work experience",
+        "education",
+        "internship",
+        "volunteering",
+        "hobby",
+      ],
       chronicle_orientation: ["above", "below", "neutral"],
       marital_status: [
         "single",

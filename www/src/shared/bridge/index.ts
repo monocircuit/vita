@@ -13,7 +13,7 @@ export namespace Bridge {
         Raw: ZodTypeAny;
         Normalize: ZodTypeAny;
         Denormalize: ZodTypeAny;
-        Mutations?: Record<string, { To: ZodTypeAny; From: ZodTypeAny }>;
+        Mutations?: Record<string, { To: ZodTypeAny; From?: ZodTypeAny }>;
       }
     >,
   > = {
