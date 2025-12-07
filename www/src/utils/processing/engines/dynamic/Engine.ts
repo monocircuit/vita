@@ -116,6 +116,7 @@ class Engine extends Butterfly<TEngineChronicle> {
      * for better memory usage.
      */
     console.log("chronicles", chronicles);
+
     this.chronicles = $EngineChronicle.array().parse(chronicles);
 
     /*
@@ -136,10 +137,11 @@ class Engine extends Butterfly<TEngineChronicle> {
       console.warn(insertionChronicle.id);
 
       this.log();
-
       /** Find `insertionDepth` */
       const insertionDepth = this.getInsertionDepth(insertionChronicle);
       console.log("insertionDepth", insertionDepth);
+
+
 
       /** Find `TakeoverPath` */
       const takeoverPath = this.getTakeoverPath(
@@ -196,8 +198,13 @@ class Engine extends Butterfly<TEngineChronicle> {
      *
      * Depth > Weight (Depth is prioritized)
      */
+    console.log("insertionDepth :")
+    console.log("lastCells", lastCells);
+    console.log("insertionChronicle", insertionChronicle);
+
     for (const lastCell of lastCells) {
       /** There is space in the layer to fit the linear Chronicle */
+      console.log("bing bong : " + (getLinearChronicleLeftDelta(insertionChronicle, lastCell.$)))
       if (getLinearChronicleLeftDelta(insertionChronicle, lastCell.$) < 0) {
         /**
          * Should the found space be in the neutral layer, the insertion point is found
@@ -292,10 +299,11 @@ class Engine extends Butterfly<TEngineChronicle> {
 
     /** In case there was no insertion point found, create a new layer */
     if (!insertionDepth) {
+      console.log(this.yDimensions);
       if (this.yDimensions.positive > this.yDimensions.negative) {
         /** Only insert into the negative layer if the postive layer is actually greater than the negative one */
         insertionDepth = {
-          y: this.yDimensions.negative - 1,
+          y: -this.yDimensions.negative - 1,
           x: 0,
         };
       } else {
@@ -368,7 +376,7 @@ class Engine extends Butterfly<TEngineChronicle> {
             if (
               accumulator.length &&
               accumulator[accumulator.length - 1].knots.start >=
-                last.$.knots.end
+              last.$.knots.end
             ) {
               return accumulator;
             }
@@ -500,7 +508,6 @@ class Engine extends Butterfly<TEngineChronicle> {
   ) {
     /** Find `projection` */
     const projection = this.getProjection(insertionChronicle, insertionDepth);
-
     console.log(
       "projectionData",
       projection.map(v => {
@@ -513,7 +520,7 @@ class Engine extends Butterfly<TEngineChronicle> {
         return { ...v, knots: { start, end } };
       }),
     );
-
+    console.log("insertionChronicle", insertionDepth);
     /** If there is no `projection` data, just insert it as is, the algorith comes
         to an end at this point. */
     if (!projection.length) {

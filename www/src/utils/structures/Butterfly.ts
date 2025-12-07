@@ -54,6 +54,7 @@ export class ButterflyCell<T> implements IButterflyLinkage<T>, IButterflyDepth {
 
   /* Enable flagging of a `ButterflyCell` */
   private _flag: boolean = false;
+  cell: any;
 
   constructor(
     $: T,
@@ -607,5 +608,5 @@ export default class Butterfly<T> {
     return this.store.stepTowardZero(index);
   }
 
-  public toJson() {}
+  public toJson() { }
 }

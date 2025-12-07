@@ -13,6 +13,8 @@ export const drawBranch = (
   container: PIXI.Container,
   { start, end, shift, thickness = 2, color = 0x000000, title }: BranchProps,
 ) => {
+
+
   const graphics = new PIXI.Graphics();
   graphics.moveTo(start, shift);
   graphics.lineTo(end, shift);
@@ -32,4 +34,5 @@ export const drawBranch = (
   }
 
   container.addChild(graphics);
+  return graphics;
 };
