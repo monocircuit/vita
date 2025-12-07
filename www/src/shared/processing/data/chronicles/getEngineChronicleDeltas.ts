@@ -40,7 +40,10 @@ export const getEngineChronicleLeftDelta = (
   if (!primary.knots.end) {
     return secondary.knots.end - primary.knots.start;
   }
-
+  console.log(primary)
+  console.log(secondary)
+  console.log("primary.knots.start", primary.knots.start);
+  console.log("secondary.knots.end", secondary.knots.end);
   return secondary.knots.end - primary.knots.start;
 };
 

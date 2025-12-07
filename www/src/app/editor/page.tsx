@@ -1,66 +1,76 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-import { Application } from "pixi.js";
-import useEngine from "@/shared/processing/engines/dynamic/useEngine";
+import React, { useEffect, useRef, useState } from "react";
+import { Application, Container, ContainerChild, Graphics } from "pixi.js";
+import useEngine from "@/utils/processing/engines/dynamic/useEngine";
 import { drawBranch } from "@/utils/drawing/dynamic/drawBranch";
 import { Viewport } from "pixi-viewport";
-import { ButterflyCell } from "@/shared/structures/Butterfly";
-import { useOwnChronicles } from "@/shared/supabase/tables/chronicles";
-import { useStoreDynamicShards } from "@/shared/supabase/tables/vitas/shards/dynamic";
-import { $Schemas } from "@/shared/supabase/schemas";
+import { ButterflyCell } from "@/utils/structures/Butterfly";
+import { useReadOwnChronicles } from "@/utils/supabase/api/tables/chronicles";
+import filterChronicles from "@/utils/processing/data/chronicles/filterChronicles";
+import { drawConnection } from "@/utils/drawing/dynamic/drawConnection";
+import { start } from "repl";
+import { drawChronicleBranch } from "@/utils/drawing/dynamic/drawChronicleBranch";
+import { drawGenericConnection } from "@/utils/drawing/dynamic/drawGenericConnection";
+import { DrawingContext } from "@/utils/drawing/dynamic/helpers";
+import {
+  setGlobalConfig,
+  setBranchStyle,
+} from "@/utils/drawing/dynamic/styleApi";
+
+// --- Typ-Aliase für bessere Lesbarkeit ---
+type ChronicleCell = ButterflyCell<{
+  id: string;
+  knots: { start: number; end: number };
+}>;
 
 function Page() {
   /** ANCHOR: References */
   const pixiContainer = useRef<HTMLDivElement>(null);
-  const appRef = useRef<Application | null>(null); // Ref for the app
+  const appRef = useRef<Application | null>(null);
   const viewportRef = useRef<Viewport | null>(null);
 
-  /** ANCHOR: Readers */
-  const { data: ownChronicles, isLoading } = useOwnChronicles();
-
-  /** ANCHOR: Writers */
-  const { mutate } = useStoreDynamicShards();
+  /** ANCHOR: Fetched Data */
+  const { chronicles: ownChronicles, isLoading } = useReadOwnChronicles();
 
   /** ANCHOR: Engines */
-  const engine = useEngine();
+  const { init, engine } = useEngine();
+  const [isEngineReady, setEngineReady] = useState(false);
 
+  // Effect 1: Engine initialisieren, wenn Daten geladen sind
   useEffect(() => {
-    if (ownChronicles && ownChronicles.length > 0) {
-      console.warn("update");
-
-      engine.init($Schemas.Chronicles.Mutations.Linear.To.parse(ownChronicles));
-
-      // Testing grounds for uploading vita dynamic shards to supabase
-      const shards = engine.toShards();
-      console.log("Shards to upload:", shards);
+    if (!isLoading && ownChronicles.length > 0 && !isEngineReady) {
+      console.warn("Engine activated");
+      const { linear } = filterChronicles(ownChronicles);
+      console.log("Linear Chronicles:", linear);
+      init(linear);
+      setEngineReady(true);
     }
-  }, [ownChronicles]);
+  }, [ownChronicles, isLoading, init, isEngineReady]);
 
-  console.log("IsLoading:", isLoading);
-
-  // Effect 1: Initialize Pixi Application and Viewport (runs only once)
+  // Effect 2: Pixi Application und Viewport initialisieren (läuft nur einmal)
   useEffect(() => {
     if (!pixiContainer.current || appRef.current) {
-      return; // Abort if container is not ready or app is already initialized
+      return;
     }
 
     const app = new Application();
     appRef.current = app;
 
     const initializePixi = async () => {
+      const container = pixiContainer.current!;
       await app.init({
-        resizeTo: pixiContainer.current!,
+        resizeTo: container,
         backgroundColor: 0xffffff,
         autoDensity: true,
         resolution: window.devicePixelRatio || 1,
       });
-      pixiContainer.current!.appendChild(app.canvas);
+      container.appendChild(app.canvas);
 
       const viewport = new Viewport({
-        screenWidth: pixiContainer.current!.clientWidth,
-        screenHeight: pixiContainer.current!.clientHeight,
-        worldWidth: 1000,
+        screenWidth: container.clientWidth,
+        screenHeight: container.clientHeight,
+        worldWidth: 1000, // Weltgröße (kann angepasst werden)
         worldHeight: 1000,
         events: app.renderer.events,
       });
@@ -68,7 +78,7 @@ function Page() {
 
       app.stage.addChild(viewport);
       viewport.drag().pinch().wheel().decelerate();
-      viewport.fit().moveCenter(500, 500);
+      viewport.fit().moveCenter(500, 500); // Zentriert die Welt
     };
 
     initializePixi();
@@ -78,162 +88,137 @@ function Page() {
       appRef.current = null;
       viewportRef.current = null;
     };
-  }, []); // Empty dependency array ensures this runs only once
+  }, []);
 
-  // Effect 2: Draw content when the engine is ready (or data changes)
+  // Effect 3: Inhalt zeichnen, wenn die Engine bereit ist
   useEffect(() => {
-    if (!engine.loaded || !viewportRef.current) {
-      return; // Abort if engine isn't ready or viewport is not set up
-    }
-
-    //Viewport define
     const viewport = viewportRef.current;
-    viewport.removeChildren(); // Clear previous drawings
+    const container = pixiContainer.current;
 
-    let aknot = 0;
-    let distance = 1; // Avoid division by zero
-
-    if (engine.getLevel(0) != null) {
-      aknot = engine.get(0, 0)?.$.knots.start ?? 0;
-      const lastKnot = engine.getLastCell(0)?.$.knots.end ?? aknot;
-      distance = lastKnot - aknot;
-      if (distance === 0) distance = 1;
+    // Abbrechen, wenn Engine oder Viewport nicht bereit sind
+    if (!isEngineReady || !viewport || !container) {
+      return;
     }
 
-    const positiveLayerHeight = engine.yDimensions.positive;
-    const negativeLayerHeight = engine.yDimensions.negative;
+    viewport.removeChildren(); // Vorherige Zeichnungen löschen
 
-    const isRenderedChronicles = new Set<string>();
+    // --- Normalisierungsparameter berechnen ---
+    const aknot = 0;
+    const distance = 1; // Standard-Distanz (vermeidet Division durch Null)
 
-    const drawChronicles = (
-      chronicle: { id: string; knots: { start: number; end: number } },
-      levelIndex: number,
-    ) => {
-      if (isRenderedChronicles.has(chronicle.id.toString())) return;
+    const screenWidth = container.clientWidth;
+    const screenHeight = container.clientHeight;
+    const centerY = screenHeight / 2;
 
-      const nknots = normalize(chronicle.knots, aknot, distance);
-      drawBranch(viewport, {
-        start: nknots[0] * window.innerWidth,
-        end: nknots[1] * window.innerWidth,
-        shift: window.innerHeight / 2 - levelIndex * 50,
-        title: "Mango",
-      });
+    const drawingContext: DrawingContext = {
+      viewport,
+      aknot,
+      distance,
+      screenWidth,
+      centerY,
     };
 
-    const drawPreviousChronicles = (
-      chronicle: ButterflyCell<{
-        id: string;
-        knots: { start: number; end: number };
-      }>,
-      levelIndex: number,
-    ) => {
-      console.log("Recursing Previous:", levelIndex);
-      drawChronicles(chronicle.$, levelIndex);
-      if (chronicle.prev) {
-        drawPreviousChronicles(chronicle.prev, chronicle.prev.y);
+    const allChroniclesByLevel = new Map<number, ChronicleCell[]>();
+    const allChronicles: ChronicleCell[] = [];
+
+    console.log("Engine:", engine.current);
+
+    const level0 = engine.current.getLevel(0) as ChronicleCell[] | undefined;
+    if (level0) {
+      console.log("Level 0 found with", level0.length, "chronicles.");
+      allChroniclesByLevel.set(0, Array.from(level0)); // <-- KORREKTUR: In Array umwandeln
+      allChronicles.push(...level0);
+    }
+    console.log("Level 0 Chronicles:", level0);
+
+    // Positive Level
+    const positiveLayerHeight = engine.current.yDimensions.positive;
+    for (let i = 0; i < positiveLayerHeight; i++) {
+      const level = engine.current.getLevel(i + 1) as
+        | ChronicleCell[]
+        | undefined;
+      if (level) {
+        allChroniclesByLevel.set(i + 1, Array.from(level)); // <-- KORREKTUR: In Array umwandeln
+        allChronicles.push(...level);
       }
-    };
-
-    const drawNextChronicles = (
-      chronicle: ButterflyCell<{
-        id: string;
-        knots: { start: number; end: number };
-      }>,
-      levelIndex: number,
-    ) => {
-      drawChronicles(chronicle.$, levelIndex);
-      if (chronicle.next) {
-        drawPreviousChronicles(chronicle.next, chronicle.next.y);
+    }
+    // Negative Level
+    const negativeLayerHeight = engine.current.yDimensions.negative;
+    for (let i = 0; i < negativeLayerHeight; i++) {
+      const level = engine.current.getLevel(-(i + 1)) as
+        | ChronicleCell[]
+        | undefined;
+      if (level) {
+        allChroniclesByLevel.set(-(i + 1), Array.from(level)); // <-- KORREKTUR: In Array umwandeln
+        allChronicles.push(...level);
       }
-    };
+    }
 
-    // Render level 0
-    engine.getLevel(0)?.forEach((chronicle, i, arr) => {
-      console.log("chronicle:", chronicle.$.id);
-      const nknots = normalize(chronicle.$.knots, aknot, distance);
-      let start = nknots[0] * window.innerWidth;
-      let end = nknots[1] * window.innerWidth;
+    if (level0 && level0.length > 0) {
+      const firstCell = engine.current.get(0, 0);
+      const lastCell = engine.current.getLastCell(0);
 
-      if (arr.length === 1) {
-        start = 0;
-        end = window.innerWidth;
-      } else if (i === 0) {
-        start = 0;
-      } else if (i === arr.length - 1) {
-        end = window.innerWidth;
+      if (firstCell && firstCell.$ && lastCell && lastCell.$) {
+        drawingContext.aknot = firstCell.$.knots.start;
+        const lastKnot = lastCell.$.knots.end;
+        drawingContext.distance = lastKnot - drawingContext.aknot;
+        if (drawingContext.distance === 0) drawingContext.distance = 1;
       }
+    }
 
-      drawChronicles(chronicle.$, chronicle.y);
+    //Zeichnen der Äste:
 
-      if (chronicle.prev) {
-        drawPreviousChronicles(chronicle.prev, chronicle.prev.y);
-        console.log("Draw Previous");
+    console.log(allChronicles);
+    allChronicles.forEach(chronicle => {
+      if (chronicle.cell) {
+        drawChronicleBranch(drawingContext, chronicle.cell, chronicle.cell.y);
       }
-
-      if (chronicle.next) {
-        drawNextChronicles(chronicle.next, chronicle.next.y);
-        console.log("Draw Next");
-      }
-
-      chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
     });
 
-    // Render positive levels
-    for (let i = 0; i < positiveLayerHeight; i++) {
-      const levelIndex = i + 1;
-      const level = engine.getLevel(levelIndex);
-      level?.forEach(chronicle => {
-        if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
+    allChronicles.forEach(startNodeWrapper => {
+      const startCell = startNodeWrapper.cell; // Das eigentliche ButterflyCell Objekt
 
-        drawChronicles(chronicle.$, chronicle.y);
+      // 1. Abbruchbedingung: Wir suchen nur Startpunkte.
+      // Wenn eine Zelle einen Vorgänger hat, ist sie ein Mittelstück
+      // und wird später von ihrem Vorgänger aus behandelt.
+      if (!startCell || startCell.prev) return;
 
-        if (chronicle.prev) {
-          drawPreviousChronicles(chronicle.prev, chronicle.prev.y);
-          console.log("Draw Previous");
-        }
+      // 2. Die Kette (Chain) aufbauen
+      const chain: ButterflyCell<any>[] = [startCell];
+      let currentPointer = startCell.next;
 
-        if (chronicle.next) {
-          drawNextChronicles(chronicle.next, chronicle.next.y);
-          console.log("Draw Next");
-        }
+      // "Follow the breadcrumbs": Solange es ein next gibt, fügen wir es zur Kette hinzu
+      while (currentPointer) {
+        chain.push(currentPointer);
+        currentPointer = currentPointer.next;
+      }
 
-        chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
-      });
-    }
+      // Wenn die Kette nur 1 Element hat, gibt es nichts zu verbinden
+      if (chain.length < 2) return;
 
-    // Render negative levels
-    for (let i = 0; i < negativeLayerHeight; i++) {
-      const levelIndex = i - 1;
-      const level = engine.getLevel(-levelIndex);
-      level?.forEach(chronicle => {
-        if (isRenderedChronicles.has(chronicle.$.id.toString())) return;
+      console.log(
+        `Drawing chain for ID ${startCell.$.id} with ${chain.length} segments.`,
+      );
 
-        drawChronicles(chronicle.$, levelIndex);
-        if (chronicle.prev) {
-          drawPreviousChronicles(chronicle.prev, chronicle.prev.y);
-          console.log("Draw Previous");
-        }
-        if (chronicle.next) {
-          drawNextChronicles(chronicle.next, chronicle.next.y);
-          console.log("Draw Next");
-        }
-        chronicle.$.id && isRenderedChronicles.add(chronicle.$.id.toString());
-      });
-    }
-  }, [engine, engine.loaded]);
+      // 3. Die Kette durchgehen und Segmente verbinden
+      for (let i = 0; i < chain.length - 1; i++) {
+        const sourceCell = chain[i];
+        const targetCell = chain[i + 1];
+        drawGenericConnection(drawingContext, sourceCell, targetCell);
+      }
+    });
+  }, [isEngineReady, engine]);
 
-  return <div className="w-full h-full" ref={pixiContainer}></div>;
+  useEffect(() => {
+    // Beispiel: global anpassen
+    setGlobalConfig({
+      branchColor: Math.floor(Math.random() * 0xffffff),
+      layerDistance: 30,
+    });
+    setBranchStyle("109", { color: 0x00ff00 });
+  }, []);
+
+  return <div className="w-full h-screen" ref={pixiContainer}></div>;
 }
-
-const normalize = (
-  knots: { start: number; end: number },
-  aKnot: number,
-  distance: number,
-) => {
-  const normalizedKnots = [0, 0];
-  normalizedKnots[0] = (knots.start - aKnot) / distance;
-  normalizedKnots[1] = (knots.end - aKnot) / distance;
-  return normalizedKnots;
-};
 
 export default Page;

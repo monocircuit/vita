@@ -6,6 +6,7 @@
       {
         "id": "9b52f863358fcff2",
         "type": "tabs",
+        "dimension": 76.23294858342078,
         "children": [
           {
             "id": "dd654cd3aea2c072",
@@ -13,12 +14,84 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Supabase/Data Fetching/Fetcher.md",
+                "file": "Vita/Dynamic/Maneuvers/TakeOver_Sketch.md"
+              },
+              "icon": "excalidraw-icon",
+              "title": "TakeOver_Sketch"
+            }
+          },
+          {
+            "id": "0fee49c7895834a5",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Vita/Dynamic/Drawing/Subscription.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Fetcher"
+              "title": "Subscription"
+            }
+          },
+          {
+            "id": "5793b5f9259ddace",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Vita/Dynamic/Drawing/Subscription.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Subscription"
+            }
+          },
+          {
+            "id": "b7914a801378220b",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Vita/Dynamic/Drawing/Subscription.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Subscription"
+            }
+          },
+          {
+            "id": "1e1be26d7d42db5a",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.9.14"
+              },
+              "icon": "lucide-book-up",
+              "title": "Release Notes 1.9.14"
+            }
+          }
+        ],
+        "currentTab": 3
+      },
+      {
+        "id": "04d2a479147844a0",
+        "type": "tabs",
+        "dimension": 23.767051416579225,
+        "children": [
+          {
+            "id": "a0148e59aa6e54bd",
+            "type": "leaf",
+            "state": {
+              "type": "excalidraw",
+              "state": {
+                "file": "Excalidraw/Subscription 2025-12-07 16.53.38.excalidraw.md"
+              },
+              "icon": "excalidraw-icon",
+              "title": "Subscription 2025-12-07 16.53.38.excalidraw"
             }
           }
         ]
@@ -182,22 +255,28 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "dd654cd3aea2c072",
+  "active": "b7914a801378220b",
   "lastOpenFiles": [
-    "Excalidraw/normalize() 2025-08-04 14.15.48.excalidraw.md",
-    "Supabase/Data Fetching/Fetcher.md",
-    "Supabase/Data Fetching",
+    "Vita/Dynamic/Drawing/styleAPI.md",
+    "Vita/Dynamic/Drawing/drawChronicleBranch.md",
+    "Vita/Dynamic/Drawing/Subscription.md",
+    "Excalidraw/Subscription 2025-12-07 16.53.38.excalidraw.md",
+    "Vita/Dynamic/Drawing",
+    "Vita/Dynamic/Maneuvers/TakeOver.md",
+    "Vita/Dynamic/Maneuvers/Secession_Sketch.md",
+    "Vita/Dynamic/Maneuvers/Secession.md",
+    "Vita/Dynamic/Engine/getLaneDeltas().md",
+    "Vita/Dynamic/Engine/Inferring the Dynamic Vita.md",
     "Vita/Dynamic/Engine/normalize().md",
     "Vita/Dynamic/Engine/Inferring the Dynamic Vita_Sketch.md",
-    "Vita/Dynamic/Engine/Inferring the Dynamic Vita.md",
-    "Vita/Dynamic/Engine/getLaneDeltas().md",
+    "Vita/Dynamic/Structures/ButterlyStack.md",
+    "Excalidraw/normalize() 2025-08-04 14.15.48.excalidraw.md",
     "Features.md",
     "Vita/Vita.md",
     "Vita/Different Forms of Vitas.md",
     "Vita/Chronicle.md",
     "Vita/ChronicleRelation_Sketch.md",
     "Vita/ChronicleRelation.md",
-    "Vita/Dynamic/Maneuvers/TakeOver.md",
     "Vita/Dynamic/Maneuvers/TakeOver_Sketch.md",
     "Vita/Dynamic/Elements/Lane.md",
     "Supabase/Integrating Chronicle Paths into Supabase.md",
@@ -205,13 +284,7 @@
     "Excalidraw/Drawing 2025-06-22 23.58.01.excalidraw.md",
     "Vita/Dynamic/Elements/Layer.md",
     "Vita/Dynamic/LinearChronicle Diagramm.md",
-    "Vita/Dynamic/LinearChronicle.md",
-    "Vita/Dynamic/Dynamic Vita.md",
-    "Vita/Dynamic/Maneuvers/Secession_Sketch.md",
-    "Vita/Dynamic/Maneuvers/Secession.md",
-    "Ideaboard.md",
     "Vita/Dynamic/Engine",
-    "Vita/Dynamic/Structures/ButterlyStack.md",
     "Vita/Dynamic/Structures",
     "Vita/Dynamic/Elements",
     "Supabase",
@@ -219,7 +292,6 @@
     "Untitled.canvas",
     "Vita/Dynamic/Maneuvers",
     "Vita/Static",
-    "Vita/Dynamic",
-    "Vita"
+    "Vita/Dynamic"
   ]
 }

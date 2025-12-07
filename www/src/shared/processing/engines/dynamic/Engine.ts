@@ -161,7 +161,6 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
       this.debugWarn(insertionChronicle.id);
 
       this.log();
-
       /** Find `insertionDepth` */
       const insertionDepth = this.getInsertionDepth(insertionChronicle);
       this.debugLog("insertionDepth", insertionDepth);
@@ -241,6 +240,10 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
      *
      * Depth > Weight (Depth is prioritized)
      */
+    console.log("insertionDepth :");
+    console.log("lastCells", lastCells);
+    console.log("insertionChronicle", insertionChronicle);
+
     for (const lastCell of lastCells) {
       /** There is space in the layer to fit the linear Chronicle */
       if (getEngineChronicleLeftDelta(insertionChronicle, lastCell.$) < 0) {
@@ -337,10 +340,11 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
 
     /** In case there was no insertion point found, create a new layer */
     if (!insertionDepth) {
+      console.log(this.yDimensions);
       if (this.yDimensions.positive > this.yDimensions.negative) {
         /** Only insert into the negative layer if the postive layer is actually greater than the negative one */
         insertionDepth = {
-          y: this.yDimensions.negative - 1,
+          y: -this.yDimensions.negative - 1,
           x: 0,
         };
       } else {
@@ -558,7 +562,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
         return { ...v, knots: { start, end } };
       }),
     );
-
+    console.log("insertionChronicle", insertionDepth);
     /** If there is no `projection` data, just insert it as is, the algorith comes
         to an end at this point. */
     if (!projection.length) {
