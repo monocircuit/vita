@@ -18,15 +18,18 @@ const Page = () => {
     <Scrollable shouldScrollY>
       <div
         id="chronicle-tab"
-        className="size-full flex flex-wrap gap-1 overflow-hidden"
+        className="flex w-full flex-wrap items-start gap-3 p-2"
       >
         {ownChronicles?.map((chronicle, key) => (
           <Card
             key={key}
             title={chronicle.title}
-            className="flex-grow min-w-[200px] max-w-[250px] basis-0 h-[300px] bg-gray-200"
+            // className="flex-grow min-w-[200px] max-w-[250px] basis-0 h-[300px] bg-gray-200"
           >
-            <CardText>{ownChronicles[key].description}</CardText>
+            <CardText
+              title="description"
+              text={ownChronicles[key].description ?? ""}
+            />
           </Card>
         ))}
 

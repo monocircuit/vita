@@ -2,7 +2,7 @@
 
 import VitaForm from "@/components/common/VitaForm";
 import { Button, Popover } from "@monolithium/next/components";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -16,7 +16,7 @@ import useOwnVitas from "@/shared/supabase/tables/vitas/$read/useOwnVitas";
 
 interface Props {}
 
-const Vitas = (props: Props) => {
+const Vitas = (_props: Props) => {
   /** ANCHOR: Data */
   const { data: ownProfile } = useOwnProfile();
   const { data: ownVitas } = useOwnVitas();

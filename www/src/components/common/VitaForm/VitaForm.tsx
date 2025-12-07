@@ -1,4 +1,4 @@
-import { $VitaDynamic, VitaDynamic } from "@/utils/schemas/VitaDynamic";
+import { $Schemas, Schemas } from "@/shared/supabase/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input } from "@monolithium/next/components";
 import React from "react";
@@ -12,8 +12,8 @@ const VitaForm = (props: Props) => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<VitaDynamic>({
-    resolver: zodResolver($VitaDynamic),
+  } = useForm<Schemas["Vitas"]["Normalized"]>({
+    resolver: zodResolver($Schemas.Vitas.Normalize),
   });
 
   return (

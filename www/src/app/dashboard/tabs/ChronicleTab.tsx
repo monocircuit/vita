@@ -1,4 +1,4 @@
-import ChronicleForm from "@/components/ChronicleForm/ChronicleForm";
+import ChronicleForm from "@/components/common/ChronicleForm/ChronicleForm";
 import { Button, Popover } from "@monolithium/next/components";
 import React, { useState } from "react";
 

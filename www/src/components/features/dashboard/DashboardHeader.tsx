@@ -8,6 +8,8 @@ interface Props {}
 const DashboardHeader = (props: Props) => {
   const { data: ownProfile } = useOwnProfile();
 
+  console.log(ownProfile);
+
   return (
     <div id="dashboard-header" className="size-full flex">
       <div id="dashboard-header__title">

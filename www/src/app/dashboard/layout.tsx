@@ -18,7 +18,7 @@ const Page = (props: Props) => {
   return (
     <div
       id="dashboard"
-      className="size-full grid grid-cols-[1fr] grid-rows-[50px_1fr]"
+      className="size-full h-screen grid grid-cols-[100%] grid-rows-[50px_1fr]"
     >
       <div
         id="dashboard__header"
@@ -28,12 +28,17 @@ const Page = (props: Props) => {
       </div>
       <div
         id="dashboard__body"
-        className="grid grid-cols-[200px_1fr] grid_rows-[1fr]"
+        className="h-screen grid grid-cols-[200px_1fr] grid-rows-[100%]"
       >
         <div
           id="dashboard__sidebar"
           className="border-secondary border-solid border-r-(length:--stroke) flex flex-col"
         >
+          <Button
+            text="Settings"
+            className={`h-[30px] w-full border-b-(length:--stroke) border-solid border-secondary ${SourceSans3.className}`}
+            onClick={() => router.push(`/dashboard/settings`)}
+          />
           <Button
             text="Chronicles"
             className={`h-[30px] w-full border-b-(length:--stroke) border-solid border-secondary ${SourceSans3.className}`}
