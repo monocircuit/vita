@@ -1,6 +1,6 @@
 import Two from "two.js";
 import { Path } from "two.js/src/path";
-import shortenLine from "@/utils/drawing/shortenLine";
+import shortenLine from "@/shared/drawing/shortenLine";
 
 const displayBezierControls = (path: Path, options?: { shorten: number }) => {
   path.vertices.forEach((anchor, index) => {

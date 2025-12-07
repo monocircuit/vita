@@ -340,7 +340,6 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
 
     /** In case there was no insertion point found, create a new layer */
     if (!insertionDepth) {
-      console.log(this.yDimensions);
       if (this.yDimensions.positive > this.yDimensions.negative) {
         /** Only insert into the negative layer if the postive layer is actually greater than the negative one */
         insertionDepth = {

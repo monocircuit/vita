@@ -1,4 +1,4 @@
-import { drawConnection } from "@/utils/drawing/dynamic/drawConnection";
+import { drawConnection } from "@/shared/drawing/dynamic/drawConnection";
 import { normalize } from "./helpers";
 import { connectionEndpointX, connectionStartpointX } from "./endpoints";
 import { getGlobalConfig } from "./styleApi";

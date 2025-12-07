@@ -1,22 +1,19 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { Application, Container, ContainerChild, Graphics } from "pixi.js";
-import useEngine from "@/utils/processing/engines/dynamic/useEngine";
-import { drawBranch } from "@/utils/drawing/dynamic/drawBranch";
+import { useEffect, useRef } from "react";
+import { Application } from "pixi.js";
 import { Viewport } from "pixi-viewport";
-import { ButterflyCell } from "@/utils/structures/Butterfly";
-import { useReadOwnChronicles } from "@/utils/supabase/api/tables/chronicles";
-import filterChronicles from "@/utils/processing/data/chronicles/filterChronicles";
-import { drawConnection } from "@/utils/drawing/dynamic/drawConnection";
-import { start } from "repl";
-import { drawChronicleBranch } from "@/utils/drawing/dynamic/drawChronicleBranch";
-import { drawGenericConnection } from "@/utils/drawing/dynamic/drawGenericConnection";
-import { DrawingContext } from "@/utils/drawing/dynamic/helpers";
+import { drawChronicleBranch } from "@/shared/drawing/dynamic/drawChronicleBranch";
+import { drawGenericConnection } from "@/shared/drawing/dynamic/drawGenericConnection";
+import { DrawingContext } from "@/shared/drawing/dynamic/helpers";
 import {
   setGlobalConfig,
   setBranchStyle,
-} from "@/utils/drawing/dynamic/styleApi";
+} from "@/shared/drawing/dynamic/styleApi";
+import useEngine from "@/shared/processing/engines/dynamic/useEngine";
+import { $Schemas } from "@/shared/supabase/schemas";
+import { useOwnChronicles } from "@/shared/supabase/tables/chronicles";
+import { ButterflyCell } from "@/shared/structures/Butterfly";
 
 // --- Typ-Aliase für bessere Lesbarkeit ---
 type ChronicleCell = ButterflyCell<{
@@ -31,22 +28,19 @@ function Page() {
   const viewportRef = useRef<Viewport | null>(null);
 
   /** ANCHOR: Fetched Data */
-  const { chronicles: ownChronicles, isLoading } = useReadOwnChronicles();
+  const { data: ownChronicles } = useOwnChronicles();
 
   /** ANCHOR: Engines */
-  const { init, engine } = useEngine();
-  const [isEngineReady, setEngineReady] = useState(false);
+  const engine = useEngine();
 
   // Effect 1: Engine initialisieren, wenn Daten geladen sind
   useEffect(() => {
-    if (!isLoading && ownChronicles.length > 0 && !isEngineReady) {
+    if (ownChronicles && ownChronicles.length > 0) {
       console.warn("Engine activated");
-      const { linear } = filterChronicles(ownChronicles);
-      console.log("Linear Chronicles:", linear);
-      init(linear);
-      setEngineReady(true);
+
+      engine.init($Schemas.Chronicles.Mutations.Engine.To.parse(ownChronicles));
     }
-  }, [ownChronicles, isLoading, init, isEngineReady]);
+  }, [ownChronicles]);
 
   // Effect 2: Pixi Application und Viewport initialisieren (läuft nur einmal)
   useEffect(() => {
@@ -96,7 +90,7 @@ function Page() {
     const container = pixiContainer.current;
 
     // Abbrechen, wenn Engine oder Viewport nicht bereit sind
-    if (!isEngineReady || !viewport || !container) {
+    if (!engine.loaded || !viewport || !container) {
       return;
     }
 
@@ -118,45 +112,56 @@ function Page() {
       centerY,
     };
 
-    const allChroniclesByLevel = new Map<number, ChronicleCell[]>();
-    const allChronicles: ChronicleCell[] = [];
+    const allChroniclesByLevel = new Map<
+      number,
+      ButterflyCell<{
+        knots: {
+          start: number;
+          end: number;
+        };
+        id: number;
+      }>[]
+    >();
+    const allChronicles: ButterflyCell<{
+      knots: {
+        start: number;
+        end: number;
+      };
+      id: number;
+    }>[] = [];
 
-    console.log("Engine:", engine.current);
+    console.log("Engine:", engine);
 
-    const level0 = engine.current.getLevel(0) as ChronicleCell[] | undefined;
+    const level0 = engine.getLevel(0);
     if (level0) {
       console.log("Level 0 found with", level0.length, "chronicles.");
-      allChroniclesByLevel.set(0, Array.from(level0)); // <-- KORREKTUR: In Array umwandeln
-      allChronicles.push(...level0);
+      allChroniclesByLevel.set(0, level0.toArray()); // <-- KORREKTUR: In Array umwandeln
+      allChronicles.push(...level0.toArray());
     }
     console.log("Level 0 Chronicles:", level0);
 
     // Positive Level
-    const positiveLayerHeight = engine.current.yDimensions.positive;
+    const positiveLayerHeight = engine.yDimensions.positive;
     for (let i = 0; i < positiveLayerHeight; i++) {
-      const level = engine.current.getLevel(i + 1) as
-        | ChronicleCell[]
-        | undefined;
+      const level = engine.getLevel(i + 1);
       if (level) {
-        allChroniclesByLevel.set(i + 1, Array.from(level)); // <-- KORREKTUR: In Array umwandeln
-        allChronicles.push(...level);
+        allChroniclesByLevel.set(i + 1, level.toArray()); // <-- KORREKTUR: In Array umwandeln
+        allChronicles.push(...level.toArray());
       }
     }
     // Negative Level
-    const negativeLayerHeight = engine.current.yDimensions.negative;
+    const negativeLayerHeight = engine.yDimensions.negative;
     for (let i = 0; i < negativeLayerHeight; i++) {
-      const level = engine.current.getLevel(-(i + 1)) as
-        | ChronicleCell[]
-        | undefined;
+      const level = engine.getLevel(-(i + 1));
       if (level) {
-        allChroniclesByLevel.set(-(i + 1), Array.from(level)); // <-- KORREKTUR: In Array umwandeln
-        allChronicles.push(...level);
+        allChroniclesByLevel.set(-(i + 1), level.toArray()); // <-- KORREKTUR: In Array umwandeln
+        allChronicles.push(...level.toArray());
       }
     }
 
     if (level0 && level0.length > 0) {
-      const firstCell = engine.current.get(0, 0);
-      const lastCell = engine.current.getLastCell(0);
+      const firstCell = engine.get(0, 0);
+      const lastCell = engine.getLastCell(0);
 
       if (firstCell && firstCell.$ && lastCell && lastCell.$) {
         drawingContext.aknot = firstCell.$.knots.start;
@@ -168,15 +173,15 @@ function Page() {
 
     //Zeichnen der Äste:
 
-    console.log(allChronicles);
+    console.log("all chronicles", allChronicles);
     allChronicles.forEach(chronicle => {
-      if (chronicle.cell) {
-        drawChronicleBranch(drawingContext, chronicle.cell, chronicle.cell.y);
+      if (chronicle) {
+        drawChronicleBranch(drawingContext, chronicle, chronicle.y);
       }
     });
 
     allChronicles.forEach(startNodeWrapper => {
-      const startCell = startNodeWrapper.cell; // Das eigentliche ButterflyCell Objekt
+      const startCell = startNodeWrapper; // Das eigentliche ButterflyCell Objekt
 
       // 1. Abbruchbedingung: Wir suchen nur Startpunkte.
       // Wenn eine Zelle einen Vorgänger hat, ist sie ein Mittelstück
@@ -207,7 +212,7 @@ function Page() {
         drawGenericConnection(drawingContext, sourceCell, targetCell);
       }
     });
-  }, [isEngineReady, engine]);
+  }, [engine.loaded, engine]);
 
   useEffect(() => {
     // Beispiel: global anpassen

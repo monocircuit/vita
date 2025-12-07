@@ -1,4 +1,4 @@
-import { drawBranch } from "@/utils/drawing/dynamic/drawBranch";
+import { drawBranch } from "@/shared/drawing/dynamic/drawBranch";
 import { normalize } from "./helpers";
 import { connectionEndpointX, connectionStartpointX } from "./endpoints";
 import {
