@@ -608,5 +608,5 @@ export default class Butterfly<T> {
     return this.store.stepTowardZero(index);
   }
 
-  public toJson() {}
+  public toJson() { }
 }
