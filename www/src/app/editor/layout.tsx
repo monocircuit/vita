@@ -1,3 +1,4 @@
+import EditorToolbar from "@/components/features/editor/EditorToolbar";
 import React from "react";
 
 interface LayoutProps {
@@ -7,7 +8,7 @@ interface LayoutProps {
 const Layout = (props: LayoutProps) => {
   return (
     <>
-      <div className="w-full h-15 monolithium-border-b"></div>
+      <EditorToolbar />
       <div className="">{props.children}</div>
     </>
   );
