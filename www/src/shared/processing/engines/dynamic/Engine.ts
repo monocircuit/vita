@@ -93,7 +93,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
   private notify = () => {
     this.listeners.forEach(cb => cb());
   };
-
+  
   public constructor() {
     super();
   }

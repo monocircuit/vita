@@ -42,7 +42,7 @@ const Home = () => {
     console.log("engine", engineChronicles);
     console.log("shards", shards);
 
-    writer.setDefaults({ vitaId: ownVitas[0].id }).write(shards);
+    writer.setDefaults({ vitaId: ownVitas[0]?.id }).write(shards);
   }, [ownChronicles, ownVitas]);
 
   return (
