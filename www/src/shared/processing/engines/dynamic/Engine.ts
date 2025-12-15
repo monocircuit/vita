@@ -93,7 +93,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
   private notify = () => {
     this.listeners.forEach(cb => cb());
   };
-  
+
   public constructor() {
     super();
   }
@@ -122,6 +122,12 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
 
   private debugGroupEnd() {
     if (this._logsEnabled) console.groupEnd();
+  }
+
+  public load(shards: Schemas["VitasShardsDynamic"]["Normalized"][]) {
+    /** Clear existing data */
+    this.clear();
+    console.log(shards);
   }
 
   /**

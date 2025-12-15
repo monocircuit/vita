@@ -183,6 +183,34 @@ export default class Butterfly<T> extends Emitter<ButterflyChange> {
   }
 
   /**
+   * @author Lukas Diegelmann
+   *
+   * Clear the entire Butterfly structure.
+   *
+   * This removes all levels (Y-axis) and all cells (X-axis) by re-initializing
+   * the internal store. After calling `clear()`, the Butterfly is in the same
+   * empty state as a freshly constructed instance.
+   *
+   * Notes:
+   * - Any previously retrieved `ButterflyLevel` / `ButterflyCell` references are
+   *   no longer part of this Butterfly instance.
+   *
+   * @example
+   * const b = new Butterfly<string>();
+   * b.push(0, "a");
+   * b.push(1, "b");
+   * b.clear();
+   * b.getLastCells(); // []
+   */
+  public clear(): void {
+    this.store = new BipolarDoublyLinkedList({
+      project: entry => {
+        return { level: entry.value, y: entry.index };
+      },
+    });
+  }
+
+  /**
    * @author ChatGPT5
    *
    * Iterate over all Y-levels in the default alternating order.

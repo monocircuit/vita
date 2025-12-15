@@ -52,6 +52,7 @@ async function fetchColumnMetaData(
   });
 
   if (error) {
+    console.log("data");
     console.error("Fehler beim Abrufen der Spaltenmetadaten:", error.message);
     throw new Error(error.message);
   }

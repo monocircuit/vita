@@ -20,12 +20,12 @@ const ChronicleForm = () => {
         form.handleSubmit(e);
       }}
     >
-      <div
+      {/* <div
         id="chronicle-form__title"
         className="justify-center text-center border-b-(length:--stroke) border-solid border-secondary"
       >
         Add new Chronicle
-      </div>
+      </div> */}
       <form.Field
         name="title"
         children={field => (

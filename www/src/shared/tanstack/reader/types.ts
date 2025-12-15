@@ -32,11 +32,15 @@ export interface SlimmedData<Row> {
  */
 export type NetQueryFnReturn<Row> = Row[] | null | SlimmedData<Row>;
 
+export interface ArgsOptions {
+  enabled?: boolean;
+}
+
 export type ArgList<Selector> = [Selector] extends [undefined]
   ? [] // no selector → no args
   : Selector extends any[]
-    ? Selector // tuple → same tuple
-    : [Selector]; // single type → one arg
+    ? [...Selector, options?: ArgsOptions] // tuple → same tuple
+    : [Selector, options?: ArgsOptions]; // single type → one arg
 
 export type SchemaKeyFor<Table extends keyof Database["public"]["Tables"]> =
   `${Pascalize<Table>}` & keyof Schemas;

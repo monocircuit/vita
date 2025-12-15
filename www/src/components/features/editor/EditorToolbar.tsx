@@ -17,10 +17,17 @@ const EditorToolbar = (props: Props) => {
     <div className="w-full h-15 monolithium-border-b grid grid-cols-[auto_1fr]">
       <div className="aspect-square monolithium-border m-0.5 overflow-hidden">
         <Popover
-          className="w-[300px] h-[400px] monolithium-border bg-primary"
+          className="w-[300px] h-[400px] bg-primary"
           content={<ChronicleForm />}
+          title="Add Chronicle"
           shouldRender={shouldPopoverRender}
-          config={{ isConnected: true }}
+          config={{
+            isConnected: true,
+            isClosableByEmptyClick: true,
+            pushDistance: 50,
+            pushTo: "bottomright",
+          }}
+          onClose={() => setShouldPopoverRender(false)}
         >
           <Button
             className="size-full"

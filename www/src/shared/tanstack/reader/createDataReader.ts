@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import type {
   ArgList,
+  ArgsOptions,
   DataReader,
   DataReaderConfig,
   NetQueryFnReturn,
@@ -79,7 +80,22 @@ export function createDataReader<
 
         return data;
       },
-      enabled: !isAuthLoading,
+
+      /* Enabled logic, has to be combined with several features of the reader */
+      enabled:
+        /*
+         * Stop the query from rerunning if the query is allocating the fetched
+         * data to the base cache.
+         */
+        !isAuthLoading &&
+        /*
+         * Only execute the query function, if all selector items are provided.
+         * This allows for ergonomic usage of the reader hook, as not every arg
+         * can be provided at first load up.
+         */
+        selector.every(Boolean),
+
+      /* Default values */
       staleTime: 5 * 60_000,
       gcTime: 10 * 60_000,
       refetchOnWindowFocus: true,
@@ -136,8 +152,7 @@ export function createDataReader<
 
         const row = queryClient.getQueryData(queryDepotKey);
 
-        if (!row)
-          throw new Error("Data Leak; Deposit Key holds no Information");
+        if (!row) console.warn("Data Leak; Deposit Key holds no Information");
 
         rows.push(row);
       }
