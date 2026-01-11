@@ -31,9 +31,8 @@ import {
   ButterflyDepth,
 } from "@/shared/structures/Butterfly";
 import { BipolarLinkedListPolartity } from "@/shared/structures/BipolarDoublyLinkedList";
-import zod from "zod";
 import EventEmitter from "./EventEmitter";
-import { $Schemas, Schemas } from "@/shared/supabase/schemas";
+import type { Schemas } from "@/shared/supabase/schemas";
 import { getEngineChronicleLeftDelta } from "../../data/chronicles/getEngineChronicleDeltas";
 
 interface IEngineProjectionSlice {
@@ -83,15 +82,15 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
 
   private idCounter = 0;
 
-  private listeners = new Set<() => void>();
+  private subscribers = new Set<() => void>();
 
   public subscribe = (cb: () => void) => {
-    this.listeners.add(cb);
-    return () => this.listeners.delete(cb);
+    this.subscribers.add(cb);
+    return () => this.subscribers.delete(cb);
   };
 
   private notify = () => {
-    this.listeners.forEach(cb => cb());
+    this.subscribers.forEach(cb => cb());
   };
 
   public constructor() {
@@ -109,25 +108,25 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
   }
 
   private debugLog(...args: any[]) {
-    if (this._logsEnabled) console.log(...args);
+    void args;
   }
 
   private debugWarn(...args: any[]) {
-    if (this._logsEnabled) console.warn(...args);
+    void args;
   }
 
   private debugGroup(...args: any[]) {
-    if (this._logsEnabled) console.group(...args);
+    void args;
   }
 
   private debugGroupEnd() {
-    if (this._logsEnabled) console.groupEnd();
+    // noop
   }
 
   public load(shards: Schemas["VitasShardsDynamic"]["Normalized"][]) {
     /** Clear existing data */
     this.clear();
-    console.log(shards);
+    void shards;
   }
 
   /**
@@ -176,6 +175,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
         insertionChronicle,
         insertionDepth,
       );
+      this.debugLog("takeoverPath", takeoverPath);
 
       /** Find `takeoverLeapVerticalDepth` */
       // const takeoverPath = this.getTakeoverPath(
@@ -246,9 +246,9 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
      *
      * Depth > Weight (Depth is prioritized)
      */
-    console.log("insertionDepth :");
-    console.log("lastCells", lastCells);
-    console.log("insertionChronicle", insertionChronicle);
+    this.debugLog("insertionDepth :");
+    this.debugLog("lastCells", lastCells);
+    this.debugLog("insertionChronicle", insertionChronicle);
 
     for (const lastCell of lastCells) {
       /** There is space in the layer to fit the linear Chronicle */
@@ -567,7 +567,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
         return { ...v, knots: { start, end } };
       }),
     );
-    console.log("insertionChronicle", insertionDepth);
+    this.debugLog("insertionChronicle", insertionDepth);
     /** If there is no `projection` data, just insert it as is, the algorith comes
         to an end at this point. */
     if (!projection.length) {

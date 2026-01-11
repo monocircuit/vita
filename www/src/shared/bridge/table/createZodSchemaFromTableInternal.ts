@@ -1,4 +1,5 @@
-import zod, { ZodEffects, ZodObject, ZodRawShape, ZodTypeAny } from "zod";
+import { z } from "zod";
+import type { ZodType, ZodTypeAny } from "zod";
 import { sqlToZod, sqlToZodMap } from "@/utils/sqlToZod";
 import fetchColumnMetaData from "@/shared/bridge/table/fetchColumnMetaData";
 import {
@@ -15,9 +16,11 @@ import type {
   NormMapBase,
   Normalized,
   PascalizeKey,
-  ViewFromConfig,
   AnyMutationConfig,
   MultiMutationConfig,
+  PatchMutationConfig,
+  UnwrapArray,
+  ViewFromConfig,
 } from "./types";
 
 /**
@@ -26,19 +29,24 @@ import type {
  * - If the mutation has no `from` (data-loss), only include `To`
  */
 type MutationSchemaFor<Norm, Conf> =
-  Conf extends MultiMutationConfig<Norm, infer Out, infer HasFrom>
+  Conf extends MultiMutationConfig<Norm, any, infer HasFrom>
     ? HasFrom extends true
       ? {
-          To: ZodEffects<ZodTypeAny, Out, Norm>;
-          From: ZodEffects<ZodTypeAny, Norm, Out>;
+          To: ZodType<ViewFromConfig<Norm, Conf>, MutationToInput<Norm, Conf>>;
+          From: ZodType<Norm, UnwrapArray<ViewFromConfig<Norm, Conf>>>;
         }
       : {
-          To: ZodEffects<ZodTypeAny, Out, Norm>;
+          To: ZodType<ViewFromConfig<Norm, Conf>, MutationToInput<Norm, Conf>>;
         }
     : {
-        To: ZodEffects<ZodTypeAny, ViewFromConfig<Norm, Conf>, Norm>;
-        From: ZodEffects<ZodTypeAny, Norm, ViewFromConfig<Norm, Conf>>;
+        To: ZodType<ViewFromConfig<Norm, Conf>, MutationToInput<Norm, Conf>>;
+        From: ZodType<Partial<Norm>, ViewFromConfig<Norm, Conf>>;
       };
+
+type MutationToInput<Norm, Conf> =
+  Conf extends PatchMutationConfig<Norm, infer RemovedKeys, any>
+    ? Omit<Norm, RemovedKeys>
+    : Norm;
 
 /**
  * Internal helper: create zod schemas for a table (extracted from Table.ts)
@@ -57,17 +65,9 @@ export async function createZodSchemaFromTable<
   mutations: MutMap,
 ): Promise<{
   [K in Pascalize<Table>]: {
-    Raw: ZodObject<ZodRawShape, "strip", ZodTypeAny, Raw, Raw>;
-    Normalize: ZodEffects<
-      ZodObject<ZodRawShape, "strip", ZodTypeAny, Raw, Raw>,
-      NormalizedFromNormMap<Raw, NormMap>,
-      Raw
-    >;
-    Denormalize: ZodEffects<
-      ZodTypeAny,
-      Raw,
-      NormalizedFromNormMap<Raw, NormMap>
-    >;
+    Raw: ZodType<Raw, any>;
+    Normalize: ZodType<NormalizedFromNormMap<Raw, NormMap>, Raw>;
+    Denormalize: ZodType<Raw, NormalizedFromNormMap<Raw, NormMap>>;
     Mutations: {
       [M in keyof MutMap as PascalizeKey<
         Extract<M, string>
@@ -76,7 +76,7 @@ export async function createZodSchemaFromTable<
   };
 }> {
   const columns = await fetchColumnMetaData(tableName);
-  const rawShape: ZodRawShape = {};
+  const rawShape: Record<string, ZodTypeAny> = {};
 
   for (const column of columns) {
     if (column.dataType === "USER-DEFINED") {
@@ -84,12 +84,12 @@ export async function createZodSchemaFromTable<
         case "enum": {
           const labels = column.udtInfo.labels ?? [];
           rawShape[column.columnName] = labels.length
-            ? zod.enum(labels as [string, ...string[]])
-            : zod.string();
+            ? z.enum(labels as [string, ...string[]])
+            : z.string();
           break;
         }
         case "composite":
-          rawShape[column.columnName] = zod.unknown();
+          rawShape[column.columnName] = z.unknown();
           break;
         case "domain": {
           if (
@@ -100,12 +100,12 @@ export async function createZodSchemaFromTable<
               column.udtInfo.baseType
             ];
           } else {
-            rawShape[column.columnName] = zod.unknown();
+            rawShape[column.columnName] = z.unknown();
           }
           break;
         }
         default:
-          rawShape[column.columnName] = zod.unknown();
+          rawShape[column.columnName] = z.unknown();
           break;
       }
     } else {
@@ -118,25 +118,21 @@ export async function createZodSchemaFromTable<
     }
 
     if (column.columnDescription) {
-      rawShape[column.columnName] = rawShape[column.columnName].describe(
-        column.columnDescription,
-      );
+      rawShape[column.columnName] = (
+        rawShape[column.columnName] as any
+      ).describe(column.columnDescription) as any;
     }
 
     if (column.isNullable) {
-      rawShape[column.columnName] = rawShape[column.columnName].nullable();
+      rawShape[column.columnName] = (
+        rawShape[column.columnName] as any
+      ).nullable() as any;
     }
   }
 
-  const rawSchema = zod.object(rawShape) as ZodObject<
-    ZodRawShape,
-    "strip",
-    ZodTypeAny,
-    Raw,
-    Raw
-  >;
+  const rawSchema = z.object(rawShape) as unknown as ZodType<Raw, any>;
 
-  const normalizeSchema = rawSchema.transform(value => {
+  const normalizeSchema = rawSchema.transform((value: any) => {
     const camel = keysToCamelCase(value as any) as Camelize<Raw>;
     const transformed: any = { ...camel };
 
@@ -159,13 +155,9 @@ export async function createZodSchemaFromTable<
     }
 
     return transformed;
-  }) as unknown as ZodEffects<
-    typeof rawSchema,
-    NormalizedFromNormMap<Raw, NormMap>,
-    Raw
-  >;
+  }) as unknown as ZodType<NormalizedFromNormMap<Raw, NormMap>, Raw>;
 
-  const denormalizeSchema = (zod.any() as ZodTypeAny).transform((norm: any) => {
+  const denormalizeSchema = (z.any() as ZodTypeAny).transform((norm: any) => {
     const raw: any = {};
 
     for (const column of columns) {
@@ -184,33 +176,39 @@ export async function createZodSchemaFromTable<
     }
 
     return raw as Raw;
-  }) as ZodEffects<ZodTypeAny, Raw, NormalizedFromNormMap<Raw, NormMap>>;
+  }) as unknown as ZodType<Raw, NormalizedFromNormMap<Raw, NormMap>>;
 
   const mutationsZod: any = {};
   const mutKeys = Object.keys(mutations) as (keyof MutMap & string)[];
 
   for (const name of mutKeys) {
-    const conf = mutations[name] as AnyMutationConfig<any>;
+    type Norm = NormalizedFromNormMap<Raw, NormMap>;
+    type Conf = MutMap[typeof name];
+    const conf = mutations[name] as Conf;
     const pascal = toPascalCase(name);
 
-    if (conf.kind === "patch") {
+    if ((conf as AnyMutationConfig<any>).kind === "patch") {
+      const patchConf = conf as unknown as PatchMutationConfig<Norm, any, any>;
       mutationsZod[pascal] = {
-        To: (zod.any() as ZodTypeAny).transform((norm: any) => {
+        To: (z.any() as ZodTypeAny).transform((norm: any) => {
           const without: any = { ...norm };
-          for (const k of conf.removedKeys as readonly (
+          for (const k of patchConf.removedKeys as readonly (
             | string
             | number
             | symbol
           )[]) {
             delete without[k];
           }
-          const patch = conf.to(without);
+          const patch = patchConf.to(without);
           return { ...without, ...patch };
-        }),
-        From: (zod.any() as ZodTypeAny).transform((view: any) => {
-          const patchBack = conf.from(view);
+        }) as unknown as ZodType<
+          ViewFromConfig<Norm, Conf>,
+          MutationToInput<Norm, Conf>
+        >,
+        From: (z.any() as ZodTypeAny).transform((view: any) => {
+          const patchBack = patchConf.from(view);
           const merged: any = { ...view, ...patchBack };
-          for (const k of conf.removedKeys as readonly (
+          for (const k of patchConf.removedKeys as readonly (
             | string
             | number
             | symbol
@@ -218,30 +216,32 @@ export async function createZodSchemaFromTable<
             merged[k] = undefined;
           }
           return merged;
-        }),
+        }) as unknown as ZodType<Partial<Norm>, ViewFromConfig<Norm, Conf>>,
       };
-    } else if (conf.kind === "multi") {
-      const toSchema = (zod.any() as ZodTypeAny).transform((input: any) => {
-        // If input is an array, map each element through `to` and flatten results
+    } else if ((conf as AnyMutationConfig<any>).kind === "multi") {
+      const multiConf = conf as unknown as MultiMutationConfig<Norm, any, any>;
+      const toSchema = (z.any() as ZodTypeAny).transform((input: any) => {
         if (Array.isArray(input)) {
-          const results = input.map((item: any) => conf.to(item));
-          // Flatten if `to` returns arrays (e.g., one chronicle → multiple linear chronicles)
+          const results = input.map((item: any) => multiConf.to(item));
           return results.flat();
         }
-        // Single item: just call `to` directly
-        return conf.to(input);
-      });
+        return multiConf.to(input);
+      }) as unknown as ZodType<
+        ViewFromConfig<Norm, Conf>,
+        MutationToInput<Norm, Conf>
+      >;
 
-      // Only include `From` if `from` is defined (reversible mutation)
-      if (conf.from) {
+      if (multiConf.from) {
         mutationsZod[pascal] = {
           To: toSchema,
-          From: (zod.any() as ZodTypeAny).transform((out: any) =>
-            conf.from!(out),
-          ),
+          From: (z.any() as ZodTypeAny).transform((out: any) =>
+            multiConf.from!(out),
+          ) as unknown as ZodType<
+            Norm,
+            UnwrapArray<ViewFromConfig<Norm, Conf>>
+          >,
         };
       } else {
-        // Data-loss mutation: only `To` is available
         mutationsZod[pascal] = {
           To: toSchema,
         };
@@ -260,17 +260,9 @@ export async function createZodSchemaFromTable<
     },
   } as {
     [K in Pascalize<Table>]: {
-      Raw: ZodObject<ZodRawShape, "strip", ZodTypeAny, Raw, Raw>;
-      Normalize: ZodEffects<
-        ZodObject<ZodRawShape, "strip", ZodTypeAny, Raw, Raw>,
-        NormalizedFromNormMap<Raw, NormMap>,
-        Raw
-      >;
-      Denormalize: ZodEffects<
-        ZodTypeAny,
-        Raw,
-        NormalizedFromNormMap<Raw, NormMap>
-      >;
+      Raw: ZodType<Raw, any>;
+      Normalize: ZodType<NormalizedFromNormMap<Raw, NormMap>, Raw>;
+      Denormalize: ZodType<Raw, NormalizedFromNormMap<Raw, NormMap>>;
       Mutations: {
         [M in keyof MutMap as PascalizeKey<
           Extract<M, string>

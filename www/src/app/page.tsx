@@ -6,9 +6,10 @@ import Infobar from "@/components/layout/Infobar";
 import Navbar from "@/components/layout/Navbar";
 
 import styles from "./page.module.scss";
+import { useEffect } from "react";
+
 import { useOwnChronicles } from "@/shared/supabase/tables/chronicles/";
 import { useStoreDynamicShards } from "@/shared/supabase/tables/vitas/shards/dynamic";
-import { useEffect } from "react";
 import useOwnVitas from "@/shared/supabase/tables/vitas/$read/useOwnVitas";
 import { $Schemas } from "@/shared/supabase/schemas";
 import useEngine from "@/shared/processing/engines/dynamic/useEngine";
@@ -26,8 +27,6 @@ const Home = () => {
   useEffect(() => {
     if (!(ownChronicles && ownVitas && writer.mutation.isIdle)) return;
 
-    console.log("Own Chronicles:", ownChronicles);
-
     const linearChronicles =
       $Schemas.Chronicles.Mutations.Linear.To.parse(ownChronicles);
 
@@ -38,12 +37,8 @@ const Home = () => {
 
     const shards = engine.toShards();
 
-    console.log("linear", linearChronicles);
-    console.log("engine", engineChronicles);
-    console.log("shards", shards);
-
-    writer.setDefaults({ vitaId: ownVitas[0]?.id }).write(shards);
-  }, [ownChronicles, ownVitas]);
+    writer.setDefaults({ vitaId: ownVitas[0].id }).write(shards);
+  }, [ownChronicles, ownVitas, engine, writer]);
 
   return (
     <Scrollable shouldScrollY classNameScrollbar={styles["scrollbar"]}>

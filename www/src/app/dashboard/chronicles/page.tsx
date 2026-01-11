@@ -35,7 +35,7 @@ const Page = () => {
 
         <Popover
           content={<ChronicleForm />}
-          className="w-[300px] h-[500px] border-solid border-secondary border-(length:--stroke) bg-primary"
+          className="w-75 h-125 border-solid border-secondary border-(length:--stroke) bg-primary [&>div:last-child]:overflow-visible!"
           config={{
             isConnected: true,
             isClosableByEmptyClick: true,
@@ -45,7 +45,7 @@ const Page = () => {
         >
           <Button
             text="add"
-            className="h-[30px] w-[30px] border-solid border-secondary border-(length:--stroke)"
+            className="h-7.5 w-7.5 border-solid border-secondary border-(length:--stroke)"
             onClick={() => setIsAddPopoverActive(!isAddPopoverActive)}
           />
         </Popover>

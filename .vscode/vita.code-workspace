@@ -1,18 +1,15 @@
 {
     "folders": [
         {
-            "name": "Root",
+            "name": "Vita",
             "path": "../"
         },
         {
-            "name": "Next",
-            "path": "../www"
+            "name": "Monolithium",
+            "path": "../../monolithium"
         }
     ],
     "settings": {
-        "files.exclude": {
-            "www": true
-        },
         "editor.defaultFormatter": null,
         "editor.formatOnPaste": true,
         "editor.formatOnSave": true,
@@ -20,7 +17,12 @@
             "source.fixAll.eslint": "always",
             "source.fixAll.stylelint": "always"
         },
-        "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+        "eslint.validate": [
+            "javascript",
+            "javascriptreact",
+            "typescript",
+            "typescriptreact"
+        ],
         "stylelint.validate": [
             "css",
             "scss"

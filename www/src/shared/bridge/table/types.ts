@@ -1,5 +1,4 @@
 // shared/bridge/table/types.ts
-import type { ZodTypeAny } from "zod";
 import type { Camelize } from "@/utils/case-conversions";
 import type { Table } from "./Table";
 
@@ -163,27 +162,23 @@ export type NormalizeConfig<Norm, Conf> =
 
 /* Infer-Types für fertige Map */
 
-/**
- * Extract the element type from the return of a `to` function.
- * If the return is an array, extracts the element type; otherwise the full type.
- */
-type ElementTypeFrom<Conf, Norm> = Conf extends {
-  to: (norm: Norm) => infer Out;
-}
-  ? UnwrapArray<Out>
-  : never;
-
 export interface InferZodTableSchema<
   S extends {
-    Raw: ZodTypeAny;
-    Normalize: ZodTypeAny;
-    Denormalize: ZodTypeAny;
-    Mutations?: Record<string, { To: ZodTypeAny; From?: ZodTypeAny }>;
+    Raw: import("zod").ZodType<any, any>;
+    Normalize: import("zod").ZodType<any, any>;
+    Denormalize: import("zod").ZodType<any, any>;
+    Mutations?: Record<
+      string,
+      {
+        To: import("zod").ZodType<any, any>;
+        From?: import("zod").ZodType<any, any>;
+      }
+    >;
   },
 > {
-  Raw: import("zod").infer<S["Raw"]>;
-  Normalized: import("zod").infer<S["Normalize"]>;
-  Denormalized: import("zod").infer<S["Denormalize"]>;
+  Raw: import("zod").output<S["Raw"]>;
+  Normalized: import("zod").output<S["Normalize"]>;
+  Denormalized: import("zod").output<S["Denormalize"]>;
   /**
    * Mutations are available under `Mutations.MutationName`.
    * Each mutation exposes the element type (unwrapped from arrays if `to` returns an array).
@@ -191,7 +186,7 @@ export interface InferZodTableSchema<
   Mutations: S["Mutations"] extends Record<string, any>
     ? {
         [K in keyof S["Mutations"]]: UnwrapArray<
-          import("zod").infer<S["Mutations"][K]["To"]>
+          import("zod").output<S["Mutations"][K]["To"]>
         >;
       }
     : {};
@@ -201,10 +196,16 @@ export type InferZodMap<
   M extends Record<
     string,
     {
-      Raw: ZodTypeAny;
-      Normalize: ZodTypeAny;
-      Denormalize: ZodTypeAny;
-      Mutations?: Record<string, { To: ZodTypeAny; From?: ZodTypeAny }>;
+      Raw: import("zod").ZodType<any, any>;
+      Normalize: import("zod").ZodType<any, any>;
+      Denormalize: import("zod").ZodType<any, any>;
+      Mutations?: Record<
+        string,
+        {
+          To: import("zod").ZodType<any, any>;
+          From?: import("zod").ZodType<any, any>;
+        }
+      >;
     }
   >,
 > = {

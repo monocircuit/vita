@@ -32,7 +32,7 @@ export namespace Bridge {
     ? Mutation extends keyof R
       ? R[Mutation] extends { To: infer ToSchema }
         ? ToSchema extends ZodTypeAny
-          ? import("zod").infer<ToSchema>
+          ? import("zod").output<ToSchema>
           : never
         : never
       : never

@@ -18,7 +18,12 @@ const EditorToolbar = (props: Props) => {
       <div className="aspect-square monolithium-border m-0.5 overflow-hidden">
         <Popover
           className="w-[300px] h-[400px] bg-primary"
-          content={<ChronicleForm />}
+          content={
+            <>
+              <div className="h-[5px] w-full"></div>
+              <ChronicleForm />
+            </>
+          }
           title="Add Chronicle"
           shouldRender={shouldPopoverRender}
           config={{

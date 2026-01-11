@@ -5,7 +5,6 @@ import { useEffect } from "react";
 
 import type {
   ArgList,
-  ArgsOptions,
   DataReader,
   DataReaderConfig,
   NetQueryFnReturn,
@@ -152,7 +151,7 @@ export function createDataReader<
 
         const row = queryClient.getQueryData(queryDepotKey);
 
-        if (!row) console.warn("Data Leak; Deposit Key holds no Information");
+        // If a deposit row is missing, return `undefined` for that key.
 
         rows.push(row);
       }
