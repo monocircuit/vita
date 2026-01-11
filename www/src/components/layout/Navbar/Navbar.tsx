@@ -23,8 +23,6 @@ import SignIn from "@/components/SignIn";
 import SignUp from "@/components/SignUp";
 import { createClient } from "@/shared/supabase/client";
 
-import Sign from "../../Sign/Sign";
-
 const Navbar: FunctionComponent = () => {
   /** ANCHOR: References */
   const signInButton = useRef<HTMLDivElement>(null);
@@ -92,7 +90,6 @@ const Navbar: FunctionComponent = () => {
                   content={
                     <SignIn
                       ButtonFunction={() => {
-                        setIsSignInPopupActive(false);
                         setIsSignUpPopupActive(true);
                       }}
                     />
@@ -106,6 +103,10 @@ const Navbar: FunctionComponent = () => {
                     isConnected: true,
                     isDraggable: true,
                     isClosableByEmptyClick: true,
+                  }}
+                  setShouldRender={(value: boolean) => {
+                    setIsSignInPopupActive(value);
+                    console.log("value");
                   }}
                 >
                   <Button
@@ -132,7 +133,6 @@ const Navbar: FunctionComponent = () => {
                   content={
                     <SignUp
                       ButtonFunction={() => {
-                        setIsSignUpPopupActive(false);
                         setIsSignInPopupActive(true);
                       }}
                     />
@@ -147,6 +147,7 @@ const Navbar: FunctionComponent = () => {
                     isDraggable: true,
                     isClosableByEmptyClick: true,
                   }}
+                  setShouldRender={setIsSignUpPopupActive}
                 >
                   <Button
                     className={
