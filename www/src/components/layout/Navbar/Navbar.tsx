@@ -104,10 +104,7 @@ const Navbar: FunctionComponent = () => {
                     isDraggable: true,
                     isClosableByEmptyClick: true,
                   }}
-                  setShouldRender={(value: boolean) => {
-                    setIsSignInPopupActive(value);
-                    console.log("value");
-                  }}
+                  
                 >
                   <Button
                     ref={signInButton}
@@ -147,7 +144,7 @@ const Navbar: FunctionComponent = () => {
                     isDraggable: true,
                     isClosableByEmptyClick: true,
                   }}
-                  setShouldRender={setIsSignUpPopupActive}
+                  
                 >
                   <Button
                     className={
