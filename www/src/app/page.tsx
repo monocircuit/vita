@@ -37,7 +37,7 @@ const Home = () => {
 
     const shards = engine.toShards();
 
-    writer.setDefaults({ vitaId: ownVitas[0].id }).write(shards);
+    writer.setDefaults({ vitaId: ownVitas[0]?.id }).write(shards);
   }, [ownChronicles, ownVitas, engine, writer]);
 
   return (
