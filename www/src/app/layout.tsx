@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+// @ts-ignore: allow side-effect CSS import without type declarations
 import "./layout.css";
 import Providers from "./providers";
 
