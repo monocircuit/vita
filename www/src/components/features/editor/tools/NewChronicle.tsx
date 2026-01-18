@@ -1,0 +1,43 @@
+import ChronicleForm from "@/components/common/ChronicleForm/ChronicleForm";
+import { Button, Popover } from "@monolithium/next/components";
+import Image from "next/image";
+import { useState } from "react";
+import Add from "@/assets/images/png/sharp_line/add.png";
+
+const NewChronicleTool = () => {
+  /* ANCHOR: State */
+  const [shouldPopoverRender, setShouldPopoverRender] = useState(false);
+
+  return (
+    <div className="aspect-square monolithium-border m-0.5 overflow-hidden">
+      <Popover
+        className="w-[300px] h-[500px] bg-primary"
+        content={
+          <>
+            <div className="h-[5px] w-full"></div>
+            <ChronicleForm />
+          </>
+        }
+        title="Add Chronicle"
+        shouldRender={shouldPopoverRender}
+        config={{
+          isConnected: true,
+          isClosableByEmptyClick: true,
+          isDraggable: true,
+          pushDistance: 50,
+          pushTo: "bottomright",
+        }}
+        onClose={() => setShouldPopoverRender(false)}
+      >
+        <Button
+          className="size-full"
+          onClick={() => setShouldPopoverRender(!shouldPopoverRender)}
+        >
+          <Image src={Add} alt="add" width={100} height={100} />
+        </Button>
+      </Popover>
+    </div>
+  );
+};
+
+export default NewChronicleTool;
