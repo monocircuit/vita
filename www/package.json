@@ -26,7 +26,6 @@
     "@tanstack/react-form": "^1.27.4",
     "@tanstack/react-query": "^5.90.12",
     "@tanstack/react-query-devtools": "^5.91.1",
-    "@tanstack/zod-form-adapter": "^0.42.1",
     "classnames": "^2.5.1",
     "cookie": "^1.1.1",
     "jwt-decode": "^4.0.0",
