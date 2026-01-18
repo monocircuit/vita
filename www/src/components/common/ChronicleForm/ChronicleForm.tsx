@@ -1,32 +1,42 @@
 import { $Schemas } from "@/shared/supabase/schemas";
 import {
   Button,
-  DatePicker,
   Input,
-  MultiSelectInput,
+  KnotsInput,
+  MultiSelect,
 } from "@monolithium/next/components";
 import { useForm } from "@tanstack/react-form";
-import { useState } from "react";
 
 const ChronicleForm = () => {
   const form = useForm({
     defaultValues: {
       title: "",
       description: "",
-      category: "",
+      category: [] as string[],
       scope: "",
       entity_id: "",
       knots: [] as number[],
     },
     validators: {
       onSubmit: ({ value }) => {
-        const res = $Schemas.Chronicles.Normalize.safeParse?.(value);
+        const normalizedForSchema = {
+          ...value,
+          // Chronicle schema currently expects a single category string.
+          // The form stores an array to support multi-select.
+          category: Array.isArray(value.category)
+            ? (value.category[0] ?? "")
+            : value.category,
+        };
+
+        const res =
+          $Schemas.Chronicles.Normalize.safeParse?.(normalizedForSchema);
         if (res && !res.success) return res.error;
         return undefined;
       },
     },
     onSubmit: async ({ value: _value }) => {
       // TODO: Supabase Insert
+      void _value;
     },
   });
 
@@ -41,47 +51,152 @@ const ChronicleForm = () => {
       }}
     >
       {/* TITLE */}
-      <form.Field name="title">
-        {field => <FieldInput field={field} placeholder="Title" />}
+      <form.Field
+        name="title"
+        validators={{
+          onChange: ({ value }) =>
+            !String(value ?? "").trim() ? "Title is required" : undefined,
+          onSubmit: ({ value }) =>
+            !String(value ?? "").trim() ? "Title is required" : undefined,
+        }}
+      >
+        {field => (
+          <div className="ml-1.25 mr-1.25">
+            <Input
+              field={field}
+              placeholder="Title"
+              className="h-10"
+              label="Title"
+              maxChars={10}
+            />
+          </div>
+        )}
       </form.Field>
 
       {/* DESCRIPTION */}
-      <form.Field name="description">
-        {field => <FieldInput field={field} placeholder="Description" />}
+      <form.Field
+        name="description"
+        validators={{
+          onChange: ({ value }) =>
+            !String(value ?? "").trim() ? "Description is required" : undefined,
+          onSubmit: ({ value }) =>
+            !String(value ?? "").trim() ? "Description is required" : undefined,
+        }}
+      >
+        {field => (
+          <div className="ml-1.25 mr-1.25">
+            <Input
+              field={field}
+              placeholder="Description"
+              className="h-10"
+              label="Description"
+              maxChars={10}
+            />
+          </div>
+        )}
       </form.Field>
 
       {/* CATEGORY */}
-      <form.Field name="category">
+      <form.Field
+        name="category"
+        validators={{
+          onChange: ({ value }) =>
+            Array.isArray(value) && value.length > 0
+              ? undefined
+              : "Category is required",
+          onSubmit: ({ value }) =>
+            Array.isArray(value) && value.length > 0
+              ? undefined
+              : "Category is required",
+        }}
+      >
         {field => (
-          <FieldMultiSelectInput field={field} placeholder="Category" />
+          <div className="ml-1.25 mr-1.25">
+            <MultiSelect
+              field={field}
+              options={[
+                { label: "Example", value: "example" },
+                { label: "Sample", value: "sample" },
+              ]}
+              placeholder="Category"
+              label="Category"
+              className="h-10"
+              maxSelected={2}
+            />
+          </div>
         )}
       </form.Field>
 
       {/* SCOPE */}
-      <form.Field name="scope">
-        {field => <FieldInput field={field} placeholder="Scope" />}
+      <form.Field
+        name="scope"
+        validators={{
+          onChange: ({ value }) =>
+            !String(value ?? "").trim() ? "Scope is required" : undefined,
+          onSubmit: ({ value }) =>
+            !String(value ?? "").trim() ? "Scope is required" : undefined,
+        }}
+      >
+        {field => (
+          <div className="ml-1.25 mr-1.25">
+            <Input
+              field={field}
+              placeholder="Scope"
+              className="h-10"
+              label="Scope"
+              maxChars={10}
+            />
+          </div>
+        )}
       </form.Field>
 
       {/* ENTITY */}
-      <form.Field name="entity_id">
-        {field => <FieldInput field={field} placeholder="Entity" />}
+      <form.Field
+        name="entity_id"
+        validators={{
+          onChange: ({ value }) =>
+            !String(value ?? "").trim() ? "Entity is required" : undefined,
+          onSubmit: ({ value }) =>
+            !String(value ?? "").trim() ? "Entity is required" : undefined,
+        }}
+      >
+        {field => (
+          <div className="ml-1.25 mr-1.25">
+            <Input
+              field={field}
+              placeholder="Entity"
+              className="h-10"
+              label="Entity"
+              maxChars={10}
+            />
+          </div>
+        )}
       </form.Field>
 
       {/* KNOTS */}
       <form.Field name="knots">
-        {field => (
-          <FieldKnotsDatePickerInput field={field} placeholder="Knots" />
-        )}
+        {field => {
+          return (
+            <div className="ml-1.25 mr-1.25">
+              <KnotsInput
+                field={field}
+                placeholder="Knots"
+                className="min-h-10 bg-transparent text-secondary"
+                format={msToIsoDate}
+              />
+            </div>
+          );
+        }}
       </form.Field>
 
       {/* SUBMIT */}
       <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
-        {([canSubmit, isSubmitting]) => (
+        {([_canSubmit, isSubmitting]) => (
           <Button
-            text={isSubmitting ? "Submitting..." : "Submit"}
+            text={isSubmitting ? "Submitting..." : "Add"}
             className="h-10 border-t-(length:--stroke) border-solid border-secondary mt-auto"
             formType="submit"
-            isDisabled={!canSubmit || isSubmitting}
+            isDisabled={isSubmitting}
           />
         )}
       </form.Subscribe>
@@ -89,127 +204,7 @@ const ChronicleForm = () => {
   );
 };
 
-/* ------------------------------------------------------------------ */
-/* Reusable Input Binding                                              */
-/* ------------------------------------------------------------------ */
-
-interface FieldInputProps {
-  field: any;
-  placeholder: string;
-}
-
-const FieldInput = ({ field, placeholder }: FieldInputProps) => {
-  return (
-    <div className="ml-1.25 mr-1.25">
-      <Input
-        name={field.name}
-        placeholder={placeholder}
-        className="h-10"
-        value={field.state.value}
-        onBlur={field.handleBlur}
-        onChange={(e: any) => field.handleChange(e.target.value)}
-      />
-
-      {field.state.meta.touchedErrors ? (
-        <div className="mt-1 text-sm text-red-500">
-          {String(field.state.meta.touchedErrors)}
-        </div>
-      ) : null}
-    </div>
-  );
-};
-
-const FieldMultiSelectInput = ({ field, placeholder }: FieldInputProps) => {
-  const selected =
-    typeof field.state.value === "string" && field.state.value.length > 0
-      ? [field.state.value]
-      : [];
-
-  return (
-    <div className="ml-1.25 mr-1.25">
-      <MultiSelectInput
-        options={[{ label: "Example", value: "example" }]}
-        name={field.name}
-        placeholder={placeholder}
-        className="h-10"
-        maxSelected={1}
-        value={selected}
-        onChange={(next: string[]) => field.handleChange(next[0] ?? "")}
-      />
-
-      {field.state.meta.touchedErrors ? (
-        <div className="mt-1 text-sm text-red-500">
-          {String(field.state.meta.touchedErrors)}
-        </div>
-      ) : null}
-    </div>
-  );
-};
-
-const msToIsoDate = (ms: number): string => {
-  // DatePicker expects an ISO date string (YYYY-MM-DD)
-  return new Date(ms).toISOString().slice(0, 10);
-};
-
-const isoDateToMs = (isoDate: string): number => {
-  return new Date(isoDate).getTime();
-};
-
-const FieldKnotsDatePickerInput = ({ field, placeholder }: FieldInputProps) => {
-  const [draft, setDraft] = useState<string | null>(null);
-
-  const knots: number[] = Array.isArray(field.state.value)
-    ? (field.state.value as number[])
-    : [];
-
-  return (
-    <div className="ml-1.25 mr-1.25 flex flex-col gap-2.5">
-      {knots.map((ms, index) => (
-        <DatePicker
-          key={index}
-          name={`${field.name}.${index}`}
-          placeholder={placeholder}
-          className="h-10 [&&_[role=dialog]]:bg-primary [&&_[role=dialog]]:text-secondary"
-          clearable
-          value={Number.isFinite(ms) ? msToIsoDate(ms) : null}
-          onChange={next => {
-            if (next === null) {
-              field.handleChange(knots.filter((_, i) => i !== index));
-              return;
-            }
-
-            const nextMs = isoDateToMs(next);
-            const nextKnots = [...knots];
-            nextKnots[index] = nextMs;
-            field.handleChange(nextKnots);
-          }}
-        />
-      ))}
-
-      <DatePicker
-        name={`${field.name}.new`}
-        placeholder={knots.length === 0 ? placeholder : "Add date"}
-        className="h-10 [&&_[role=dialog]]:bg-primary [&&_[role=dialog]]:text-secondary"
-        clearable
-        value={draft}
-        onChange={next => {
-          if (next === null) {
-            setDraft(null);
-            return;
-          }
-
-          field.handleChange([...knots, isoDateToMs(next)]);
-          setDraft(null);
-        }}
-      />
-
-      {field.state.meta.touchedErrors ? (
-        <div className="mt-1 text-sm text-red-500">
-          {String(field.state.meta.touchedErrors)}
-        </div>
-      ) : null}
-    </div>
-  );
-};
+const msToIsoDate = (ms: number): string =>
+  new Date(ms).toISOString().slice(0, 10);
 
 export default ChronicleForm;

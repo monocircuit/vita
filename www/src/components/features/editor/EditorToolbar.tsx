@@ -17,7 +17,7 @@ const EditorToolbar = (props: Props) => {
     <div className="w-full h-15 monolithium-border-b grid grid-cols-[auto_1fr]">
       <div className="aspect-square monolithium-border m-0.5 overflow-hidden">
         <Popover
-          className="w-[300px] h-[400px] bg-primary"
+          className="w-[300px] h-[500px] bg-primary"
           content={
             <>
               <div className="h-[5px] w-full"></div>
@@ -29,6 +29,7 @@ const EditorToolbar = (props: Props) => {
           config={{
             isConnected: true,
             isClosableByEmptyClick: true,
+            isDraggable: true,
             pushDistance: 50,
             pushTo: "bottomright",
           }}

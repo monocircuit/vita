@@ -6,7 +6,7 @@
         },
         {
             "name": "Monolithium",
-            "path": "../../monolithium"
+            "path": "../../monolithium/"
         }
     ],
     "settings": {
@@ -29,7 +29,8 @@
         ],
         "json.validate.enable": false,
         "svg.preview.background": "editor",
-        "powershell.cwd": "Next"
+        "powershell.cwd": "Next",
+        "cSpell.enabled": false
     },
     "extensions": {
         "recommendations": []
