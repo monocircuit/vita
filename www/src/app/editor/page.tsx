@@ -19,7 +19,7 @@ function Page() {
 
   // Effect 1: Engine initialisieren, wenn Daten geladen sind
   useEffect(() => {
-    if (ownChronicles && ownChronicles.length > 0) {
+    if (ownChronicles && ownChronicles.length > 0 && !engine.loaded) {
       console.warn("Engine activated");
 
       engine.init($Schemas.Chronicles.Mutations.Engine.To.parse(ownChronicles));

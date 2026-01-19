@@ -1,6 +1,6 @@
 "use client";
 
-import NewChronicleTool from "./tools/NewChronicle";
+import NewChronicleTool from "./tools/NewChronicleTool";
 
 const EditorToolbar = () => {
   return (
