@@ -39,13 +39,10 @@ export function drawDraggableNote(
   const width = textObject.width + 20;
   const height = textObject.height + 20;
   
-  bg.roundRect(0, 0, width, height, 8);
-  bg.fill(0xfffae3); // Post-it Gelb
-  bg.stroke({ width: 1, color: 0xccbfa3 });
+  bg.rect(0, 0, width, height);
+  bg.fill(0xffffff); // Post-it Gelb
+  bg.stroke({ width: 1, color: 0x000000 });
   
-  // Kleiner Schatten für "Schwebe-Effekt"
-  bg.rect(3, 3, width, height); 
-  bg.fill({ color: 0x000000, alpha: 0.1 });
 
   container.addChild(bg);
   container.addChild(textObject);
@@ -100,7 +97,7 @@ export function drawDraggableNote(
   };
 
   container.on('pointerdown', onDragStart);
-  container.on('globalpointermove', onDragMove); // 'global', falls Maus Container verlässt
+  container.on('globalpointermove', onDragMove);
   container.on('pointerup', onDragStop);
   container.on('pointerupoutside', onDragStop);
 

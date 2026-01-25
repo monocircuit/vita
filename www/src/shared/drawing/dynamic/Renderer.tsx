@@ -18,6 +18,7 @@ import {
   drawDraggableNote,
   FreeNoteData,
 } from "@/shared/drawing/dynamic/drawDraggableNote";
+import { NormalizedRowFor } from "@/shared/tanstack/reader/types";
 
 interface RendererProps {
   /**
@@ -35,6 +36,7 @@ interface RendererProps {
   globalConfig?: GlobalStyleConfig;
   branchStyles?: Map<string, BranchStyle>;
   engine?: Engine;
+  chronicles?: NormalizedRowFor<"chronicles">[] | undefined;
 
   onCanvasDoubleTap?: (x: number, y: number) => void;
   onNoteMove?: (id: string, x: number, y: number) => void;
@@ -51,6 +53,7 @@ interface RendererProps {
  * <Renderer engine={engine} globalConfig={...} branchStyles={new Map([["id", style]])} />
  */
 function Renderer({
+  chronicles,
   branchStyles,
   globalConfig,
   engine,
@@ -60,8 +63,16 @@ function Renderer({
 }: RendererProps) {
   /** ANCHOR: References */
   const pixiContainer = useRef<HTMLDivElement>(null);
+
+  //App Ref for access in effects
   const appRef = useRef<Application | null>(null);
+
+  // Viewport Ref for access in effects
   const viewportRef = useRef<Viewport | null>(null);
+
+  //Coord Ref for getting mouse position
+  const coordsRef = useRef<HTMLDivElement>(null);
+
   if (!!engine) {
     //Initialisierung des Pixi-Anwendungs und Viewports
     useEffect(() => {
@@ -84,8 +95,8 @@ function Renderer({
         const viewport = new Viewport({
           screenWidth: container.clientWidth,
           screenHeight: container.clientHeight,
-          worldWidth: 1000,
-          worldHeight: 1000,
+          worldWidth: 2000,
+          worldHeight: 2000,
           events: app.renderer.events,
         });
         viewportRef.current = viewport;
@@ -93,18 +104,15 @@ function Renderer({
 
         viewport.drag().pinch().wheel().decelerate();
 
-        // --- NEU: Event Listener für Doppelklick auf Hintergrund ---
-        viewport.on("clicked", (e) => {
-          // Wir nutzen hier 'clicked' als Trigger.
-          // Viewport hat keine eingebaute 'dblclick', man müsste das selbst timen oder
-          // Shift+Click nutzen. Hier als Beispiel: Shift + Click erstellt Notiz.
+        // Funktionen für UserInteractions
 
-          if (onCanvasDoubleTap) {
-            console.log(e);
-            const worldPos = viewport.toWorld(e.screen);
-            onCanvasDoubleTap(worldPos.x, worldPos.y);
-          }
-        });
+        // --- NEU: Event Listener für Doppelklick auf Hintergrund ---
+        //  viewport.on("clicked", (e) => {
+        //    if (onCanvasDoubleTap) {
+        //      const worldPos = viewport.toWorld(e.screen);
+        //      onCanvasDoubleTap(worldPos.x, worldPos.y);
+        //    }
+        //  });
       };
       init();
 
@@ -125,11 +133,11 @@ function Renderer({
         return;
       }
 
-      viewport.removeChildren(); // Vorherige Zeichnungen löschen
-      console.log("Rendering Frame. Notes to draw:", notes); // <--- CHECK THIS LOG
+      viewport.removeChildren();
+
       // --- Normalisierungsparameter berechnen ---
       const aknot = 0;
-      const distance = 1; // Standard-Distanz (vermeidet Division durch Null)
+      const distance = 1;
 
       const screenWidth = container.clientWidth;
       const screenHeight = container.clientHeight;
@@ -201,7 +209,9 @@ function Renderer({
       //Zeichnen der Äste:
       allChronicles.forEach((chronicle) => {
         if (chronicle) {
-          drawChronicleBranch(drawingContext, chronicle, chronicle.y);
+          const a = chronicles?.find((e) => e.id === chronicle.$?.id);
+
+          drawChronicleBranch(drawingContext, chronicle, chronicle.y, a);
         }
       });
 
@@ -234,10 +244,10 @@ function Renderer({
         }
       });
 
-      // --- 4. DRAW NOTES (New Logic) ---
+      // move Viewport to center;
+
       notes.forEach((note) => {
         drawDraggableNote(viewport, note, (id, x, y) => {
-          // Brücke zurück zu React
           if (onNoteMove) {
             onNoteMove(id, x, y);
           }
@@ -253,7 +263,21 @@ function Renderer({
       });
     }, []);
 
-    return <div className="w-full h-screen" ref={pixiContainer}></div>;
+    return (
+      <div className="relative w-full h-screen overflow-hidden">
+        <div
+          className="absolute inset-0 w-full h-full "
+          ref={pixiContainer}
+        ></div>
+
+        <div
+          ref={coordsRef}
+          className="fixed z-50 bottom-4 left-4 bg-white/90 backdrop-blur border border-gray-400 px-3 py-1  shadow-lg text-xs font-mono text-gray-800 pointer-events-none select-none"
+        >
+          Hallo Welt
+        </div>
+      </div>
+    );
   } else {
     return <div>Engine not provided</div>;
   }
