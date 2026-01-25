@@ -1,23 +1,25 @@
 "use client";
-
+import { FreeNoteData } from "@/shared/drawing/dynamic/drawDraggableNote";
 import Renderer from "@/shared/drawing/dynamic/Renderer";
+import { BranchStyle } from "@/shared/drawing/dynamic/styleApi";
 import useEngine from "@/shared/processing/engines/dynamic/useEngine";
 import { $Schemas } from "@/shared/supabase/schemas";
 import { useOwnChronicles } from "@/shared/supabase/tables/chronicles";
 import useOwnVitas from "@/shared/supabase/tables/vitas/$read/useOwnVitas";
-import { useDynamicShardsByVitaId } from "@/shared/supabase/tables/vitas/shards/dynamic";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 function Page() {
   /** ANCHOR: Fetched Data */
   const { data: ownChronicles } = useOwnChronicles();
   const { data: ownVitas } = useOwnVitas();
+  const [notes, setNotes] = useState<FreeNoteData[]>([
+    { id: "1", content: "Hallo Welt", x: 100, y: 100 },
+  ]);
   // const { data: ownVitaShards } = useDynamicShardsByVitaId(ownVitas?.[0]?.id);
 
   /** ANCHOR: Engines */
   const engine = useEngine();
 
-  // Effect 1: Engine initialisieren, wenn Daten geladen sind
   useEffect(() => {
     if (ownChronicles && ownChronicles.length > 0 && !engine.loaded) {
       console.warn("Engine activated");
@@ -25,7 +27,37 @@ function Page() {
       engine.init($Schemas.Chronicles.Mutations.Engine.To.parse(ownChronicles));
     }
   }, [ownChronicles]);
-  return <Renderer engine={engine}></Renderer>;
+
+  const branchStyles = new Map<string, BranchStyle>([
+    ["101", { color: 0xff0020, thickness: 6 }],
+  ]);
+
+  const handleNoteMove = (id: string, x: number, y: number) => {
+    setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, x, y } : n)));
+    console.log(`Note ${id} moved to`, x, y);
+  };
+
+  const handleCreateNote = (x: number, y: number) => {
+    const newNote: FreeNoteData = {
+      id: Math.random().toString(36).substr(2, 9),
+      content: "Neue Notiz",
+      x,
+      y,
+    };
+    setNotes((prev) => [...prev, newNote]);
+  };
+  console.log(engine);
+
+  return (
+    <Renderer
+      engine={engine}
+      chronicles={ownChronicles}
+      branchStyles={branchStyles}
+      onNoteMove={handleNoteMove}
+      onCanvasDoubleTap={handleCreateNote}
+      notes={notes}
+    ></Renderer>
+  );
 }
 
 export default Page;

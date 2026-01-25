@@ -12,25 +12,69 @@ import {
   GlobalStyleConfig,
   BranchStyle,
 } from "@/shared/drawing/dynamic/styleApi";
-import useEngine from "@/shared/processing/engines/dynamic/useEngine";
-import { $Schemas } from "@/shared/supabase/schemas";
-import { useOwnChronicles } from "@/shared/supabase/tables/chronicles";
 import { ButterflyCell } from "@/shared/structures/Butterfly";
 import Engine from "@/shared/processing/engines/dynamic/Engine";
+import {
+  drawDraggableNote,
+  FreeNoteData,
+} from "@/shared/drawing/dynamic/drawDraggableNote";
+import { NormalizedRowFor } from "@/shared/tanstack/reader/types";
 
 interface RendererProps {
+  /**
+   * Props for the `Renderer` component.
+   *
+   * - `globalConfig` — Optional global drawing configuration passed into the drawing style API (`setGlobalConfig`).
+   * - `branchStyles` — Map of branch id -> `BranchStyle` applied via `setBranchStyle`.
+   * - `engine` — Engine instance providing layout data. Expected shape (used by `Renderer`):
+   *    - `loaded: boolean`
+   *    - `getLevel(level: number)` => collection with `.length` and `.toArray()` returning `ButterflyCell[]`
+   *    - `get(x: number, y: number)` => `ButterflyCell | undefined`
+   *    - `getLastCell(y: number)` => `ButterflyCell | undefined`
+   *    - `yDimensions: { positive: number, negative: number }`
+   */
   globalConfig?: GlobalStyleConfig;
   branchStyles?: Map<string, BranchStyle>;
   engine?: Engine;
+  chronicles?: NormalizedRowFor<"chronicles">[] | undefined;
+
+  onCanvasDoubleTap?: (x: number, y: number) => void;
+  onNoteMove?: (id: string, x: number, y: number) => void;
+  notes?: FreeNoteData[];
 }
 
-function Renderer({ branchStyles, globalConfig, engine }: RendererProps) {
+/**
+ * Renderer initializes a Pixi `Application` + `Viewport` and draws chronicles
+ * using the provided `engine` data. It waits for `engine.loaded` before
+ * rendering. Pass `branchStyles` keys that match chronicle/branch identifiers
+ * used by your engine data so `setBranchStyle` applies correctly.
+ *
+ * Example usage:
+ * <Renderer engine={engine} globalConfig={...} branchStyles={new Map([["id", style]])} />
+ */
+function Renderer({
+  chronicles,
+  branchStyles,
+  globalConfig,
+  engine,
+  notes = [],
+  onNoteMove,
+  onCanvasDoubleTap,
+}: RendererProps) {
   /** ANCHOR: References */
   const pixiContainer = useRef<HTMLDivElement>(null);
+
+  //App Ref for access in effects
   const appRef = useRef<Application | null>(null);
+
+  // Viewport Ref for access in effects
   const viewportRef = useRef<Viewport | null>(null);
+
+  //Coord Ref for getting mouse position
+  const coordsRef = useRef<HTMLDivElement>(null);
+
   if (!!engine) {
-    // Effect 2: Pixi Application und Viewport initialisieren (läuft nur einmal)
+    //Initialisierung des Pixi-Anwendungs und Viewports
     useEffect(() => {
       if (!pixiContainer.current || appRef.current) {
         return;
@@ -39,12 +83,11 @@ function Renderer({ branchStyles, globalConfig, engine }: RendererProps) {
       const app = new Application();
       appRef.current = app;
 
-      const initializePixi = async () => {
+      const init = async () => {
         const container = pixiContainer.current!;
         await app.init({
           resizeTo: container,
           backgroundColor: 0xffffff,
-          autoDensity: true,
           resolution: window.devicePixelRatio || 1,
         });
         container.appendChild(app.canvas);
@@ -52,18 +95,26 @@ function Renderer({ branchStyles, globalConfig, engine }: RendererProps) {
         const viewport = new Viewport({
           screenWidth: container.clientWidth,
           screenHeight: container.clientHeight,
-          worldWidth: 1000, // Weltgröße (kann angepasst werden)
-          worldHeight: 1000,
+          worldWidth: 2000,
+          worldHeight: 2000,
           events: app.renderer.events,
         });
         viewportRef.current = viewport;
-
         app.stage.addChild(viewport);
-        viewport.drag().pinch().wheel().decelerate();
-        viewport.fit().moveCenter(500, 500); // Zentriert die Welt
-      };
 
-      initializePixi();
+        viewport.drag().pinch().wheel().decelerate();
+
+        // Funktionen für UserInteractions
+
+        // --- NEU: Event Listener für Doppelklick auf Hintergrund ---
+        //  viewport.on("clicked", (e) => {
+        //    if (onCanvasDoubleTap) {
+        //      const worldPos = viewport.toWorld(e.screen);
+        //      onCanvasDoubleTap(worldPos.x, worldPos.y);
+        //    }
+        //  });
+      };
+      init();
 
       return () => {
         app.destroy(true, true);
@@ -82,11 +133,11 @@ function Renderer({ branchStyles, globalConfig, engine }: RendererProps) {
         return;
       }
 
-      viewport.removeChildren(); // Vorherige Zeichnungen löschen
+      viewport.removeChildren();
 
       // --- Normalisierungsparameter berechnen ---
       const aknot = 0;
-      const distance = 1; // Standard-Distanz (vermeidet Division durch Null)
+      const distance = 1;
 
       const screenWidth = container.clientWidth;
       const screenHeight = container.clientHeight;
@@ -118,16 +169,12 @@ function Renderer({ branchStyles, globalConfig, engine }: RendererProps) {
         id: number;
       }>[] = [];
 
-      console.log("Engine:", engine);
-
       const level0 = engine.getLevel(0);
       if (level0) {
         console.log("Level 0 found with", level0.length, "chronicles.");
         allChroniclesByLevel.set(0, level0.toArray()); // <-- KORREKTUR: In Array umwandeln
         allChronicles.push(...level0.toArray());
       }
-      console.log("Level 0 Chronicles:", level0);
-
       // Positive Level
       const positiveLayerHeight = engine.yDimensions.positive;
       for (let i = 0; i < positiveLayerHeight; i++) {
@@ -160,15 +207,15 @@ function Renderer({ branchStyles, globalConfig, engine }: RendererProps) {
       }
 
       //Zeichnen der Äste:
-
-      console.log("all chronicles", allChronicles);
-      allChronicles.forEach(chronicle => {
+      allChronicles.forEach((chronicle) => {
         if (chronicle) {
-          drawChronicleBranch(drawingContext, chronicle, chronicle.y);
+          const a = chronicles?.find((e) => e.id === chronicle.$?.id);
+
+          drawChronicleBranch(drawingContext, chronicle, chronicle.y, a);
         }
       });
 
-      allChronicles.forEach(startNodeWrapper => {
+      allChronicles.forEach((startNodeWrapper) => {
         const startCell = startNodeWrapper; // Das eigentliche ButterflyCell Objekt
 
         // 1. Abbruchbedingung: Wir suchen nur Startpunkte.
@@ -189,10 +236,6 @@ function Renderer({ branchStyles, globalConfig, engine }: RendererProps) {
         // Wenn die Kette nur 1 Element hat, gibt es nichts zu verbinden
         if (chain.length < 2) return;
 
-        console.log(
-          `Drawing chain for ID ${startCell.$.id} with ${chain.length} segments.`,
-        );
-
         // 3. Die Kette durchgehen und Segmente verbinden
         for (let i = 0; i < chain.length - 1; i++) {
           const sourceCell = chain[i];
@@ -200,7 +243,17 @@ function Renderer({ branchStyles, globalConfig, engine }: RendererProps) {
           drawGenericConnection(drawingContext, sourceCell, targetCell);
         }
       });
-    }, [engine.loaded, engine]);
+
+      // move Viewport to center;
+
+      notes.forEach((note) => {
+        drawDraggableNote(viewport, note, (id, x, y) => {
+          if (onNoteMove) {
+            onNoteMove(id, x, y);
+          }
+        });
+      });
+    }, [engine.loaded, engine, notes]);
 
     useEffect(() => {
       // Beispiel: global anpassen
@@ -210,7 +263,21 @@ function Renderer({ branchStyles, globalConfig, engine }: RendererProps) {
       });
     }, []);
 
-    return <div className="w-full h-screen" ref={pixiContainer}></div>;
+    return (
+      <div className="relative w-full h-screen overflow-hidden">
+        <div
+          className="absolute inset-0 w-full h-full "
+          ref={pixiContainer}
+        ></div>
+
+        <div
+          ref={coordsRef}
+          className="fixed z-50 bottom-4 left-4 bg-white/90 backdrop-blur border border-gray-400 px-3 py-1  shadow-lg text-xs font-mono text-gray-800 pointer-events-none select-none"
+        >
+          Hallo Welt
+        </div>
+      </div>
+    );
   } else {
     return <div>Engine not provided</div>;
   }
