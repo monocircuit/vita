@@ -40,6 +40,8 @@ export const drawChronicleBranch = (
   const { viewport, aknot, distance, screenWidth, centerY } = context;
   const id = String(chronicle.$?.id ?? `${Math.random()}`);
 
+  console.log('x coords for chronicle', chronicle.$?.id, normalize(chronicle.$.knots, aknot, distance).map(n => n * screenWidth));
+  console.log('y coord for levelIndex', levelIndex, centerY - levelIndex * getGlobalConfig().layerDistance);
   // Helper to compute start/end/shift
   const computeGeometry = () => {
     const nknots = normalize(chronicle.$.knots, aknot, distance);

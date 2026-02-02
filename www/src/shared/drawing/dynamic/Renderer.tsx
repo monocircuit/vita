@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { Application } from "pixi.js";
+import { useEffect, useRef, useState } from "react";
+import { Application, Container } from "pixi.js";
 import { Viewport } from "pixi-viewport";
 import { drawChronicleBranch } from "@/shared/drawing/dynamic/drawChronicleBranch";
 import { drawGenericConnection } from "@/shared/drawing/dynamic/drawGenericConnection";
@@ -19,39 +19,18 @@ import {
   FreeNoteData,
 } from "@/shared/drawing/dynamic/drawDraggableNote";
 import { NormalizedRowFor } from "@/shared/tanstack/reader/types";
+import { drawTimeLine } from "./components/drawTimeLine";
 
 interface RendererProps {
-  /**
-   * Props for the `Renderer` component.
-   *
-   * - `globalConfig` — Optional global drawing configuration passed into the drawing style API (`setGlobalConfig`).
-   * - `branchStyles` — Map of branch id -> `BranchStyle` applied via `setBranchStyle`.
-   * - `engine` — Engine instance providing layout data. Expected shape (used by `Renderer`):
-   *    - `loaded: boolean`
-   *    - `getLevel(level: number)` => collection with `.length` and `.toArray()` returning `ButterflyCell[]`
-   *    - `get(x: number, y: number)` => `ButterflyCell | undefined`
-   *    - `getLastCell(y: number)` => `ButterflyCell | undefined`
-   *    - `yDimensions: { positive: number, negative: number }`
-   */
   globalConfig?: GlobalStyleConfig;
   branchStyles?: Map<string, BranchStyle>;
   engine?: Engine;
   chronicles?: NormalizedRowFor<"chronicles">[] | undefined;
-
   onCanvasDoubleTap?: (x: number, y: number) => void;
   onNoteMove?: (id: string, x: number, y: number) => void;
   notes?: FreeNoteData[];
 }
 
-/**
- * Renderer initializes a Pixi `Application` + `Viewport` and draws chronicles
- * using the provided `engine` data. It waits for `engine.loaded` before
- * rendering. Pass `branchStyles` keys that match chronicle/branch identifiers
- * used by your engine data so `setBranchStyle` applies correctly.
- *
- * Example usage:
- * <Renderer engine={engine} globalConfig={...} branchStyles={new Map([["id", style]])} />
- */
 function Renderer({
   chronicles,
   branchStyles,
@@ -61,226 +40,322 @@ function Renderer({
   onNoteMove,
   onCanvasDoubleTap,
 }: RendererProps) {
-  /** ANCHOR: References */
+  // 1. TOP LEVEL HOOKS
   const pixiContainer = useRef<HTMLDivElement>(null);
-
-  //App Ref for access in effects
   const appRef = useRef<Application | null>(null);
-
-  // Viewport Ref for access in effects
   const viewportRef = useRef<Viewport | null>(null);
-
-  //Coord Ref for getting mouse position
+  const uiContainerRef = useRef<Container | null>(null);
   const coordsRef = useRef<HTMLDivElement>(null);
 
-  if (!!engine) {
-    //Initialisierung des Pixi-Anwendungs und Viewports
-    useEffect(() => {
-      if (!pixiContainer.current || appRef.current) {
+  // State: Ist Pixi bereit?
+  const [isPixiReady, setIsPixiReady] = useState(false);
+
+  // --- EFFECT 1: INITIALIZATION ---
+  useEffect(() => {
+    if (!engine || !pixiContainer.current) return;
+    if (appRef.current) return;
+
+    let isMounted = true;
+
+    const app = new Application();
+    appRef.current = app;
+
+    const init = async () => {
+      await app.init({
+        resizeTo: pixiContainer.current!,
+        backgroundColor: 0xffffff,
+        resolution: window.devicePixelRatio || 1,
+        autoDensity: true,
+        antialias: true,
+      });
+
+      if (!isMounted) {
+        app.destroy();
         return;
       }
 
-      const app = new Application();
-      appRef.current = app;
+      if (pixiContainer.current) {
+        pixiContainer.current.appendChild(app.canvas);
+      }
 
-      const init = async () => {
-        const container = pixiContainer.current!;
-        await app.init({
-          resizeTo: container,
-          backgroundColor: 0xffffff,
-          resolution: window.devicePixelRatio || 1,
-        });
-        container.appendChild(app.canvas);
+      // Layer 0: Viewport
+      const viewport = new Viewport({
+        screenWidth: pixiContainer.current!.clientWidth,
+        screenHeight: pixiContainer.current!.clientHeight,
+        worldWidth: pixiContainer.current?.clientWidth || 1000, // Platzhalter, wird dynamisch angepasst
+        worldHeight: 2000,
+        events: app.renderer.events,
+      });
+      viewportRef.current = viewport;
+      viewport.zIndex = 1;
+      app.stage.addChild(viewport);
 
-        const viewport = new Viewport({
-          screenWidth: container.clientWidth,
-          screenHeight: container.clientHeight,
-          worldWidth: 2000,
-          worldHeight: 2000,
-          events: app.renderer.events,
-        });
-        viewportRef.current = viewport;
-        app.stage.addChild(viewport);
+      viewport.drag({ direction: "x" }).pinch().wheel().decelerate().clampZoom({
+        minWidth: 450,
+        maxWidth: 2000,
+      });
 
-        viewport.drag().pinch().wheel().decelerate();
+      // Layer 100: UI Container
+      const uiContainer = new Container();
+      uiContainer.zIndex = 100;
+      app.stage.addChild(uiContainer);
 
-        // Funktionen für UserInteractions
+      app.stage.sortableChildren = true;
+      uiContainerRef.current = uiContainer;
 
-        // --- NEU: Event Listener für Doppelklick auf Hintergrund ---
-        //  viewport.on("clicked", (e) => {
-        //    if (onCanvasDoubleTap) {
-        //      const worldPos = viewport.toWorld(e.screen);
-        //      onCanvasDoubleTap(worldPos.x, worldPos.y);
-        //    }
-        //  });
+      // Resize Handler
+      const onResize = () => {
+        if (pixiContainer.current) {
+          app.renderer.resize(
+            pixiContainer.current.clientWidth,
+            pixiContainer.current.clientHeight,
+          );
+          viewport.resize(
+            pixiContainer.current.clientWidth,
+            pixiContainer.current.clientHeight,
+          );
+        }
       };
-      init();
+      window.addEventListener("resize", onResize);
+      (app as any)._customResizeHandler = onResize;
 
-      return () => {
-        app.destroy(true, true);
+      // Double Tap
+      //viewport.on("clicked", (e) => {
+      //  if (onCanvasDoubleTap) {
+      //    const worldPos = viewport.toWorld(e.screen);
+      //    onCanvasDoubleTap(worldPos.x, worldPos.y);
+      //  }
+      //});
+
+      setIsPixiReady(true);
+    };
+
+    init();
+
+    return () => {
+      isMounted = false;
+      const resizeHandler = (appRef.current as any)?._customResizeHandler;
+      if (resizeHandler) window.removeEventListener("resize", resizeHandler);
+
+      if (appRef.current) {
+        appRef.current.destroy(true, true);
         appRef.current = null;
         viewportRef.current = null;
+        uiContainerRef.current = null;
+        setIsPixiReady(false);
+      }
+    };
+  }, [engine]);
+
+  // --- EFFECT 2: TIMELINE LOGIC (Mit Fixing & Clamping) ---
+  useEffect(() => {
+    if (
+      !isPixiReady ||
+      !uiContainerRef.current ||
+      !viewportRef.current ||
+      !pixiContainer.current
+    )
+      return;
+
+    const uiContainer = uiContainerRef.current;
+    const viewport = viewportRef.current;
+    const app = appRef.current;
+
+    if (!app || !chronicles || chronicles.length === 0) return;
+
+    // --- A. CALCULATE DATA BOUNDS ---
+    const startTimes = chronicles.map((c) => c.knots[0]);
+    const endTimes = chronicles.map((c) => c.knots[c.knots.length - 1]);
+
+    const minMs = Math.min(...startTimes);
+    const maxMs = Math.max(...endTimes);
+    const totalDurationMs = maxMs - minMs;
+
+    if (totalDurationMs <= 0) return;
+
+    // Konfiguration: Wie breit soll 1 Jahr in der Welt sein?
+    // z.B. 50 Pixel pro Jahr (unabhängig vom Zoom)
+
+    const totalYears = totalDurationMs / (1000 * 60 * 60 * 24 * 365.25);
+    const pixelsPerYearConstant = viewport.screenWidth / totalYears;
+
+    // Berechne die totale Breite der "Welt" basierend auf den Daten
+    const targetWorldWidth = totalYears * pixelsPerYearConstant;
+
+    const padding = 200;
+
+    viewport.clamp({
+      left: -padding,
+      direction: "x", 
+    });
+
+    // Das Verhältnis: Pixel pro Millisekunde
+    const pixelsPerMs = targetWorldWidth / totalDurationMs;
+
+    const renderTimeline = () => {
+      uiContainer.removeChildren();
+      const screenWidth = app.screen.width;
+      const screenHeight = app.screen.height;
+
+      // Berechne sichtbaren Zeitbereich
+      // viewport.left ist die World-X Koordinate am linken Bildschirmrand
+      const visibleStartMs = minMs + viewport.left / pixelsPerMs;
+      const visibleEndMs = minMs + viewport.right / pixelsPerMs;
+
+      const minYear = new Date(visibleStartMs).getFullYear();
+      const maxYear = new Date(visibleEndMs).getFullYear();
+      const yearRange = maxYear - minYear;
+
+      // Erlaubte Schritte definieren, damit keine krummen Zahlen kommen
+      const allowedSteps = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
+
+      // Wähle den besten Schritt basierend auf der sichtbaren Range
+      const targetCount = 10;
+      const idealStep = yearRange / targetCount;
+
+      // Finde den nächstgelegenen erlaubten Schritt
+      let step = allowedSteps.find((s) => s >= idealStep) || 1000;
+
+      // --- C. RUNDUNG ---
+      const smoothStart = Math.floor(minYear / step) * step;
+      const smoothEnd = Math.ceil(maxYear / step) * step;
+
+      // Diese Funktion wandelt ein Jahr in die exakte X-Position auf dem Screen um
+      const getScreenX = (year: number) => {
+        // Zeitdifferenz in MS vom Start
+        // Näherung über Date Objekt, um Schaltjahre grob zu berücksichtigen
+        const dateOfTick = new Date(year, 0, 1).getTime();
+        const msDiff = dateOfTick - minMs;
+
+        // World X Position
+        const worldX = msDiff * pixelsPerMs;
+
+        // Screen X Position (World -> Screen Transformation)
+        // screenX = (worldX - viewportLeft) * zoomScale
+        return (worldX - viewport.left) * viewport.scale.x;
       };
-    }, []);
 
-    // Effect 3: Inhalt zeichnen, wenn die Engine bereit ist
-    useEffect(() => {
-      const viewport = viewportRef.current;
-      const container = pixiContainer.current;
-
-      // Abbrechen, wenn Engine oder Viewport nicht bereit sind
-      if (!engine.loaded || !viewport || !container) {
-        return;
-      }
-
-      viewport.removeChildren();
-
-      // --- Normalisierungsparameter berechnen ---
-      const aknot = 0;
-      const distance = 1;
-
-      const screenWidth = container.clientWidth;
-      const screenHeight = container.clientHeight;
-      const centerY = screenHeight / 2;
-
-      const drawingContext: DrawingContext = {
-        viewport,
-        aknot,
-        distance,
-        screenWidth,
-        centerY,
-      };
-
-      const allChroniclesByLevel = new Map<
-        number,
-        ButterflyCell<{
-          knots: {
-            start: number;
-            end: number;
-          };
-          id: number;
-        }>[]
-      >();
-      const allChronicles: ButterflyCell<{
-        knots: {
-          start: number;
-          end: number;
-        };
-        id: number;
-      }>[] = [];
-
-      const level0 = engine.getLevel(0);
-      if (level0) {
-        console.log("Level 0 found with", level0.length, "chronicles.");
-        allChroniclesByLevel.set(0, level0.toArray()); // <-- KORREKTUR: In Array umwandeln
-        allChronicles.push(...level0.toArray());
-      }
-      // Positive Level
-      const positiveLayerHeight = engine.yDimensions.positive;
-      for (let i = 0; i < positiveLayerHeight; i++) {
-        const level = engine.getLevel(i + 1);
-        if (level) {
-          allChroniclesByLevel.set(i + 1, level.toArray()); // <-- KORREKTUR: In Array umwandeln
-          allChronicles.push(...level.toArray());
-        }
-      }
-      // Negative Level
-      const negativeLayerHeight = engine.yDimensions.negative;
-      for (let i = 0; i < negativeLayerHeight; i++) {
-        const level = engine.getLevel(-(i + 1));
-        if (level) {
-          allChroniclesByLevel.set(-(i + 1), level.toArray()); // <-- KORREKTUR: In Array umwandeln
-          allChronicles.push(...level.toArray());
-        }
-      }
-
-      if (level0 && level0.length > 0) {
-        const firstCell = engine.get(0, 0);
-        const lastCell = engine.getLastCell(0);
-
-        if (firstCell && firstCell.$ && lastCell && lastCell.$) {
-          drawingContext.aknot = firstCell.$.knots.start;
-          const lastKnot = lastCell.$.knots.end;
-          drawingContext.distance = lastKnot - drawingContext.aknot;
-          if (drawingContext.distance === 0) drawingContext.distance = 1;
-        }
-      }
-
-      //Zeichnen der Äste:
-      allChronicles.forEach((chronicle) => {
-        if (chronicle) {
-          const a = chronicles?.find((e) => e.id === chronicle.$?.id);
-
-          drawChronicleBranch(drawingContext, chronicle, chronicle.y, a);
-        }
+      // Draw
+      drawTimeLine(uiContainer, {
+        y: screenHeight - 160,
+        screenWidth: screenWidth, // Neue Prop für Clipping
+        minYear: smoothStart,
+        maxYear: smoothEnd,
+        step: step,
+        getScreenX: getScreenX, // Funktion übergeben
+        style: {
+          color: 0x333333,
+          labelColor: 0x555555,
+          width: 2,
+          tickHeight: 10,
+        },
       });
+    };
 
-      allChronicles.forEach((startNodeWrapper) => {
-        const startCell = startNodeWrapper; // Das eigentliche ButterflyCell Objekt
+    renderTimeline();
 
-        // 1. Abbruchbedingung: Wir suchen nur Startpunkte.
-        // Wenn eine Zelle einen Vorgänger hat, ist sie ein Mittelstück
-        // und wird später von ihrem Vorgänger aus behandelt.
-        if (!startCell || startCell.prev) return;
+    // Listeners
+    viewport.on("moved", renderTimeline);
+    const handleResize = () => requestAnimationFrame(renderTimeline);
+    window.addEventListener("resize", handleResize);
 
-        // 2. Die Kette (Chain) aufbauen
-        const chain: ButterflyCell<any>[] = [startCell];
-        let currentPointer = startCell.next;
+    return () => {
+      viewport.off("moved", renderTimeline);
+      window.removeEventListener("resize", handleResize);
+      uiContainer.removeChildren();
+    };
+  }, [chronicles, isPixiReady]);
 
-        // "Follow the breadcrumbs": Solange es ein next gibt, fügen wir es zur Kette hinzu
-        while (currentPointer) {
-          chain.push(currentPointer);
-          currentPointer = currentPointer.next;
-        }
+  // --- EFFECT 3: DRAW BRANCHES ---
+  useEffect(() => {
+    if (
+      !engine ||
+      !engine.loaded ||
+      !isPixiReady ||
+      !viewportRef.current ||
+      !pixiContainer.current
+    )
+      return;
 
-        // Wenn die Kette nur 1 Element hat, gibt es nichts zu verbinden
-        if (chain.length < 2) return;
+    const viewport = viewportRef.current;
+    const container = pixiContainer.current;
+    viewport.removeChildren();
 
-        // 3. Die Kette durchgehen und Segmente verbinden
-        for (let i = 0; i < chain.length - 1; i++) {
-          const sourceCell = chain[i];
-          const targetCell = chain[i + 1];
-          drawGenericConnection(drawingContext, sourceCell, targetCell);
-        }
+    const drawingContext: DrawingContext = {
+      viewport,
+      aknot: 0,
+      distance: 1,
+      screenWidth: container.clientWidth,
+      centerY: container.clientHeight / 2,
+    };
+
+    const allChroniclesByLevel = new Map<number, ButterflyCell<any>[]>();
+    const allChronicles: ButterflyCell<any>[] = [];
+
+    // --- COLLECT DATA ---
+    const collectLevel = (lvl: number) => {
+      const l = engine.getLevel(lvl);
+      if (l) {
+        allChroniclesByLevel.set(lvl, l.toArray());
+        allChronicles.push(...l.toArray());
+      }
+    };
+    collectLevel(0);
+    for (let i = 0; i < engine.yDimensions.positive; i++) collectLevel(i + 1);
+    for (let i = 0; i < engine.yDimensions.negative; i++)
+      collectLevel(-(i + 1));
+
+    // --- NORMALIZE CONTEXT ---
+    const level0 = engine.getLevel(0);
+    if (level0 && level0.length > 0) {
+      const firstCell = engine.get(0, 0);
+      const lastCell = engine.getLastCell(0);
+
+      if (firstCell && firstCell.$ && lastCell && lastCell.$) {
+        drawingContext.aknot = firstCell.$.knots.start;
+        const lastKnot = lastCell.$.knots.end;
+        drawingContext.distance = lastKnot - drawingContext.aknot;
+        if (drawingContext.distance === 0) drawingContext.distance = 1;
+      }
+    }
+
+    // --- DRAW ---
+    allChronicles.forEach((chronicle) => {
+      if (chronicle) {
+        const a = chronicles?.find((e) => e.id === chronicle.$?.id);
+        drawChronicleBranch(drawingContext, chronicle, chronicle.y, a);
+      }
+    });
+
+    allChronicles.forEach((startCell) => {
+      if (!startCell || startCell.prev) return;
+      let curr = startCell;
+      while (curr.next) {
+        drawGenericConnection(drawingContext, curr, curr.next);
+        curr = curr.next;
+      }
+    });
+
+    notes.forEach((note) => {
+      drawDraggableNote(viewport, note, (id, x, y) => {
+        if (onNoteMove) onNoteMove(id, x, y);
       });
+    });
+  }, [engine, engine?.loaded, notes, chronicles, isPixiReady]);
 
-      // move Viewport to center;
+  // --- EFFECT 4: STYLES ---
+  useEffect(() => {
+    setGlobalConfig(globalConfig || {});
+    branchStyles?.forEach((style, id) => setBranchStyle(id, style));
+  }, [globalConfig, branchStyles]);
 
-      notes.forEach((note) => {
-        drawDraggableNote(viewport, note, (id, x, y) => {
-          if (onNoteMove) {
-            onNoteMove(id, x, y);
-          }
-        });
-      });
-    }, [engine.loaded, engine, notes]);
+  if (!engine) return <div>Engine not provided</div>;
 
-    useEffect(() => {
-      // Beispiel: global anpassen
-      setGlobalConfig(globalConfig || {});
-      branchStyles?.forEach((style, id) => {
-        setBranchStyle(id, style);
-      });
-    }, []);
-
-    return (
-      <div className="relative w-full h-screen overflow-hidden">
-        <div
-          className="absolute inset-0 w-full h-full "
-          ref={pixiContainer}
-        ></div>
-
-        <div
-          ref={coordsRef}
-          className="fixed z-50 bottom-4 left-4 bg-white/90 backdrop-blur border border-gray-400 px-3 py-1  shadow-lg text-xs font-mono text-gray-800 pointer-events-none select-none"
-        >
-          Hallo Welt
-        </div>
-      </div>
-    );
-  } else {
-    return <div>Engine not provided</div>;
-  }
+  return (
+    <div className="relative w-full h-screen overflow-hidden">
+      <div className="absolute inset-0 w-full h-full" ref={pixiContainer}></div>
+    </div>
+  );
 }
 
 export default Renderer;

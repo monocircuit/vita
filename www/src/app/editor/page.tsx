@@ -13,7 +13,6 @@ function Page() {
   const { data: ownChronicles } = useOwnChronicles();
   const { data: ownVitas } = useOwnVitas();
   const [notes, setNotes] = useState<FreeNoteData[]>([
-    { id: "1", content: "Hallo Welt", x: 100, y: 100 },
   ]);
   // const { data: ownVitaShards } = useDynamicShardsByVitaId(ownVitas?.[0]?.id);
 
@@ -34,7 +33,6 @@ function Page() {
 
   const handleNoteMove = (id: string, x: number, y: number) => {
     setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, x, y } : n)));
-    console.log(`Note ${id} moved to`, x, y);
   };
 
   const handleCreateNote = (x: number, y: number) => {
@@ -46,7 +44,6 @@ function Page() {
     };
     setNotes((prev) => [...prev, newNote]);
   };
-  console.log(engine);
 
   return (
     <Renderer
