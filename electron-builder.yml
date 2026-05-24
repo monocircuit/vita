@@ -1,0 +1,29 @@
+appId: com.monocircuit.vita
+productName: Vita
+copyright: Copyright © 2026 monocircuit
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - electron/**/*.js
+  - electron/**/*.js.map
+  - out/**/*
+  - package.json
+  - "!**/*.{ts,tsx}"
+  - "!**/tsconfig*.json"
+
+linux:
+  target:
+    - AppImage
+  category: Utility
+
+mac:
+  target:
+    - dmg
+  category: public.app-category.productivity
+
+win:
+  target:
+    - nsis

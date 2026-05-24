@@ -2,6 +2,7 @@
   "name": "vita",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.js",
   "packageManager": "pnpm@10.11.0",
   "scripts": {
     "preinstall": "node -e \"const ua=process.env.npm_config_user_agent||''; if(!ua.includes('pnpm')){console.error('Use pnpm for this project.'); process.exit(1);}\"",
@@ -12,7 +13,11 @@
     "build:cpu": "next build --webpack --experimental-cpu-prof",
     "supabase": "pnpm dlx supabase gen types typescript --db-url \"postgresql://postgres:BigMacBannDenWeg@194.164.54.103:5432/postgres\" > ./database.d.ts",
     "build": "next build",
+    "build:electron": "tsc --project electron/tsconfig.json",
     "start": "next start",
+    "start:electron": "electron .",
+    "dev:electron": "concurrently -k -n NEXT,ELECTRON -c blue,green \"pnpm dev\" \"wait-on http://localhost:3000 && pnpm build:electron && pnpm start:electron\"",
+    "dist:test": "pnpm build:electron && electron-builder --dir",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -66,10 +71,14 @@
     "@types/react-dom": "^19.2.3",
     "@types/text-to-svg": "^3.1.4",
     "@types/two.js": "^0.7.9",
+    "@types/wait-on": "^5.3.4",
     "@typescript-eslint/eslint-plugin": "^8.49.0",
     "@typescript-eslint/parser": "^8.49.0",
     "autoprefixer": "^10.4.23",
     "baseline-browser-mapping": "^2.10.11",
+    "concurrently": "^9.2.1",
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.0.10",
     "eslint-plugin-react": "^7.37.5",
@@ -83,6 +92,15 @@
     "stylelint-config-standard-scss": "^16.0.0",
     "stylelint-prettier": "^5.0.3",
     "tailwindcss": "^4.1.18",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wait-on": "^8.0.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "@parcel/watcher",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }
