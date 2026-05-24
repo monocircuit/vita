@@ -1,0 +1,15 @@
+@use '@/assets/styles/lib';
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+
+  svg {
+    height: 40%;
+    width: auto;
+  }
+}

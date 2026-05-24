@@ -1,0 +1,10 @@
+# This is an example robots.txt, created by ChatGPT.
+# This file controls Web Crawlers
+
+User-agent: *
+Disallow: /admin/        # Disallow all bots from accessing the admin directory
+Disallow: /private/      # Disallow all bots from accessing the private directory
+Allow: /public/          # Allow all bots to access the public directory
+
+# Provide the URL to the sitemap
+Sitemap: https://example.com/sitemap.xml

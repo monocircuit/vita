@@ -1,0 +1,15 @@
+@use '@/assets/styles/lib';
+
+.page {
+  display: inline-block;
+  width: 100%;
+}
+
+.page__navbar {
+  width: 100%;
+  height: 60px;
+}
+
+.scrollbar {
+  top: 0;
+}

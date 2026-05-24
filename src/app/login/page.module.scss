@@ -1,0 +1,14 @@
+@use "@/assets/styles/lib.scss";
+
+.page {
+    @include lib.createGridOverlay();
+    @include lib.size(100%);
+    @include lib.center("grid");
+
+    .page__login {
+        @include lib.attachToGridOverlay(1);
+
+        width: 80%;
+        height: 80%;
+    }
+}

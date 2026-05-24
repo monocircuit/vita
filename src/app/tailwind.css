@@ -1,0 +1,214 @@
+/**
+ * Scan only relevant Monolithium code folders.
+ * Scanning the whole src tree pulls in large non-code assets and is expensive.
+ */
+@source "../../../../packages/monolithium/src/components/";
+@source "../../../../packages/monolithium/src/hooks/";
+@source "../../../../packages/monolithium/src/contexts/";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@tailwind utilities;
+
+@theme {
+  /* ── Semantic tokens (light defaults) ───────── */
+  --color-bg: #ffffff;
+  --color-fg: #171717;
+  --color-surface: #f5f5f5;
+  --color-surface-raised: #ffffff;
+  --color-border: #e5e5e5;
+  --color-border-subtle: #f0f0f0;
+  --color-accent: #FFD100;
+  --color-accent-fg: #333333;
+  --color-muted: #737373;
+  --color-muted-fg: #525252;
+  --color-destructive: #DC3545;
+  --color-destructive-fg: #ffffff;
+
+  /* ── Backward-compatible aliases ────────────── */
+  --color-primary: #FFFFFF;
+  --color-secondary: #000000;
+  --color-highlight: #FFD100;
+  --color-text-highlight: #333333;
+  --color-success: #28A745;
+  --color-error: #DC3545;
+  --color-warning: #FFC107;
+  --color-info: #17A2B8;
+  --color-disabled: #9CA3AF;
+
+  /* ── Shadows ────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  /* ── Radii ──────────────────────────────────── */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  /* ── Misc ───────────────────────────────────── */
+  --stroke: 1px;
+}
+
+/* ── Dark theme ──────────────────────────────── */
+
+.dark {
+  --color-bg: #0a0a0a;
+  --color-fg: #ededed;
+  --color-surface: #141414;
+  --color-surface-raised: #1a1a1a;
+  --color-border: #404040;
+  --color-border-subtle: #2a2a2a;
+  --color-accent: #FFD100;
+  --color-accent-fg: #333333;
+  --color-muted: #a1a1a1;
+  --color-muted-fg: #d4d4d4;
+  --color-destructive: #ff4d5e;
+  --color-destructive-fg: #ffffff;
+
+  --color-primary: #000000;
+  --color-secondary: #FFFFFF;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Smooth theme transitions ────────────────── */
+
+html.transitioning,
+html.transitioning *,
+html.transitioning *::before,
+html.transitioning *::after {
+  transition: background-color 0.2s ease, color 0.1s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease !important;
+}
+
+/* ── Glassmorphism & Animations ──────────────── */
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes timeline-drift {
+  from {
+    transform: translate(0, -50%);
+  }
+  to {
+    transform: translate(-2400px, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-timeline-drift {
+    animation: none !important;
+  }
+  .animate-fade-in-up,
+  [style*="fade-in-up"] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+.glass {
+  background: rgba(128, 128, 128, 0.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-md);
+  transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.glass:hover {
+  background: rgba(128, 128, 128, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.dark .glass {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-border-subtle);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.dark .glass:hover {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Landing page theming tokens ───────────── */
+
+.landing {
+  --l-bg: #ffffff;
+  --l-fg: #0a0a0a;
+  --l-divider: rgba(0, 0, 0, 0.12);
+  --l-muted: rgba(0, 0, 0, 0.5);
+  --l-muted-soft: rgba(0, 0, 0, 0.3);
+  --l-para: rgba(0, 0, 0, 0.7);
+  --l-para-2: rgba(0, 0, 0, 0.65);
+  --l-para-3: rgba(0, 0, 0, 0.6);
+  --l-subtle: rgba(0, 0, 0, 0.05);
+  --l-panel-bg: rgba(0, 0, 0, 0.02);
+  --l-panel-border: rgba(0, 0, 0, 0.15);
+  --l-panel-border-soft: rgba(0, 0, 0, 0.1);
+  --l-panel-border-softer: rgba(0, 0, 0, 0.08);
+  --l-lane-rail: rgba(0, 0, 0, 0.12);
+  --l-tick: rgba(0, 0, 0, 0.25);
+  --l-year: rgba(0, 0, 0, 0.4);
+  --l-conn: rgba(0, 0, 0, 0.3);
+  --l-grid-subtle: rgba(0, 0, 0, 0.08);
+  --l-ambient-color: #222222;
+  --l-ambient-opacity-hero: 0.18;
+  --l-ambient-opacity-work: 0.08;
+  --l-ambient-opacity-cta: 0.22;
+  --l-stroke-bg: #ffffff;
+  --l-stats-bg: #f5f5f5;
+  --l-use-case-bg: #ffffff;
+  --l-use-case-hover: rgba(255, 209, 0, 0.12);
+  --l-card-bg: #ffffff;
+  --l-haze-radial: radial-gradient(circle at 50% 50%, rgba(255, 209, 0, 0.12) 0%, transparent 55%);
+  --l-chip-bg: transparent;
+  --l-entity-line: rgba(0, 0, 0, 0.2);
+  --l-entity-line-soft: rgba(0, 0, 0, 0.1);
+  --l-glass-grad: linear-gradient(180deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.01));
+}
+
+.dark .landing {
+  --l-bg: #0a0a0a;
+  --l-fg: #ffffff;
+  --l-divider: rgba(255, 255, 255, 0.12);
+  --l-muted: rgba(255, 255, 255, 0.5);
+  --l-muted-soft: rgba(255, 255, 255, 0.3);
+  --l-para: rgba(255, 255, 255, 0.7);
+  --l-para-2: rgba(255, 255, 255, 0.65);
+  --l-para-3: rgba(255, 255, 255, 0.6);
+  --l-subtle: rgba(255, 255, 255, 0.05);
+  --l-panel-bg: rgba(255, 255, 255, 0.02);
+  --l-panel-border: rgba(255, 255, 255, 0.15);
+  --l-panel-border-soft: rgba(255, 255, 255, 0.1);
+  --l-panel-border-softer: rgba(255, 255, 255, 0.08);
+  --l-lane-rail: rgba(255, 255, 255, 0.12);
+  --l-tick: rgba(255, 255, 255, 0.25);
+  --l-year: rgba(255, 255, 255, 0.4);
+  --l-conn: rgba(255, 255, 255, 0.3);
+  --l-grid-subtle: rgba(255, 255, 255, 0.08);
+  --l-ambient-color: #ffffff;
+  --l-ambient-opacity-hero: 0.22;
+  --l-ambient-opacity-work: 0.1;
+  --l-ambient-opacity-cta: 0.3;
+  --l-stroke-bg: #000000;
+  --l-stats-bg: #000000;
+  --l-use-case-bg: #0a0a0a;
+  --l-use-case-hover: rgba(255, 209, 0, 0.04);
+  --l-card-bg: #000000;
+  --l-haze-radial: radial-gradient(circle at 50% 50%, rgba(255, 209, 0, 0.18) 0%, transparent 55%);
+  --l-chip-bg: transparent;
+  --l-entity-line: rgba(255, 255, 255, 0.2);
+  --l-entity-line-soft: rgba(255, 255, 255, 0.1);
+  --l-glass-grad: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+}

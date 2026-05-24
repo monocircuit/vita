@@ -1,0 +1,11 @@
+services:
+  vita:
+    image: registry.gitlab.com/monocircuit/platform:production
+    container_name: vita
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"

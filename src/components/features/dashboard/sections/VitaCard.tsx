@@ -1,0 +1,169 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import useOwnProfileReader from "@/shared/data/tables/profiles/read/useOwnProfileReader";
+import { mono, sans, relativeTime } from "./utils";
+
+type Vita = {
+  id: number;
+  name: string;
+  scope: string | null;
+  type: string;
+  updatedAt: string | Date | null;
+  createdAt: string | Date;
+};
+
+type Props = {
+  vita: Vita;
+  chronicleCount: number;
+  entityCount: number;
+};
+
+const ScopePill = ({ scope }: { scope: string | null }) => {
+  const s = (scope ?? "personal").toLowerCase();
+  const isPersonal = s === "personal";
+  return (
+    <span
+      style={{
+        ...mono,
+        fontSize: 9,
+        textTransform: "uppercase",
+        letterSpacing: "0.25em",
+        padding: "4px 8px",
+        border: "1px solid rgba(255,255,255,0.08)",
+        background: isPersonal ? "rgba(255,209,0,0.08)" : "transparent",
+        color: isPersonal ? "var(--color-accent)" : "#8a8a8a",
+      }}
+    >
+      {s}
+    </span>
+  );
+};
+
+const Stat = ({ value, label }: { value: string; label: string }) => (
+  <div className="flex flex-col gap-1">
+    <div style={{ ...mono, fontSize: 20, fontWeight: 700, color: "var(--color-fg)" }}>
+      {value}
+    </div>
+    <div
+      style={{
+        ...mono,
+        fontSize: 9,
+        textTransform: "uppercase",
+        letterSpacing: "0.25em",
+        color: "#606060",
+      }}
+    >
+      {label}
+    </div>
+  </div>
+);
+
+const VitaCard = ({ vita, chronicleCount, entityCount }: Props) => {
+  const router = useRouter();
+  const { data: profile } = useOwnProfileReader();
+
+  const open = () => {
+    if (profile) router.push(`/editor/${profile.id}/${vita.id}`);
+  };
+
+  const updated = vita.updatedAt ?? vita.createdAt;
+
+  return (
+    <div
+      className="flex flex-col transition-colors cursor-pointer"
+      style={{
+        border: "1px solid rgba(255,255,255,0.08)",
+        background: "#121212",
+        padding: "22px 22px 18px",
+      }}
+      onMouseEnter={e => (e.currentTarget.style.background = "#161616")}
+      onMouseLeave={e => (e.currentTarget.style.background = "#121212")}
+      onClick={open}
+    >
+      <div className="flex items-center justify-between">
+        <ScopePill scope={vita.scope} />
+        <span style={{ ...mono, color: "#606060", fontSize: 16 }}>···</span>
+      </div>
+
+      <div
+        style={{
+          ...sans,
+          fontSize: 22,
+          fontWeight: 400,
+          color: "var(--color-fg)",
+          lineHeight: 1.1,
+          letterSpacing: "-0.01em",
+          marginTop: 18,
+        }}
+      >
+        {vita.name}
+      </div>
+      <div
+        style={{
+          ...mono,
+          fontSize: 10,
+          textTransform: "uppercase",
+          letterSpacing: "0.25em",
+          color: "#8a8a8a",
+          marginTop: 6,
+        }}
+      >
+        {(vita.scope ?? "personal").toUpperCase()} · {vita.type.toUpperCase()}
+      </div>
+
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: 0,
+          marginTop: 20,
+          paddingTop: 16,
+          borderTop: "1px solid rgba(255,255,255,0.08)",
+        }}
+      >
+        <Stat value={String(chronicleCount)} label="Chronicles" />
+        <div style={{ borderLeft: "1px solid rgba(255,255,255,0.08)", paddingLeft: 16 }}>
+          <Stat value={String(entityCount)} label="Entities" />
+        </div>
+        <div style={{ borderLeft: "1px solid rgba(255,255,255,0.08)", paddingLeft: 16 }}>
+          <Stat value="—" label="Span" />
+        </div>
+      </div>
+
+      <div
+        className="flex items-center justify-between"
+        style={{
+          marginTop: 18,
+          paddingTop: 14,
+          borderTop: "1px solid rgba(255,255,255,0.08)",
+        }}
+      >
+        <span
+          style={{
+            ...mono,
+            fontSize: 9,
+            textTransform: "uppercase",
+            letterSpacing: "0.25em",
+            color: "#606060",
+          }}
+        >
+          Edited {relativeTime(updated)}
+        </span>
+        <span
+          style={{
+            ...mono,
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: "0.2em",
+            color: "var(--color-accent)",
+          }}
+        >
+          OPEN →
+        </span>
+      </div>
+    </div>
+  );
+};
+
+export default VitaCard;

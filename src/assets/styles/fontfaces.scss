@@ -1,0 +1,59 @@
+@use '@/assets/styles/lib';
+
+/** ANCHOR: Roboto */
+@import 'https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap';
+
+/** ANCHOR: Space Mono */
+@import 'https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap';
+
+/** ANCHOR: Fira Code */
+@import 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap';
+
+/** ANCHOR: Fira Sans */
+@import 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap';
+
+/** ANCHOR: Lemon Milk Pro */
+@include lib.createFontFace(
+  'Lemon Milk Pro Bold',
+  '../fonts/Lemon Milk Pro/lemonmilkpro_bold.OTF'
+);
+@include lib.createFontFace(
+  'Lemon Milk Bold Italic',
+  '../fonts/Lemon Milk Pro/lemonmilkpro_bold_italic.OTF'
+);
+@include lib.createFontFace(
+  'Lemon Milk Medium',
+  '../fonts/Lemon Milk Pro/lemonmilkpro_medium.OTF'
+);
+@include lib.createFontFace(
+  'Lemon Milk Medium Italic',
+  '../fonts/Lemon Milk Pro/lemonmilkpro_medium_italic.OTF'
+);
+@include lib.createFontFace(
+  'Lemon Milk Pro Regular',
+  '../fonts/Lemon Milk Pro/lemonmilkpro_regular.OTF'
+);
+@include lib.createFontFace(
+  'Lemon Milk Pro Ultra Light',
+  '../fonts/Lemon Milk Pro/lemonmilkpro_ultra_light.OTF'
+);
+@include lib.createFontFace(
+  'Lemon Milk Pro Ultra Light Italic',
+  '../fonts/Lemon Milk Pro/lemonmilkpro_ultra_light_italic.OTF'
+);
+
+/** ANCHOR: Albertus Nova */
+@include lib.createFontFace(
+  'Albertus Nova',
+  '../fonts/Albertus Nova/albertusnova.otf'
+);
+@include lib.createFontFace(
+  'Albertus Nova Thin',
+  '../fonts/Albertus Nova/albertusnovathin.otf'
+);
+
+/** ANCHOR: Consolas */
+@include lib.createFontFace(
+  'Consolas',
+  '../fonts/Consolas/consolas_italic.ttf'
+);

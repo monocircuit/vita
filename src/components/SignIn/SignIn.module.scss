@@ -1,0 +1,146 @@
+@use '@/assets/styles/lib';
+
+$padding: 12px;
+
+.signin {
+  @include lib.size(100%);
+
+  display: grid;
+  grid-template-rows: [row0] calc($padding + 30px) [row1] 1fr [row2] 50px [row3];
+  grid-template-columns: [col0] 1fr [col1];
+  border: var(--stroke) solid var(--color-secondary);
+  overflow: hidden;
+
+  .signin__header {
+    grid-area: row0 / col0 / row1 / col1;
+    border-bottom: var(--stroke) solid var(--color-secondary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+
+    .signin__header__title {
+      flex: 1;
+      display: flex;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+      gap: 2px;
+
+      .signin__header__title__icon {
+        height: 25px;
+        aspect-ratio: 1;
+      }
+
+      .signin__header__title__text {
+        display: inline-block;
+        text-transform: uppercase;
+        font-size: large;
+        font-family: 'Fira Code', sans-serif;
+      }
+    }
+  }
+
+  .signin__body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+
+    .signin__body__form {
+      width: min(300px, 90%);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      input {
+        font-size: 16px;
+        padding: 8px;
+      }
+
+      .signin__body__form__inputs {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .signin__body__form__error {
+        color: var(--color-error, #DC3545);
+        font-size: 0.85rem;
+        text-align: center;
+        font-family: 'Fira Code', sans-serif;
+      }
+
+      .signin__body__form__success {
+        color: var(--color-success, #28A745);
+        font-size: 0.85rem;
+        text-align: center;
+        font-family: 'Fira Code', sans-serif;
+      }
+
+      .signin__body__form__hint {
+        color: var(--color-secondary);
+        opacity: 0.7;
+        font-size: 0.85rem;
+        text-align: center;
+        font-family: 'Fira Code', sans-serif;
+      }
+
+      .signin__body__form__forgot {
+        align-self: flex-end;
+        background: none;
+        border: none;
+        padding: 0;
+        margin-top: -4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        color: var(--color-secondary);
+        opacity: 0.75;
+        font-family: 'Fira Code', sans-serif;
+        text-decoration: underline;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
+
+      .signin__body__form__divider__wrapper {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+
+        .signin__body__form__divider__text {
+          font-size: 0.85rem;
+          font-family: 'Fira Code';
+          text-transform: capitalize;
+          color: var(--color-secondary);
+          opacity: 0.7;
+        }
+
+        .signin__body__form__divider {
+          flex: 1;
+          background-color: var(--color-secondary);
+          opacity: 0.3;
+          height: var(--stroke);
+        }
+      }
+
+      .signin__body__form__submit {
+        height: 40px;
+        border: var(--stroke) solid var(--color-secondary);
+      }
+
+      .signin__body__form__button {
+        height: 40px;
+        border: var(--stroke) solid var(--color-secondary);
+      }
+    }
+  }
+
+  .signin__alt {
+    overflow: hidden;
+    border-top: var(--stroke) solid var(--color-secondary);
+  }
+}
