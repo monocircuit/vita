@@ -1,8 +1,6 @@
-import { Schemas } from "@/shared/data/schemas";
+import type { EngineChronicle } from "./types";
 
-const alignEngineChronicles = (
-  engineChronicles: Schemas["Chronicles"]["Mutations"]["Engine"][],
-) => {
+const alignEngineChronicles = (engineChronicles: EngineChronicle[]) => {
   return engineChronicles.sort((a, b) => a.knots.start - b.knots.start);
 };
 

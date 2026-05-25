@@ -1,9 +1,9 @@
-import { Schemas } from "@/shared/data/schemas";
+import type { EngineChronicle } from "./types";
 
 const getEngineChronicleOverlap = (
-  a: Schemas["Chronicles"]["Mutations"]["Engine"],
-  b: Schemas["Chronicles"]["Mutations"]["Engine"],
-): Schemas["Chronicles"]["Mutations"]["Engine"]["knots"] | null => {
+  a: EngineChronicle,
+  b: EngineChronicle,
+): EngineChronicle["knots"] | null => {
   /**
    * Simple intervall intersection.
    */

@@ -1,4 +1,4 @@
-import { Schemas } from "@/shared/data/schemas";
+import type { EngineChronicle } from "./types";
 
 /**
  * @author Lukas Diegelmann
@@ -36,8 +36,8 @@ import { Schemas } from "@/shared/data/schemas";
  * (z.B. Ergebnis einer Mutation `Engine.To`) und nicht rohe DB-Rows.
  */
 const checkEngineChronicleOverlap = (
-  engineChronicleA: Schemas["Chronicles"]["Mutations"]["Engine"],
-  engineChronicleB: Schemas["Chronicles"]["Mutations"]["Engine"],
+  engineChronicleA: EngineChronicle,
+  engineChronicleB: EngineChronicle,
 ) => {
   if (!engineChronicleA.knots.end && engineChronicleB.knots.end) {
     return engineChronicleB.knots.end > engineChronicleA.knots.start;

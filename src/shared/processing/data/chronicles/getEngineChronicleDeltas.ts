@@ -3,7 +3,7 @@
  *       augmented to also work with `x1` in the future.
  */
 
-import { Schemas } from "@/shared/data/schemas";
+import type { EngineChronicle } from "./types";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -37,8 +37,8 @@ const floorToUtcDay = (value: number) => {
  * left delta would be positive. Keep in mind that a delta always measures the overlap!
  */
 export const getEngineChronicleLeftDelta = (
-  primary: Schemas["Chronicles"]["Mutations"]["Engine"],
-  secondary: Schemas["Chronicles"]["Mutations"]["Engine"],
+  primary: EngineChronicle,
+  secondary: EngineChronicle,
 ) => {
   const secondaryEnd = Number.isFinite(secondary.knots.end)
     ? floorToUtcDay(secondary.knots.end)
@@ -51,8 +51,8 @@ export const getEngineChronicleLeftDelta = (
 };
 
 export const getEngineChronicleRightDelta = (
-  primary: Schemas["Chronicles"]["Mutations"]["Engine"],
-  secondary: Schemas["Chronicles"]["Mutations"]["Engine"],
+  primary: EngineChronicle,
+  secondary: EngineChronicle,
 ) => {
   const primaryEnd = Number.isFinite(primary.knots.end)
     ? primary.knots.end
@@ -65,8 +65,8 @@ export const getEngineChronicleRightDelta = (
 };
 
 const getEngineChronicleDeltas = (
-  primary: Schemas["Chronicles"]["Mutations"]["Engine"],
-  secondary: Schemas["Chronicles"]["Mutations"]["Engine"],
+  primary: EngineChronicle,
+  secondary: EngineChronicle,
 ) => {
   return {
     left: getEngineChronicleLeftDelta(primary, secondary),

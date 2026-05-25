@@ -32,13 +32,16 @@ import {
 } from "@/shared/structures/Butterfly";
 import { BipolarLinkedListPolartity } from "@/shared/structures/BipolarDoublyLinkedList";
 import EventEmitter from "./EventEmitter";
-import type { Schemas } from "@/shared/data/schemas";
+import type {
+  EngineChronicle,
+  EngineShard,
+} from "../../data/chronicles/types";
 import { getEngineChronicleLeftDelta } from "../../data/chronicles/getEngineChronicleDeltas";
 import { logging } from "@/lib/logger";
 
 interface IEngineProjectionSlice {
   y: number;
-  knots: Schemas["Chronicles"]["Mutations"]["Engine"]["knots"];
+  knots: EngineChronicle["knots"];
 }
 
 /**
@@ -53,7 +56,7 @@ interface IEngineProjectionSlice {
  * it only holds knowledge about the `id` and `knots` of a chronicle. This makes it
  * more memory efficient.
  */
-class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
+class Engine extends Butterfly<EngineChronicle> {
   /**
    * Space for Constants
    */
@@ -78,7 +81,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
 
   private debugGroupStack: string[] = [];
 
-  private chronicles: Schemas["Chronicles"]["Mutations"]["Engine"][] = [];
+  private chronicles: EngineChronicle[] = [];
 
   private idCounter = 0;
 
@@ -136,7 +139,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
     });
   }
 
-  public load(shards: Schemas["VitasShardsDynamic"]["Normalized"][]) {
+  public load(shards: EngineShard[]) {
     /** Clear existing data */
     this.clear();
     void shards;
@@ -149,7 +152,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
    * the correct chronicle information.
    */
   public init(
-    chronicles: Schemas["Chronicles"]["Mutations"]["Engine"][],
+    chronicles: EngineChronicle[],
     forceReload = false,
   ) {
     if (forceReload) {
@@ -263,7 +266,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
    * @returns ButterflyDepth (it will always find a spot to fit the chronicle in)
    */
   private getInsertionDepth(
-    insertionChronicle: Schemas["Chronicles"]["Mutations"]["Engine"],
+    insertionChronicle: EngineChronicle,
   ): ButterflyDepth {
     this.debugGroup("getInsertionDepth", insertionChronicle.id);
 
@@ -549,7 +552,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
    * @returns A list of projection slices clipped to the insertion chronicle’s bounds.
    */
   private getProjection(
-    insertionChronicle: Schemas["Chronicles"]["Mutations"]["Engine"],
+    insertionChronicle: EngineChronicle,
     insertionDepth: ButterflyDepth,
   ): IEngineProjectionSlice[] {
     const totalProjection = this.getTotalProjection(insertionDepth.y);
@@ -627,7 +630,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
   }
 
   private getTakeoverPath(
-    insertionChronicle: Schemas["Chronicles"]["Mutations"]["Engine"],
+    insertionChronicle: EngineChronicle,
     insertionDepth: ButterflyDepth,
   ) {
     this.debugGroup("getTakeoverPath", insertionChronicle.id);
@@ -710,7 +713,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
 
     /* Initialize temporary pointer to the null pointer */
     let tmp: null | ButterflyCell<
-      Schemas["Chronicles"]["Mutations"]["Engine"]
+      EngineChronicle
     > = null;
 
     /* Add the root element of the chronicle path, meaning the part of
@@ -858,7 +861,7 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
       // Collect items left-to-right
       const items: Array<{
         x: number;
-        v: Schemas["Chronicles"]["Mutations"]["Engine"];
+        v: EngineChronicle;
       }> = [];
 
       // Positive side 1, 2, …
@@ -888,25 +891,19 @@ class Engine extends Butterfly<Schemas["Chronicles"]["Mutations"]["Engine"]> {
   /**
    * @author Lukas Diegelmann
    */
-  public toShards(): Omit<
-    Schemas["VitasShardsDynamic"]["Normalized"],
-    "createdAt" | "vitaId"
-  >[] {
-    const rows: Omit<
-      Schemas["VitasShardsDynamic"]["Normalized"],
-      "createdAt" | "vitaId"
-    >[] = [];
+  public toShards(): EngineShard[] {
+    const rows: EngineShard[] = [];
 
     // Map: cell -> id (für Lookup von prev/next)
     const cellToId = new Map<
-      ButterflyCell<Schemas["Chronicles"]["Mutations"]["Engine"]>,
+      ButterflyCell<EngineChronicle>,
       number
     >();
 
     // Parallel-Array: id -> cell (stabile Zuordnung im 2. Pass)
     const idToCell = new Map<
       number,
-      ButterflyCell<Schemas["Chronicles"]["Mutations"]["Engine"]>
+      ButterflyCell<EngineChronicle>
     >();
 
     let cellId = 0;

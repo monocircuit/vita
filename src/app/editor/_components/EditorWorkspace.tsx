@@ -3,7 +3,7 @@ import { FreeNoteData } from "@/shared/drawing/dynamic/drawDraggableNote";
 import Renderer from "@/shared/drawing/dynamic/Renderer";
 import { BranchStyle } from "@/shared/drawing/dynamic/styleApi";
 import useEngine from "@/shared/processing/engines/dynamic/useEngine";
-import { $Schemas } from "@/shared/data/schemas";
+import { chroniclesToEngineSegments } from "@/shared/processing/data/chronicles/chroniclesToEngineSegments";
 import {
   useChroniclesByVitaIdReader,
   useChronicleEntitiesReader,
@@ -64,7 +64,7 @@ function EditorWorkspace({ vitaId }: Props) {
 
         setSchemaError(null);
         engine.init(
-          $Schemas.Chronicles.Mutations.Engine.To.parse(normalizedChronicles),
+          chroniclesToEngineSegments(normalizedChronicles),
         );
       } catch (error) {
         if (isCancelled) return;
@@ -159,7 +159,7 @@ function EditorWorkspace({ vitaId }: Props) {
         pendingRebuildRef.current = false;
 
         const engineChronicles = normalizedChronicles.length
-          ? $Schemas.Chronicles.Mutations.Engine.To.parse(normalizedChronicles)
+          ? chroniclesToEngineSegments(normalizedChronicles)
           : [];
 
         engine.init(engineChronicles, true);
