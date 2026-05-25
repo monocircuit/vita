@@ -9,6 +9,7 @@ directories:
 files:
   - electron/**/*.js
   - electron/**/*.js.map
+  - electron/db/migrations/*.sql
   - out/**/*
   - package.json
   - "!**/*.{ts,tsx}"

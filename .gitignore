@@ -10,7 +10,7 @@ dist
 .turbo
 
 # Electron build output
-electron/*.js
-electron/*.js.map
-electron/*.d.ts
+electron/**/*.js
+electron/**/*.js.map
+electron/**/*.d.ts
 release/

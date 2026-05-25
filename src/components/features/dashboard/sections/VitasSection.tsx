@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import useOwnVitasReader from "@/shared/data/tables/vitas/$read/useOwnVitasReader";
+import { useVitasReader } from "@/shared/data/local/useVitasReader";
 import { useOwnChroniclesReader } from "@/shared/data/tables/chronicles";
 import { useAllEntitiesReader } from "@/shared/data/tables/entities";
 import SectionHead from "./SectionHead";
@@ -10,7 +10,7 @@ import { mono, pad2 } from "./utils";
 
 const VitasSection = () => {
   const router = useRouter();
-  const { data: vitas } = useOwnVitasReader();
+  const { data: vitas } = useVitasReader();
   const { data: chronicles } = useOwnChroniclesReader();
   const { data: entities } = useAllEntitiesReader();
 

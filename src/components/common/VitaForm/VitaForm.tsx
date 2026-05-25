@@ -6,8 +6,8 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import useVitaWriter from "@/shared/data/tables/vitas/$write/useVitaWriter";
-import useOwnProfileReader from "@/shared/data/tables/profiles/read/useOwnProfileReader";
+import { useCreateVita } from "@/shared/data/local/useCreateVita";
+import { useUpdateVita } from "@/shared/data/local/useUpdateVita";
 
 const VITA_TYPES = ["DYNAMIC", "STATIC"] as const;
 
@@ -34,8 +34,8 @@ interface Props {
 const VitaForm = ({ initialValues, onSuccess }: Props) => {
   const isEdit = typeof initialValues?.id === "number";
 
-  const vitaWriter = useVitaWriter();
-  const { data: ownProfile } = useOwnProfileReader();
+  const createVita = useCreateVita();
+  const updateVita = useUpdateVita();
 
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
@@ -58,27 +58,26 @@ const VitaForm = ({ initialValues, onSuccess }: Props) => {
     setSubmitSuccess(null);
 
     try {
-      if (!ownProfile?.id) {
-        setSubmitError("No user profile loaded.");
-        return;
+      if (isEdit) {
+        await updateVita.mutateAsync({
+          id: initialValues!.id!,
+          patch: {
+            name: values.name.trim(),
+            scope: values.scope as never,
+            type: values.type,
+          },
+        });
+        setSubmitSuccess("Vita updated successfully.");
+        onSuccess?.();
+      } else {
+        const newVita = await createVita.mutateAsync({
+          name: values.name.trim(),
+          scope: values.scope as never,
+          type: values.type,
+        });
+        setSubmitSuccess("Vita created successfully.");
+        onSuccess?.(newVita?.id ? { id: newVita.id } : undefined);
       }
-
-      const result = await vitaWriter.write({
-        ...(isEdit ? { id: initialValues!.id } : {}),
-        name: values.name.trim(),
-        scope: values.scope as any,
-        type: values.type,
-        userId: ownProfile.id,
-      } as any);
-
-      setSubmitSuccess(
-        isEdit ? "Vita updated successfully." : "Vita created successfully.",
-      );
-
-      const newVita = !isEdit
-        ? (result as { rows?: { id?: number }[] } | undefined)?.rows?.[0]
-        : undefined;
-      onSuccess?.(newVita?.id ? { id: newVita.id } : undefined);
     } catch (err) {
       const message =
         err && typeof err === "object" && "message" in err

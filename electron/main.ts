@@ -1,5 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
+import { getDb } from './db/client';
+import { registerIpcHandlers } from './ipc';
 
 const isDev = !app.isPackaged;
 const DEV_URL = 'http://localhost:3000';
@@ -28,6 +30,9 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  getDb();
+  registerIpcHandlers();
+
   createWindow();
 
   app.on('activate', () => {

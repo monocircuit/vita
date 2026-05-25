@@ -3,15 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import useOwnVitasReader from "@/shared/data/tables/vitas/$read/useOwnVitasReader";
+import { useVitasReader } from "@/shared/data/local/useVitasReader";
 import useOwnProfileReader from "@/shared/data/tables/profiles/read/useOwnProfileReader";
-import useVitaWriter from "@/shared/data/tables/vitas/$write/useVitaWriter";
+import { useCreateVita } from "@/shared/data/local/useCreateVita";
 
 const EditorBootstrap = () => {
   const router = useRouter();
   const profileQuery = useOwnProfileReader();
-  const vitasQuery = useOwnVitasReader();
-  const vitaWriter = useVitaWriter();
+  const vitasQuery = useVitasReader();
+  const createVita = useCreateVita();
 
   const profile = profileQuery.data;
   const vitas = vitasQuery.data;
@@ -35,14 +35,11 @@ const EditorBootstrap = () => {
     ranRef.current = true;
     void (async () => {
       try {
-        const result = await vitaWriter.write({
+        const newVita = await createVita.mutateAsync({
           name: "Untitled",
-          scope: "personal" as never,
+          scope: "private",
           type: "DYNAMIC",
-          userId: profile.id,
-        } as never);
-        const newVita = (result as { rows?: { id?: number }[] } | undefined)
-          ?.rows?.[0];
+        });
         if (!newVita?.id) {
           setError("Failed to create a new vita.");
           ranRef.current = false;
@@ -56,7 +53,7 @@ const EditorBootstrap = () => {
         ranRef.current = false;
       }
     })();
-  }, [profile, vitas, profileQuery.isLoading, vitasQuery.isLoading, router, vitaWriter]);
+  }, [profile, vitas, profileQuery.isLoading, vitasQuery.isLoading, router, createVita]);
 
   return (
     <div className="flex h-full w-full items-center justify-center text-xs text-secondary">
