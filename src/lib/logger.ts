@@ -60,16 +60,6 @@ declare const process: {
 };
 
 declare global {
-  // Vite-style env typing (safe to be absent at runtime)
-
-  interface ImportMetaEnv {
-    DEV?: boolean;
-  }
-
-  interface ImportMeta {
-    env?: ImportMetaEnv;
-  }
-
   interface Window {
     /** Dev-only: callable logger export helper for DevTools. */
     __logger?: LoggerGlobal;
