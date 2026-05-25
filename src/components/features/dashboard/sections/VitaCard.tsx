@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import useOwnProfileReader from "@/shared/data/tables/profiles/read/useOwnProfileReader";
 import { mono, sans, relativeTime } from "./utils";
 
 type Vita = {
@@ -61,10 +60,9 @@ const Stat = ({ value, label }: { value: string; label: string }) => (
 
 const VitaCard = ({ vita, chronicleCount, entityCount }: Props) => {
   const router = useRouter();
-  const { data: profile } = useOwnProfileReader();
 
   const open = () => {
-    if (profile) router.push(`/editor/${profile.id}/${vita.id}`);
+    router.push(`/editor/${vita.id}`);
   };
 
   const updated = vita.updatedAt ?? vita.createdAt;

@@ -1,10 +1,10 @@
 "use client";
 
 import { use } from "react";
-import EditorWorkspace from "../../_components/EditorWorkspace";
+import EditorWorkspace from "../_components/EditorWorkspace";
 
 interface Props {
-  params: Promise<{ userId: string; vitaId: string }>;
+  params: Promise<{ vitaId: string }>;
 }
 
 const Page = ({ params }: Props) => {

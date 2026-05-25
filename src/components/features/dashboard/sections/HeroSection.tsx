@@ -1,11 +1,9 @@
 "use client";
 
-import useOwnProfileReader from "@/shared/data/tables/profiles/read/useOwnProfileReader";
 import { useChroniclesReader } from "@/shared/data/local";
 import { mono, sans, relativeTime, toTimestamp } from "./utils";
 
 const HeroSection = () => {
-  const { data: profile } = useOwnProfileReader();
   const { data: chronicles } = useChroniclesReader();
 
   const lastEdit = chronicles
@@ -13,8 +11,6 @@ const HeroSection = () => {
     .filter(Boolean)
     .sort((a, b) => (toTimestamp(a) ?? 0) - (toTimestamp(b) ?? 0))
     .slice(-1)[0] ?? null;
-
-  const firstName = profile?.firstName ?? "";
 
   return (
     <section
@@ -73,7 +69,7 @@ const HeroSection = () => {
               margin: 0,
             }}
           >
-            {firstName ? `${firstName}, your life, in ` : "Your life, in "}
+            Your life, in{" "}
             <span style={{ color: "var(--color-accent)", fontWeight: 500 }}>
               layers.
             </span>

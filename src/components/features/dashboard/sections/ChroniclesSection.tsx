@@ -1,6 +1,5 @@
 "use client";
 
-import useOwnProfileReader from "@/shared/data/tables/profiles/read/useOwnProfileReader";
 import { useChroniclesReader } from "@/shared/data/local";
 import SectionHead from "./SectionHead";
 import { mono, sans, formatDateStamp, pad2, toTimestamp } from "./utils";
@@ -85,12 +84,6 @@ const ChronicleRow = ({ c }: { c: Chronicle }) => (
 );
 
 const AccountCard = () => {
-  const { data: profile } = useOwnProfileReader();
-  const initials =
-    ((profile?.firstName?.[0] ?? "") + (profile?.lastName?.[0] ?? "")).toUpperCase() ||
-    "·";
-  const name = [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || "—";
-
   return (
     <div
       style={{
@@ -112,11 +105,11 @@ const AccountCard = () => {
             color: "var(--color-accent)",
           }}
         >
-          {initials}
+          ·
         </div>
         <div className="flex flex-col gap-1 min-w-0">
           <div style={{ ...sans, fontSize: 18, color: "var(--color-fg)" }} className="truncate">
-            {name}
+            Local
           </div>
           <div
             style={{
@@ -128,7 +121,7 @@ const AccountCard = () => {
             }}
             className="truncate"
           >
-            {profile?.id ? `ID ${profile.id.slice(0, 8)}` : "—"}
+            DESKTOP · SINGLE-USER
           </div>
         </div>
       </div>

@@ -8,7 +8,6 @@ import {
   useReplaceShardsForVita,
   useShardsByVitaIdReader,
 } from "@/shared/data/local";
-import useOwnProfileReader from "@/shared/data/tables/profiles/read/useOwnProfileReader";
 import { formatUtcMsToGermanDate } from "@/lib/formatUtcMsToGermanDate";
 import { Scrollable } from "@monocircuit/monolithium/components";
 import { useForm } from "@tanstack/react-form";
@@ -36,7 +35,7 @@ import {
 function validateChronicleSubmission(
   args: ChronicleValidationArgs,
 ): ChronicleValidationResult {
-  const { value, userId } = args;
+  const { value } = args;
 
   const category = Array.isArray(value.category)
     ? (value.category[0] ?? "")
@@ -50,15 +49,10 @@ function validateChronicleSubmission(
       : [];
   const trimmedTitle = String(value.title ?? "").trim();
 
-  if (!userId) {
-    throw new Error("No user profile loaded");
-  }
-
   return {
     category,
     normalizedSelectedEntities,
     trimmedTitle,
-    userId,
   };
 }
 
@@ -72,7 +66,6 @@ const ChronicleCreateForm = ({ vitaId }: ChronicleCreateFormProps = {}) => {
   const linkEntities = useLinkChronicleEntities();
   const replaceShards = useReplaceShardsForVita();
 
-  const { data: ownProfile } = useOwnProfileReader();
   const { data: allEntities } = useEntitiesReader();
   const { data: scopes } = useScopes();
   const { data: chronicleCategories } = useChronicleCategories();
@@ -109,7 +102,6 @@ const ChronicleCreateForm = ({ vitaId }: ChronicleCreateFormProps = {}) => {
         const { category, normalizedSelectedEntities, trimmedTitle } =
           validateChronicleSubmission({
             value: parsedValue,
-            userId: ownProfile?.id,
           });
 
         const entityOptions = Array.isArray(allEntities) ? allEntities : [];

@@ -5,7 +5,6 @@ import { Popover } from "@monocircuit/monolithium/components";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useVitasReader, useChroniclesReader, useEntitiesReader } from "@/shared/data/local";
-import useOwnProfileReader from "@/shared/data/tables/profiles/read/useOwnProfileReader";
 import PageHead from "@/components/features/dashboard/sections/PageHead";
 import VitaCard from "@/components/features/dashboard/sections/VitaCard";
 import { mono, pad2, relativeTime } from "@/components/features/dashboard/sections/utils";
@@ -15,7 +14,6 @@ const Vitas = () => {
   const { data: vitas } = useVitasReader();
   const { data: chronicles } = useChroniclesReader();
   const { data: entities } = useEntitiesReader();
-  const { data: profile } = useOwnProfileReader();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<VitaFormInitialValues | null>(null);
@@ -125,8 +123,8 @@ const Vitas = () => {
             <VitaForm
               onSuccess={(vita) => {
                 setIsCreateOpen(false);
-                if (vita && profile?.id) {
-                  router.push(`/editor/${profile.id}/${vita.id}`);
+                if (vita) {
+                  router.push(`/editor/${vita.id}`);
                 }
               }}
             />

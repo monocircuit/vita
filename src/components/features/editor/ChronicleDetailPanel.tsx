@@ -18,7 +18,6 @@ import {
   useCreateEntity,
   useEntitiesReader,
 } from "@/shared/data/local";
-import useOwnProfileReader from "@/shared/data/tables/profiles/read/useOwnProfileReader";
 
 // ─── Helpers (duplicated from ChronicleBox to keep the panel self-contained) ──
 
@@ -155,7 +154,6 @@ export default function ChronicleDetailPanel() {
   const linkEntities = useLinkChronicleEntities();
   const createEntity = useCreateEntity();
   const { data: allEntities } = useEntitiesReader();
-  const { data: ownProfile } = useOwnProfileReader();
 
   // Keep last detail visible during close animation
   const [displayedDetail, setDisplayedDetail] = useState(detail);
