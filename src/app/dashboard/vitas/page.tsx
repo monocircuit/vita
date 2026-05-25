@@ -4,9 +4,7 @@ import VitaForm, { VitaFormInitialValues } from "@/components/common/VitaForm/Vi
 import { Popover } from "@monocircuit/monolithium/components";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useVitasReader } from "@/shared/data/local/useVitasReader";
-import { useOwnChroniclesReader } from "@/shared/data/tables/chronicles";
-import { useAllEntitiesReader } from "@/shared/data/tables/entities";
+import { useVitasReader, useChroniclesReader, useEntitiesReader } from "@/shared/data/local";
 import useOwnProfileReader from "@/shared/data/tables/profiles/read/useOwnProfileReader";
 import PageHead from "@/components/features/dashboard/sections/PageHead";
 import VitaCard from "@/components/features/dashboard/sections/VitaCard";
@@ -15,8 +13,8 @@ import { mono, pad2, relativeTime } from "@/components/features/dashboard/sectio
 const Vitas = () => {
   const router = useRouter();
   const { data: vitas } = useVitasReader();
-  const { data: chronicles } = useOwnChroniclesReader();
-  const { data: entities } = useAllEntitiesReader();
+  const { data: chronicles } = useChroniclesReader();
+  const { data: entities } = useEntitiesReader();
   const { data: profile } = useOwnProfileReader();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);

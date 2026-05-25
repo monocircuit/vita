@@ -1,7 +1,7 @@
 "use client";
 
 import useOwnProfileReader from "@/shared/data/tables/profiles/read/useOwnProfileReader";
-import { useOwnChroniclesReader } from "@/shared/data/tables/chronicles";
+import { useChroniclesReader } from "@/shared/data/local";
 import SectionHead from "./SectionHead";
 import { mono, sans, formatDateStamp, pad2, toTimestamp } from "./utils";
 
@@ -178,7 +178,7 @@ const AccountCard = () => {
 };
 
 const ChroniclesSection = () => {
-  const { data: chronicles } = useOwnChroniclesReader();
+  const { data: chronicles } = useChroniclesReader();
   const total = chronicles?.length ?? 0;
 
   const recent = (chronicles ?? [])

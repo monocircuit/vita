@@ -4,13 +4,14 @@ import Renderer from "@/shared/drawing/dynamic/Renderer";
 import { BranchStyle } from "@/shared/drawing/dynamic/styleApi";
 import useEngine from "@/shared/processing/engines/dynamic/useEngine";
 import { $Schemas } from "@/shared/data/schemas";
-import { useChroniclesByVitaIdReader } from "@/shared/data/tables/chronicles";
-import { useAllChronicleEntitiesReader } from "@/shared/data/tables/chronicleEntities";
-import { useAllEntitiesReader } from "@/shared/data/tables/entities";
-import { NormalizedRowFor } from "@/shared/data/tanstack";
-import { useDynamicShardsWriter } from "@/shared/data/tables/vitas/shards/dynamic";
-import { createClient } from "@/shared/data/client";
-import useTanstackMutationAddressSubscriber from "../hooks/useTanstackMutationAddressSubscriber";
+import {
+  useChroniclesByVitaIdReader,
+  useChronicleEntitiesReader,
+  useEntitiesReader,
+  useReplaceShardsForVita,
+} from "@/shared/data/local";
+import type { ChronicleView } from "../../../../electron/ipc/contracts";
+import type { Entity } from "../../../../electron/db/schema";
 import {
   useCallback,
   useEffect,
@@ -23,14 +24,14 @@ type Props = { vitaId: number };
 
 function EditorWorkspace({ vitaId }: Props) {
   /** ANCHOR: Fetched Data */
-  const ownChroniclesQuery = useChroniclesByVitaIdReader(String(vitaId));
-  const chronicleEntityRelationsQuery = useAllChronicleEntitiesReader();
-  const entitiesQuery = useAllEntitiesReader();
+  const ownChroniclesQuery = useChroniclesByVitaIdReader(vitaId);
+  const chronicleEntityRelationsQuery = useChronicleEntitiesReader();
+  const entitiesQuery = useEntitiesReader();
+  const replaceShards = useReplaceShardsForVita();
 
   const { data: ownChronicles } = ownChroniclesQuery;
   const { data: chronicleEntityRelations } = chronicleEntityRelationsQuery;
   const { data: entities } = entitiesQuery;
-  const dynamicShardsWriter = useDynamicShardsWriter();
   const [notes, setNotes] = useState<FreeNoteData[]>([]);
   const [schemaError, setSchemaError] = useState<string | null>(null);
   const lastChronicleIdsRef = useRef<string | null>(null);
@@ -45,7 +46,7 @@ function EditorWorkspace({ vitaId }: Props) {
         : [];
 
     return list.filter(
-      (chronicle): chronicle is NormalizedRowFor<"chronicles"> =>
+      (chronicle): chronicle is ChronicleView =>
         Boolean(chronicle) && typeof chronicle === "object",
     );
   }, [ownChronicles]);
@@ -88,11 +89,6 @@ function EditorWorkspace({ vitaId }: Props) {
     [],
   );
 
-  const chroniclesAddressPrefix = useMemo(
-    () => ["net", "public", "chronicles"] as const,
-    [],
-  );
-
   const chronicleList = normalizedChronicles;
   const isRendererDataLoading =
     ownChroniclesQuery.isLoading ||
@@ -103,15 +99,6 @@ function EditorWorkspace({ vitaId }: Props) {
     entitiesQuery.isFetching;
 
   const entitiesByChronicleId = useMemo(() => {
-    const toNumber = (value: unknown): number | null => {
-      if (typeof value === "number" && Number.isFinite(value)) return value;
-      if (typeof value === "string" && value.trim().length > 0) {
-        const parsed = Number(value);
-        return Number.isFinite(parsed) ? parsed : null;
-      }
-      return null;
-    };
-
     const relationList = Array.isArray(chronicleEntityRelations)
       ? chronicleEntityRelations
       : chronicleEntityRelations
@@ -123,34 +110,22 @@ function EditorWorkspace({ vitaId }: Props) {
         ? [entities]
         : [];
 
-    const entityById = new Map<number, NormalizedRowFor<"entities">>();
+    const entityById = new Map<number, Entity>();
     entityList.forEach(entity => {
       if (!entity) return;
-      const entityId = toNumber((entity as Record<string, unknown>).id);
-      if (entityId !== null) {
-        entityById.set(entityId, entity);
+      if (Number.isFinite(entity.id)) {
+        entityById.set(entity.id, entity);
       }
     });
 
-    const map = new Map<string, NormalizedRowFor<"entities">[]>();
+    const map = new Map<string, Entity[]>();
 
     relationList.forEach(relation => {
-      const relationRecord = relation as Record<string, unknown>;
-      const chronicleId = toNumber(
-        relationRecord.chronicleId ?? relationRecord.chronicle_id,
-      );
-      const entityId = toNumber(
-        relationRecord.entityId ?? relationRecord.entity_id,
-      );
+      if (!relation) return;
+      const { chronicleId, entityId } = relation;
+      if (!Number.isFinite(chronicleId) || !Number.isFinite(entityId)) return;
 
-      if (chronicleId === null || entityId === null) return;
-
-      const joinedEntity = relationRecord.entity;
-      const entity =
-        entityById.get(entityId) ??
-        (joinedEntity && typeof joinedEntity === "object"
-          ? (joinedEntity as NormalizedRowFor<"entities">)
-          : undefined);
+      const entity = entityById.get(entityId);
       if (!entity) return;
 
       const key = String(chronicleId);
@@ -190,18 +165,16 @@ function EditorWorkspace({ vitaId }: Props) {
         engine.init(engineChronicles, true);
 
         const shards = engine.toShards();
-        const client = createClient();
-
-        const { error: cleanupError } = await client
-          .from("vitas_shards_dynamic")
-          .delete()
-          .eq("vita_id", vitaId);
-
-        if (cleanupError) throw cleanupError;
-
-        if (shards.length > 0) {
-          await dynamicShardsWriter.setDefaults({ vitaId }).write(shards);
-        }
+        await replaceShards.mutateAsync({
+          vitaId,
+          shards: shards.map((s: { chronicleId: number; x: number; y: number; prevId?: number | null; nextId?: number | null }) => ({
+            chronicleId: s.chronicleId,
+            x: s.x,
+            y: s.y,
+            prevId: s.prevId ?? null,
+            nextId: s.nextId ?? null,
+          })),
+        });
       } while (pendingRebuildRef.current);
     } catch (error) {
       setSchemaError(
@@ -212,13 +185,7 @@ function EditorWorkspace({ vitaId }: Props) {
     } finally {
       isRebuildingRef.current = false;
     }
-  }, [dynamicShardsWriter, engine, normalizedChronicles, vitaId]);
-
-  useTanstackMutationAddressSubscriber({
-    addressPrefix: chroniclesAddressPrefix,
-    onMatch: rebuildGraphAndPersistShards,
-    debounceMs: 150,
-  });
+  }, [engine, normalizedChronicles, replaceShards, vitaId]);
 
   useEffect(() => {
     if (ownChroniclesQuery.isLoading || ownChroniclesQuery.isFetching) return;

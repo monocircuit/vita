@@ -2,8 +2,7 @@
 
 import { PulsatingDot } from "@monocircuit/monolithium/components";
 import { usePathname, useRouter } from "next/navigation";
-import { useVitasReader } from "@/shared/data/local/useVitasReader";
-import { useOwnChroniclesReader } from "@/shared/data/tables/chronicles";
+import { useVitasReader, useChroniclesReader } from "@/shared/data/local";
 import { pad2 } from "./sections/utils";
 
 type SectionId = "overview" | "vitas" | "chronicles";
@@ -113,7 +112,7 @@ const DashboardSidebar = () => {
     ? "chronicles"
     : "overview";
   const { data: vitas } = useVitasReader();
-  const { data: chronicles } = useOwnChroniclesReader();
+  const { data: chronicles } = useChroniclesReader();
 
   const vitasCount = vitas?.length ?? 0;
   const chroniclesCount = chronicles?.length ?? 0;

@@ -1,7 +1,7 @@
 import { useEffect, RefObject, MutableRefObject } from "react";
 import { Application, Container } from "pixi.js";
 import { Viewport } from "pixi-viewport";
-import { NormalizedRowFor } from "@/shared/data/tanstack";
+import type { ChronicleView } from "../../../../../electron/ipc/contracts";
 import { computeWorldScale, PIXELS_PER_YEAR } from "../worldScale";
 import { createTimeLine, TimeLineHandle, TimelineMode, MONTH_NAMES } from "../components/drawTimeLine";
 import { VIEWPORT, TIMELINE, BRANCH, isMobile } from "../config";
@@ -14,7 +14,7 @@ export function useTimeline(
   viewportRef: RefObject<Viewport | null>,
   uiContainerRef: RefObject<Container | null>,
   containerRef: RefObject<HTMLDivElement | null>,
-  chronicles: NormalizedRowFor<"chronicles">[] | undefined,
+  chronicles: ChronicleView[] | undefined,
   isReady: boolean,
   fitViewFnRef: MutableRefObject<(() => void) | null>,
 ) {

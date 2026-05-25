@@ -1,4 +1,4 @@
-import { sqliteTable, integer, text, primaryKey } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, integer, text, primaryKey, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 // ============ Enums (as TS unions, stored as TEXT) ============
 
@@ -93,6 +93,7 @@ export const chronicleEntities = sqliteTable('chronicle_entities', {
 export const chronicleRelations = sqliteTable('chronicle_relations', {
   chronicleId: integer('chronicle_id').notNull().references(() => chronicles.id, { onDelete: 'cascade' }),
   ancestor: integer('ancestor').notNull().references(() => chronicles.id, { onDelete: 'cascade' }),
+  orientation: text('orientation', { enum: chronicleOrientationValues }),
 }, (table) => ({
   pk: primaryKey({ columns: [table.chronicleId, table.ancestor] }),
 }));
@@ -116,6 +117,7 @@ export const dynamicVitaPaths = sqliteTable('dynamic_vita_paths', {
 }));
 
 export const vitasShardsDynamic = sqliteTable('vitas_shards_dynamic', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   vitaId: integer('vita_id').notNull().references(() => vitas.id, { onDelete: 'cascade' }),
   chronicleId: integer('chronicle_id').notNull().references(() => chronicles.id, { onDelete: 'cascade' }),
   x: integer('x').notNull(),
@@ -123,8 +125,14 @@ export const vitasShardsDynamic = sqliteTable('vitas_shards_dynamic', {
   prevId: integer('prev_id'),
   nextId: integer('next_id'),
 }, (table) => ({
-  pk: primaryKey({ columns: [table.vitaId, table.chronicleId] }),
+  uniqVitaChronicle: uniqueIndex('vitas_shards_dynamic_vita_chronicle_uniq')
+    .on(table.vitaId, table.chronicleId),
 }));
+
+export const seedState = sqliteTable('__seed_state', {
+  key: text('key').primaryKey(),
+  appliedAt: integer('applied_at', { mode: 'timestamp_ms' }).notNull().$defaultFn(() => new Date()),
+});
 
 // ============ Type-Exports ============
 
@@ -134,3 +142,17 @@ export type Chronicle = typeof chronicles.$inferSelect;
 export type NewChronicle = typeof chronicles.$inferInsert;
 export type Entity = typeof entities.$inferSelect;
 export type NewEntity = typeof entities.$inferInsert;
+export type ChronicleRelation = typeof chronicleRelations.$inferSelect;
+export type NewChronicleRelation = typeof chronicleRelations.$inferInsert;
+export type ChronicleEntity = typeof chronicleEntities.$inferSelect;
+export type NewChronicleEntity = typeof chronicleEntities.$inferInsert;
+export type DynamicVita = typeof dynamicVitas.$inferSelect;
+export type NewDynamicVita = typeof dynamicVitas.$inferInsert;
+export type DynamicVitaPath = typeof dynamicVitaPaths.$inferSelect;
+export type NewDynamicVitaPath = typeof dynamicVitaPaths.$inferInsert;
+export type VitaShardDynamic = typeof vitasShardsDynamic.$inferSelect;
+export type NewVitaShardDynamic = typeof vitasShardsDynamic.$inferInsert;
+export type Address = typeof addresses.$inferSelect;
+export type NewAddress = typeof addresses.$inferInsert;
+export type Country = typeof countries.$inferSelect;
+export type Continent = typeof continents.$inferSelect;

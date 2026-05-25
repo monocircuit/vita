@@ -11,7 +11,8 @@ import { ChronicleCell, ActivePopup, BranchLabelEntity } from "./helpers";
 import type { DrawingContext } from "./helpers";
 import * as PIXI from "pixi.js";
 import { FederatedPointerEvent, Graphics } from "pixi.js";
-import { NormalizedRowFor } from "@/shared/data/tanstack";
+import type { ChronicleView } from "../../../../electron/ipc/contracts";
+import type { Entity } from "../../../../electron/db/schema";
 import {
   getChainId,
   registerChainMember,
@@ -61,8 +62,8 @@ export const drawChronicleBranch = (
   context: DrawingContext,
   chronicle: ChronicleCell,
   levelIndex: number,
-  chronicleData?: NormalizedRowFor<"chronicles">,
-  linkedEntities: NormalizedRowFor<"entities">[] = [],
+  chronicleData?: ChronicleView,
+  linkedEntities: Entity[] = [],
   onPopup?: (popup: ActivePopup) => void,
 ) => {
   const { viewport, aknot, distance, worldWidth, centerY } = context;

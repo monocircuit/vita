@@ -1,12 +1,12 @@
 "use client";
 
 import useOwnProfileReader from "@/shared/data/tables/profiles/read/useOwnProfileReader";
-import { useOwnChroniclesReader } from "@/shared/data/tables/chronicles";
+import { useChroniclesReader } from "@/shared/data/local";
 import { mono, sans, relativeTime, toTimestamp } from "./utils";
 
 const HeroSection = () => {
   const { data: profile } = useOwnProfileReader();
-  const { data: chronicles } = useOwnChroniclesReader();
+  const { data: chronicles } = useChroniclesReader();
 
   const lastEdit = chronicles
     ?.map(c => c.updatedAt ?? c.createdAt ?? null)

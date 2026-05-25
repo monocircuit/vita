@@ -5,6 +5,7 @@ import Database from 'better-sqlite3';
 import { drizzle, BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import * as schema from './schema';
+import { runSeed } from './seed';
 
 let _db: BetterSQLite3Database<typeof schema> | null = null;
 
@@ -27,6 +28,8 @@ export function getDb(): BetterSQLite3Database<typeof schema> {
   } else {
     console.warn('[db] migrations folder not found at', migrationsFolder);
   }
+
+  runSeed(db);
 
   _db = db;
   return _db;

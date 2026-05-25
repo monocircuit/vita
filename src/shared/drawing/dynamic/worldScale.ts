@@ -1,4 +1,4 @@
-import { NormalizedRowFor } from "@/shared/data/tanstack";
+import type { ChronicleView } from "../../../../electron/ipc/contracts";
 
 /**
  * Globale Weltskala: 1 Jahr = X Pixel in World-Space.
@@ -23,7 +23,7 @@ export interface WorldScale {
  * Gibt null zurück wenn keine validen Daten vorhanden sind.
  */
 export function computeWorldScale(
-  chronicles: NormalizedRowFor<"chronicles">[] | undefined,
+  chronicles: ChronicleView[] | undefined,
 ): WorldScale | null {
   const valid =
     chronicles?.filter(c => c && c.knots && c.knots.length > 0) ?? [];

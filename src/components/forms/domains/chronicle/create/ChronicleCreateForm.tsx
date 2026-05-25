@@ -1,14 +1,13 @@
-import { useChronicleCategory, useScope } from "@/shared/data/enums";
-import { useChronicleEntityWriter } from "@/shared/data/tables/chronicleEntities";
-import { useChronicleWriter } from "@/shared/data/tables/chronicles";
-import { useDynamicShardsWriter } from "@/shared/data/tables/vitas/shards/dynamic";
-import useAllEntitiesReader from "@/shared/data/tables/entities/useAllEntitiesReader";
-import { ChronicleValidationArgs, ChronicleValidationResult } from "./types";
 import {
-  $ChronicleCreateFormSchema,
-  ChronicleCreateFormSchema,
-} from "./schema";
-import { useEntityWriter } from "@/shared/data/tables/entities";
+  useChronicleCategories,
+  useScopes,
+  useEntitiesReader,
+  useCreateEntity,
+  useCreateChronicle,
+  useLinkChronicleEntities,
+  useReplaceShardsForVita,
+  useShardsByVitaIdReader,
+} from "@/shared/data/local";
 import useOwnProfileReader from "@/shared/data/tables/profiles/read/useOwnProfileReader";
 import { formatUtcMsToGermanDate } from "@/lib/formatUtcMsToGermanDate";
 import { Scrollable } from "@monocircuit/monolithium/components";
@@ -19,6 +18,12 @@ import {
   KnotsFieldAdapter,
 } from "@/components/forms/adapters";
 
+import { ChronicleValidationArgs, ChronicleValidationResult } from "./types";
+import {
+  $ChronicleCreateFormSchema,
+  ChronicleCreateFormSchema,
+} from "./schema";
+
 import {
   CategoryField,
   DescriptionField,
@@ -27,19 +32,6 @@ import {
   SubmitFeedback,
   TitleField,
 } from "./fields";
-
-function toFiniteNumber(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
-  return null;
-}
 
 function validateChronicleSubmission(
   args: ChronicleValidationArgs,
@@ -71,28 +63,21 @@ function validateChronicleSubmission(
 }
 
 type ChronicleCreateFormProps = {
-  /**
-   * When set, a seed shard is written to `vitas_shards_dynamic` for this vita
-   * so the new chronicle is scoped to the current vita. Without it, the
-   * chronicle is created user-globally but not attached to any vita.
-   */
   vitaId?: number;
 };
 
 const ChronicleCreateForm = ({ vitaId }: ChronicleCreateFormProps = {}) => {
-  /** ANCHOR: Writers */
-  const chronicleWriter = useChronicleWriter();
-  const entityWriter = useEntityWriter();
-  const chronicleEntityWriter = useChronicleEntityWriter();
-  const dynamicShardsWriter = useDynamicShardsWriter();
+  const createChronicle = useCreateChronicle();
+  const createEntity = useCreateEntity();
+  const linkEntities = useLinkChronicleEntities();
+  const replaceShards = useReplaceShardsForVita();
 
-  /** ANCHOR: Readers */
   const { data: ownProfile } = useOwnProfileReader();
-  const { data: allEntities } = useAllEntitiesReader();
-  const { data: scopes } = useScope();
-  const { data: chronicleCategories } = useChronicleCategory();
+  const { data: allEntities } = useEntitiesReader();
+  const { data: scopes } = useScopes();
+  const { data: chronicleCategories } = useChronicleCategories();
+  const { data: existingShards } = useShardsByVitaIdReader(vitaId ?? null);
 
-  /** ANCHOR: State */
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
 
@@ -121,102 +106,49 @@ const ChronicleCreateForm = ({ vitaId }: ChronicleCreateFormProps = {}) => {
         }
 
         const parsedValue = parseResult.data;
-
-        const { category, normalizedSelectedEntities, trimmedTitle, userId } =
+        const { category, normalizedSelectedEntities, trimmedTitle } =
           validateChronicleSubmission({
             value: parsedValue,
             userId: ownProfile?.id,
           });
 
-        /** Set defaults for the writers */
-        const chronicleWriterWithDefaults = chronicleWriter.setDefaults({
-          userId,
-        } as any);
-        const entityWriterWithDefaults = entityWriter.setDefaults({
-          userId,
-          isCustom: false,
-        } as any);
-
-        const entityOptions = Array.isArray(allEntities)
-          ? allEntities
-          : allEntities
-            ? [allEntities]
-            : [];
-
+        const entityOptions = Array.isArray(allEntities) ? allEntities : [];
         const resolvedEntityIds: number[] = [];
 
         for (const selectedEntity of normalizedSelectedEntities) {
           const candidateId = Number(selectedEntity);
-
           if (Number.isFinite(candidateId)) {
-            resolvedEntityIds.push(candidateId);
-            continue;
-          }
-
-          const entityDomain = selectedEntity
-            .toLowerCase()
-            .replace(/^https?:\/\//i, "")
-            .replace(/^www\./i, "")
-            .split("/")[0]
-            ?.trim();
-
-          if (entityDomain) {
-            const existing = entityOptions.find(candidate => {
-              const domain = String(
-                (candidate as Record<string, unknown>).domain ?? "",
-              )
-                .toLowerCase()
-                .trim();
-
-              return domain.length > 0 && domain === entityDomain;
-            });
-
-            if (existing) {
-              const existingId = toFiniteNumber(
-                (existing as Record<string, unknown>).id,
-              );
-
-              if (existingId !== null) {
-                resolvedEntityIds.push(existingId);
-                continue;
-              }
+            const exists = entityOptions.some(e => e.id === candidateId);
+            if (exists) {
+              resolvedEntityIds.push(candidateId);
+              continue;
             }
           }
-
-          const entityWriteResult = await entityWriterWithDefaults.write({
+          const newEntity = await createEntity.mutateAsync({
             name: selectedEntity,
-            domain: entityDomain || null,
-          } as any);
-
-          const createdEntityId = toFiniteNumber(entityWriteResult.rows[0]?.id);
-          if (createdEntityId !== null) {
-            resolvedEntityIds.push(createdEntityId);
-          }
+            address: null,
+          });
+          if (newEntity?.id != null) resolvedEntityIds.push(newEntity.id);
         }
 
         const uniqueResolvedEntityIds = Array.from(new Set(resolvedEntityIds));
-        const primaryResolvedEntityId = uniqueResolvedEntityIds[0] ?? null;
 
-        const chronicleWriteResult = await chronicleWriterWithDefaults.write({
+        const createdChronicle = await createChronicle.mutateAsync({
           title: trimmedTitle,
           description: parsedValue.description.trim() || null,
-          category,
-          scope: parsedValue.scope,
+          category: category as never,
+          scope: parsedValue.scope as never,
+          orientation: null,
           knots: parsedValue.knots,
-          entityId: primaryResolvedEntityId,
-        } as any);
+        });
 
-        const createdChronicleId = toFiniteNumber(
-          chronicleWriteResult.rows[0]?.id,
-        );
+        const createdChronicleId = createdChronicle?.id ?? null;
 
         if (createdChronicleId !== null && uniqueResolvedEntityIds.length > 0) {
-          await chronicleEntityWriter.write(
-            uniqueResolvedEntityIds.map(entityId => ({
-              chronicleId: createdChronicleId,
-              entityId,
-            })),
-          );
+          await linkEntities.mutateAsync({
+            chronicleId: createdChronicleId,
+            entityIds: uniqueResolvedEntityIds,
+          });
         }
 
         if (
@@ -224,53 +156,34 @@ const ChronicleCreateForm = ({ vitaId }: ChronicleCreateFormProps = {}) => {
           typeof vitaId === "number" &&
           Number.isFinite(vitaId)
         ) {
-          await dynamicShardsWriter.setDefaults({ vitaId } as any).write({
-            id: createdChronicleId,
-            chronicleId: createdChronicleId,
-            x: 0,
-            y: 0,
-            prevId: null,
-            nextId: null,
-          } as any);
+          const existing = existingShards ?? [];
+          await replaceShards.mutateAsync({
+            vitaId,
+            shards: [
+              ...existing.map(s => ({
+                chronicleId: s.chronicleId,
+                x: s.x,
+                y: s.y,
+                prevId: s.prevId,
+                nextId: s.nextId,
+              })),
+              {
+                chronicleId: createdChronicleId,
+                x: 0,
+                y: 0,
+                prevId: null,
+                nextId: null,
+              },
+            ],
+          });
         }
 
         form.reset();
         setSubmitSuccess("Chronicle created successfully.");
       } catch (error) {
-        if (error && typeof error === "object") {
-          const postgrest = error as {
-            message?: string;
-            details?: string;
-            hint?: string;
-            code?: string;
-            status?: number;
-          };
-
-          if (postgrest.code === "23505" || postgrest.status === 409) {
-            setSubmitError(
-              postgrest.details ||
-                "A chronicle with conflicting values already exists.",
-            );
-            return;
-          }
-
-          if (postgrest.message) {
-            if (
-              postgrest.message.toLowerCase().includes("row-level security") &&
-              postgrest.message.toLowerCase().includes("entities")
-            ) {
-              setSubmitError(
-                "Entity konnte nicht angelegt werden (RLS). Bitte eine bereits vorhandene Company auswählen.",
-              );
-              return;
-            }
-
-            setSubmitError(postgrest.message);
-            return;
-          }
-        }
-
-        setSubmitError("Creating chronicle failed.");
+        setSubmitError(
+          error instanceof Error ? error.message : "Creating chronicle failed.",
+        );
       }
     },
   });

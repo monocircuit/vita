@@ -1,19 +1,20 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useState } from "react";
-import { NormalizedRowFor } from "@/shared/data/tanstack";
+import type { ChronicleView } from "../../../../electron/ipc/contracts";
+import type { Entity } from "../../../../electron/db/schema";
 
 interface ChronicleDetail {
-  chronicle: NormalizedRowFor<"chronicles"> | undefined;
-  linkedEntities: NormalizedRowFor<"entities">[];
+  chronicle: ChronicleView | undefined;
+  linkedEntities: Entity[];
 }
 
 interface ChronicleDetailState {
   detail: ChronicleDetail | null;
   isOpen: boolean;
   openDetail: (
-    chronicle: NormalizedRowFor<"chronicles"> | undefined,
-    linkedEntities: NormalizedRowFor<"entities">[],
+    chronicle: ChronicleView | undefined,
+    linkedEntities: Entity[],
   ) => void;
   closeDetail: () => void;
 }
@@ -31,8 +32,8 @@ export function ChronicleDetailProvider({ children }: { children: React.ReactNod
 
   const openDetail = useCallback(
     (
-      chronicle: NormalizedRowFor<"chronicles"> | undefined,
-      linkedEntities: NormalizedRowFor<"entities">[],
+      chronicle: ChronicleView | undefined,
+      linkedEntities: Entity[],
     ) => {
       setDetail({ chronicle, linkedEntities });
       setIsOpen(true);

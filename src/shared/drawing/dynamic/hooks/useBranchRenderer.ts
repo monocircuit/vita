@@ -1,6 +1,7 @@
 import { useEffect, RefObject, MutableRefObject } from "react";
 import { Viewport } from "pixi-viewport";
-import { NormalizedRowFor } from "@/shared/data/tanstack";
+import type { ChronicleView } from "../../../../../electron/ipc/contracts";
+import type { Entity } from "../../../../../electron/db/schema";
 import { DrawingContext, ActivePopup } from "../helpers";
 import {
   clearBranchRegistry,
@@ -20,8 +21,8 @@ export function useBranchRenderer(
   viewportRef: RefObject<Viewport | null>,
   containerRef: RefObject<HTMLDivElement | null>,
   engine: Engine | undefined,
-  chronicles: NormalizedRowFor<"chronicles">[] | undefined,
-  entitiesByChronicleId: Map<string, NormalizedRowFor<"entities">[]>,
+  chronicles: ChronicleView[] | undefined,
+  entitiesByChronicleId: Map<string, Entity[]>,
   notes: FreeNoteData[],
   onNoteMove: ((id: string, x: number, y: number) => void) | undefined,
   isReady: boolean,

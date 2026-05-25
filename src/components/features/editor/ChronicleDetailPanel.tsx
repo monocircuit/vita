@@ -11,11 +11,13 @@ import {
 } from "@monocircuit/monolithium/components";
 import arrowIcon from "@/assets/images/png/sharp_line/Tailless-Line-Arrow-Right-1--Streamline-Sharp.png";
 import { useChronicleDetail } from "./ChronicleDetailContext";
-import { NormalizedRowFor } from "@/shared/data/tanstack";
+import type { Entity } from "../../../../electron/db/schema";
 import { EntitySelector } from "@/components/forms/selectors";
-import useChronicleEntityWriter from "@/shared/data/tables/chronicleEntities/useChronicleEntityWriter";
-import useEntityWriter from "@/shared/data/tables/entities/useEntityWriter";
-import useAllEntitiesReader from "@/shared/data/tables/entities/useAllEntitiesReader";
+import {
+  useLinkChronicleEntities,
+  useCreateEntity,
+  useEntitiesReader,
+} from "@/shared/data/local";
 import useOwnProfileReader from "@/shared/data/tables/profiles/read/useOwnProfileReader";
 
 // ─── Helpers (duplicated from ChronicleBox to keep the panel self-contained) ──
@@ -62,7 +64,7 @@ function readFirstString(record: Record<string, unknown>, keys: string[]) {
   return null;
 }
 
-function getEntitySummary(entity: NormalizedRowFor<"entities">) {
+function getEntitySummary(entity: Entity) {
   const record = entity as Record<string, unknown>;
   const companyName =
     readFirstString(record, ["name", "companyName", "company_name"]) ?? "Unknown Company";
@@ -84,7 +86,7 @@ function readCategoryLabels(value: unknown) {
   return label && label !== "-" ? [label] : [];
 }
 
-function EntityIcon({ entity, size = 20 }: { entity: NormalizedRowFor<"entities">; size?: number }) {
+function EntityIcon({ entity, size = 20 }: { entity: Entity; size?: number }) {
   const [hasImageFailed, setHasImageFailed] = useState(false);
   const { avatar, companyName, domain } = getEntitySummary(entity);
 
@@ -122,7 +124,7 @@ function EntityIcon({ entity, size = 20 }: { entity: NormalizedRowFor<"entities"
   );
 }
 
-function EntityBadge({ entity }: { entity: NormalizedRowFor<"entities"> }) {
+function EntityBadge({ entity }: { entity: Entity }) {
   const { companyName, jobTitle } = getEntitySummary(entity);
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 border-b-(length:--stroke) border-solid border-border">
@@ -150,9 +152,9 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 export default function ChronicleDetailPanel() {
   const { detail, isOpen, closeDetail } = useChronicleDetail();
-  const chronicleEntityWriter = useChronicleEntityWriter();
-  const entityWriter = useEntityWriter();
-  const { data: allEntities } = useAllEntitiesReader();
+  const linkEntities = useLinkChronicleEntities();
+  const createEntity = useCreateEntity();
+  const { data: allEntities } = useEntitiesReader();
   const { data: ownProfile } = useOwnProfileReader();
 
   // Keep last detail visible during close animation
@@ -161,7 +163,7 @@ export default function ChronicleDetailPanel() {
   const [isLinkingEntity, setIsLinkingEntity] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
   const [localLinkedEntities, setLocalLinkedEntities] = useState<
-    NormalizedRowFor<"entities">[] | null
+    Entity[] | null
   >(null);
   const [isScopePopoverOpen, setIsScopePopoverOpen] = useState(false);
   const [isScopeFlapHovering, setIsScopeFlapHovering] = useState(false);
@@ -247,100 +249,42 @@ export default function ChronicleDetailPanel() {
 
     try {
       let resolvedEntityId: number | null = null;
-      let resolvedEntityRow: NormalizedRowFor<"entities"> | null = null;
+      let resolvedEntityRow: Entity | null = null;
 
       const numericCandidate = Number(entityValue);
       if (Number.isFinite(numericCandidate)) {
-        resolvedEntityId = numericCandidate;
-      }
-
-      const normalizedDomain = entityValue
-        .toLowerCase()
-        .replace(/^https?:\/\//i, "")
-        .replace(/^www\./i, "")
-        .split("/")[0]
-        ?.trim();
-
-      if (!resolvedEntityId && normalizedDomain) {
-        const existing = entityOptions.find(candidate => {
-          const record = candidate as Record<string, unknown>;
-          const domain =
-            typeof record.domain === "string"
-              ? record.domain.toLowerCase().trim()
-              : "";
-          return domain === normalizedDomain;
-        });
-
+        const existing = entityOptions.find(e => e.id === numericCandidate);
         if (existing) {
-          const existingId = Number((existing as Record<string, unknown>).id);
-          if (Number.isFinite(existingId)) {
-            resolvedEntityId = existingId;
-            resolvedEntityRow = existing;
-          }
+          resolvedEntityId = numericCandidate;
+          resolvedEntityRow = existing;
         }
       }
 
       if (!resolvedEntityId) {
-        const profileUserId =
-          typeof (ownProfile as Record<string, unknown> | undefined)?.id === "string"
-            ? ((ownProfile as Record<string, unknown>).id as string)
-            : null;
-        const chronicleUserId = (() => {
-          const raw = chronicleRecord?.userId ?? chronicleRecord?.user_id;
-          return typeof raw === "string" && raw.trim().length > 0 ? raw.trim() : null;
-        })();
-
-        const fallbackUserId = profileUserId ?? chronicleUserId;
-
-        const entityWriterWithDefaults =
-          fallbackUserId !== null
-            ? entityWriter.setDefaults(
-                { userId: fallbackUserId, isCustom: false } as any,
-              )
-            : entityWriter.setDefaults({ isCustom: false } as any);
-
-        const entityWriteResult = await entityWriterWithDefaults
-          .write({
-            name: entityValue,
-            domain: normalizedDomain || null,
-          } as any);
-
-        const createdEntity = entityWriteResult.rows[0] as
-          | NormalizedRowFor<"entities">
-          | undefined;
-        const createdEntityId = Number((createdEntity as Record<string, unknown> | undefined)?.id);
-
-        if (!Number.isFinite(createdEntityId)) {
-          throw new Error("Failed to create entity.");
-        }
-
-        resolvedEntityId = createdEntityId;
-        resolvedEntityRow = createdEntity ?? null;
+        const created = await createEntity.mutateAsync({
+          name: entityValue,
+          address: null,
+        });
+        if (!created?.id) throw new Error("Failed to create entity.");
+        resolvedEntityId = created.id;
+        resolvedEntityRow = created;
       }
 
-      await chronicleEntityWriter.write({
+      await linkEntities.mutateAsync({
         chronicleId,
-        entityId: resolvedEntityId,
-      } as any);
+        entityIds: [resolvedEntityId],
+      });
 
       const nextLinkedEntity =
         resolvedEntityRow ??
-        entityOptions.find(candidate => {
-          const id = Number((candidate as Record<string, unknown>).id);
-          return Number.isFinite(id) && id === resolvedEntityId;
-        }) ??
+        entityOptions.find(e => e.id === resolvedEntityId) ??
         null;
 
       if (nextLinkedEntity) {
         setLocalLinkedEntities(previous => {
           const current =
             previous ?? displayedDetail?.linkedEntities ?? [];
-          const nextId = Number((nextLinkedEntity as Record<string, unknown>).id);
-          const alreadyLinked = current.some(entity => {
-            const id = Number((entity as Record<string, unknown>).id);
-            return Number.isFinite(id) && id === nextId;
-          });
-
+          const alreadyLinked = current.some(e => e.id === nextLinkedEntity.id);
           if (alreadyLinked) return current;
           return [nextLinkedEntity, ...current];
         });

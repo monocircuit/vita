@@ -1,6 +1,7 @@
 import { Viewport } from "pixi-viewport";
 import { ButterflyCell } from "@/shared/structures/Butterfly";
-import { NormalizedRowFor } from "@/shared/data/tanstack";
+import type { ChronicleView } from "../../../../electron/ipc/contracts";
+import type { Entity } from "../../../../electron/db/schema";
 
 export type ChronicleCell = ButterflyCell<{
   id: string;
@@ -16,8 +17,8 @@ export interface DrawingContext {
 }
 
 export interface ActivePopup {
-  chronicleData: NormalizedRowFor<"chronicles"> | undefined;
-  linkedEntities: NormalizedRowFor<"entities">[];
+  chronicleData: ChronicleView | undefined;
+  linkedEntities: Entity[];
   chronicleId: string | undefined;
   worldX: number;
   worldY: number;

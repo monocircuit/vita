@@ -5,11 +5,12 @@ import { useMemo, useState } from "react";
 import deleteIcon from "@/assets/images/png/sharp_line/delete.png";
 import { Chip, Dialog } from "@monocircuit/monolithium/components";
 import { useChronicleDetail } from "@/components/features/editor/ChronicleDetailContext";
-import { NormalizedRowFor } from "@/shared/data/tanstack";
+import type { ChronicleView } from "../../../../../electron/ipc/contracts";
+import type { Entity } from "../../../../../electron/db/schema";
 
 interface ChronicleBoxProps {
-  chronicle?: NormalizedRowFor<"chronicles">;
-  linkedEntities?: NormalizedRowFor<"entities">[];
+  chronicle?: ChronicleView;
+  linkedEntities?: Entity[];
   fallbackChronicleId?: string;
   onDeleteChronicle?: (chronicleId: number) => void | Promise<void>;
   onDismiss?: () => void;
@@ -33,7 +34,7 @@ function readFirstString(record: Record<string, unknown>, keys: string[]) {
   return null;
 }
 
-function getEntitySummary(entity: NormalizedRowFor<"entities">) {
+function getEntitySummary(entity: Entity) {
   const record = entity as Record<string, unknown>;
   const companyName =
     readFirstString(record, ["name", "companyName", "company_name"]) ??
@@ -60,7 +61,7 @@ function EntityIcon({
   entity,
   size = 32,
 }: {
-  entity: NormalizedRowFor<"entities">;
+  entity: Entity;
   size?: number;
 }) {
   const [hasImageFailed, setHasImageFailed] = useState(false);

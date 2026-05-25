@@ -3,7 +3,7 @@
 import ChronicleCreateForm from "@/components/forms/domains/chronicle/create";
 import { Popover } from "@monocircuit/monolithium/components";
 import { useState } from "react";
-import { useOwnChroniclesReader } from "@/shared/data/tables/chronicles";
+import { useChroniclesReader } from "@/shared/data/local";
 import PageHead from "@/components/features/dashboard/sections/PageHead";
 import {
   mono,
@@ -35,7 +35,7 @@ const ScopePill = ({ scope }: { scope: string }) => {
 };
 
 const Page = () => {
-  const { data: chronicles } = useOwnChroniclesReader();
+  const { data: chronicles } = useChroniclesReader();
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   const list = (chronicles ?? [])

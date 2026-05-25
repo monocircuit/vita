@@ -10,8 +10,9 @@ import {
 import { MOBILE_BREAKPOINT } from "@/shared/drawing/dynamic/config";
 import Engine from "@/shared/processing/engines/dynamic/Engine";
 import { FreeNoteData } from "@/shared/drawing/dynamic/drawDraggableNote";
-import { NormalizedRowFor } from "@/shared/data/tanstack";
-import useChronicleByIdDeleter from "@/shared/data/tables/chronicles/useChronicleByIdDeleter";
+import { useDeleteChronicle } from "@/shared/data/local";
+import type { ChronicleView } from "../../../../electron/ipc/contracts";
+import type { Entity } from "../../../../electron/db/schema";
 import { ActivePopup } from "./helpers";
 import { usePixiApp } from "./hooks/usePixiApp";
 import { useCanvasTheme } from "./hooks/useCanvasTheme";
@@ -29,8 +30,8 @@ interface RendererProps {
   globalConfig?: GlobalStyleConfig;
   branchStyles?: Map<string, BranchStyle>;
   engine?: Engine;
-  chronicles?: NormalizedRowFor<"chronicles">[] | undefined;
-  entitiesByChronicleId?: Map<string, NormalizedRowFor<"entities">[]>;
+  chronicles?: ChronicleView[] | undefined;
+  entitiesByChronicleId?: Map<string, Entity[]>;
   onCanvasDoubleTap?: (x: number, y: number) => void;
   onNoteMove?: (id: string, x: number, y: number) => void;
   notes?: FreeNoteData[];
@@ -50,7 +51,7 @@ function Renderer({
   const pixiContainer = useRef<HTMLDivElement>(null);
   const fitViewFnRef = useRef<(() => void) | null>(null);
   const [activePopup, setActivePopup] = useState<ActivePopup | null>(null);
-  const chronicleByIdDeleter = useChronicleByIdDeleter();
+  const deleteChronicle = useDeleteChronicle();
 
   const handlePopup = useCallback((popup: ActivePopup) => {
     setActivePopup(prev => {
@@ -102,9 +103,9 @@ function Renderer({
   const handleDeleteChronicle = useCallback(
     async (chronicleId: number) => {
       setActivePopup(null);
-      await chronicleByIdDeleter.delete({ id: chronicleId });
+      await deleteChronicle.mutateAsync(chronicleId);
     },
-    [chronicleByIdDeleter],
+    [deleteChronicle],
   );
 
   const { appRef, viewportRef, uiContainerRef, isReady } = usePixiApp(
