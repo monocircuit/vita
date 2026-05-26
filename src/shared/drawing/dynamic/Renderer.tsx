@@ -24,7 +24,7 @@ import TimelineLabelsOverlay from "./components/TimelineLabelsOverlay";
 import TimelineHoverLabel from "./components/TimelineHoverLabel";
 import { RendererDebugPanel } from "./components/RendererDebugPanel";
 import { showHalo, hideActiveHalo } from "./branchHaloManager";
-import { useSavingIndicator } from "@/app/editor/hooks/useSavingIndicator";
+import { useSavingIndicator } from "@/components/features/editor/hooks/useSavingIndicator";
 
 interface RendererProps {
   globalConfig?: GlobalStyleConfig;

@@ -4,7 +4,7 @@ import {
   chroniclesByVitaIdQueryOptions,
   shardsByVitaIdQueryOptions,
 } from '@/shared/data/local';
-import EditorWorkspace from '../../app/editor/_components/EditorWorkspace';
+import EditorWorkspace from '@/components/features/editor/EditorWorkspace';
 
 export const Route = createFileRoute('/editor/$vitaId')({
   parseParams: ({ vitaId }) => ({ vitaId: Number(vitaId) }),

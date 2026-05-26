@@ -1,21 +1,13 @@
-"use client";
-
 import { useEffect, useMemo, useState } from "react";
 import { MultiSelect } from "@monocircuit/monolithium/components";
+import {
+  searchSimpleIcons,
+  wikipediaSearch,
+  wikipediaSummary,
+  loadSimpleIconSvg,
+  type SimpleIconEntry,
+} from "@/shared/logo";
 import { EntitySelectorProps } from "../types";
-
-interface LogoDevEntityResult {
-  name: string;
-  domain: string;
-  description?: string;
-  logo?: string;
-  colors?: Array<{ r?: number; g?: number; b?: number; hex: string }>;
-}
-
-interface LogoDevSearchResult {
-  name: string;
-  domain: string;
-}
 
 interface EntityOption {
   label: string;
@@ -33,93 +25,67 @@ interface EntityOption {
 const MIN_QUERY_LENGTH = 2;
 const ENRICH_LIMIT = 6;
 
-function toEntityOption(result: LogoDevEntityResult): EntityOption {
-  const domain = result.domain.trim();
-  const name = result.name.trim() || domain;
-  const primaryColor = result.colors?.find(c => typeof c.hex === "string")?.hex;
-
+function simpleIconToOption(entry: SimpleIconEntry): EntityOption {
   return {
-    label: name,
-    value: domain,
-    name,
-    domain,
-    description: result.description,
-    logoUrl: result.logo,
-    logoAlt: `${name} logo`,
-    highlightColor: primaryColor,
+    label: entry.title,
+    value: entry.slug,
+    name: entry.title,
+    domain: entry.slug,
+    logoAlt: `${entry.title} logo`,
+    highlightColor: `#${entry.hex}`,
     showMonogramFallback: true,
   };
 }
 
-async function fetchEntitySearchResults(query: string, signal: AbortSignal) {
-  const response = await fetch(
-    `/api/logo/search?q=${encodeURIComponent(query)}&strategy=typeahead`,
-    { signal },
-  );
-
-  if (!response.ok) {
-    throw new Error("logo.dev search failed");
-  }
-
-  const payload: unknown = await response.json();
-  if (!Array.isArray(payload)) return [] as LogoDevSearchResult[];
-
-  return payload
-    .map(item => {
-      if (!item || typeof item !== "object") return null;
-      const candidate = item as Partial<LogoDevSearchResult>;
-      if (typeof candidate.domain !== "string") return null;
-
-      return {
-        name:
-          typeof candidate.name === "string"
-            ? candidate.name
-            : candidate.domain,
-        domain: candidate.domain,
-      };
-    })
-    .filter((item): item is LogoDevSearchResult => item !== null);
-}
-
-async function fetchEntityDescribeResult(
-  domain: string,
-  signal: AbortSignal,
-): Promise<Partial<LogoDevEntityResult> | undefined> {
-  const response = await fetch(
-    `/api/logo/describe/${encodeURIComponent(domain)}`,
-    {
-      signal,
-    },
-  );
-
-  if (!response.ok) return undefined;
-
-  const payload: unknown = await response.json();
-  if (!payload || typeof payload !== "object") return undefined;
-
-  const describe = payload as Partial<LogoDevEntityResult>;
+function wikipediaToOption(title: string, description?: string): EntityOption {
   return {
-    description:
-      typeof describe.description === "string"
-        ? describe.description
-        : undefined,
-    logo: typeof describe.logo === "string" ? describe.logo : undefined,
-    colors: Array.isArray(describe.colors) ? describe.colors : undefined,
+    label: title,
+    value: `wiki:${title}`,
+    name: title,
+    domain: title,
+    description,
+    logoAlt: `${title} logo`,
+    showMonogramFallback: true,
   };
 }
 
-async function fetchEntityOptions(query: string, signal: AbortSignal) {
-  const searchResults = await fetchEntitySearchResults(query, signal);
+async function fetchEntityOptions(query: string, signal: AbortSignal): Promise<EntityOption[]> {
+  const icons = searchSimpleIcons(query, 6);
+  const iconResults = icons.map(simpleIconToOption);
 
-  return searchResults.map(result =>
-    toEntityOption({
-      name: result.name,
-      domain: result.domain,
-    }),
-  );
+  let wikiHits: { title: string; description?: string }[] = [];
+  try {
+    wikiHits = await wikipediaSearch(query, 4);
+  } catch {
+    wikiHits = [];
+  }
+
+  if (signal.aborted) return [];
+
+  const wikiResults = wikiHits.map((w) => wikipediaToOption(w.title, w.description));
+  return [...iconResults, ...wikiResults];
 }
 
-const EntitySelectorCore: React.FC<EntitySelectorProps> = props => {
+async function enrichEntityOption(option: EntityOption, signal: AbortSignal): Promise<EntityOption | null> {
+  if (option.value.startsWith("wiki:")) {
+    const title = option.name;
+    const summary = await wikipediaSummary(title);
+    if (signal.aborted) return null;
+    if (!summary) return null;
+    return {
+      ...option,
+      description: summary.extract || option.description,
+      logoUrl: summary.thumbnail?.source,
+    };
+  }
+  const svg = await loadSimpleIconSvg(option.value);
+  if (signal.aborted) return null;
+  if (!svg) return null;
+  const logoUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  return { ...option, logoUrl };
+}
+
+const EntitySelectorCore: React.FC<EntitySelectorProps> = (props) => {
   const [query, setQuery] = useState<string>("");
   const [results, setResults] = useState<EntityOption[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
@@ -170,10 +136,7 @@ const EntitySelectorCore: React.FC<EntitySelectorProps> = props => {
         name: loadError,
         domain: "",
       });
-    } else if (
-      query.trim().length > 0 &&
-      query.trim().length < MIN_QUERY_LENGTH
-    ) {
+    } else if (query.trim().length > 0 && query.trim().length < MIN_QUERY_LENGTH) {
       merged.unshift({
         label: `Type at least ${MIN_QUERY_LENGTH} characters`,
         value: "__entity-selector-hint__",
@@ -213,27 +176,11 @@ const EntitySelectorCore: React.FC<EntitySelectorProps> = props => {
     }
 
     return merged;
-  }, [
-    isEnriching,
-    isSearching,
-    knownOptions,
-    loadError,
-    query,
-    results,
-    selectedValues,
-  ]);
+  }, [isEnriching, isSearching, knownOptions, loadError, query, results, selectedValues]);
 
   useEffect(() => {
     const trimmedQuery = query.trim();
-    if (!trimmedQuery) {
-      setResults([]);
-      setLoadError(undefined);
-      setIsSearching(false);
-      setIsEnriching(false);
-      return;
-    }
-
-    if (trimmedQuery.length < MIN_QUERY_LENGTH) {
+    if (!trimmedQuery || trimmedQuery.length < MIN_QUERY_LENGTH) {
       setResults([]);
       setLoadError(undefined);
       setIsSearching(false);
@@ -249,13 +196,13 @@ const EntitySelectorCore: React.FC<EntitySelectorProps> = props => {
       setLoadError(undefined);
 
       void fetchEntityOptions(trimmedQuery, controller.signal)
-        .then(nextResults => {
+        .then((nextResults) => {
           if (controller.signal.aborted) return;
 
           setResults(nextResults);
-          setKnownOptions(previous => {
+          setKnownOptions((previous) => {
             const next = new Map(previous);
-            nextResults.forEach(option => next.set(option.value, option));
+            nextResults.forEach((option) => next.set(option.value, option));
             return next;
           });
 
@@ -264,24 +211,9 @@ const EntitySelectorCore: React.FC<EntitySelectorProps> = props => {
 
           setIsEnriching(true);
           void Promise.all(
-            toEnrich.map(async option => {
-              const describe = await fetchEntityDescribeResult(
-                option.domain,
-                controller.signal,
-              );
-
-              if (!describe) return null;
-
-              return toEntityOption({
-                name: option.name,
-                domain: option.domain,
-                description: describe.description,
-                logo: describe.logo,
-                colors: describe.colors,
-              });
-            }),
+            toEnrich.map((option) => enrichEntityOption(option, controller.signal)),
           )
-            .then(enrichedOptions => {
+            .then((enrichedOptions) => {
               if (controller.signal.aborted) return;
 
               const validEnriched = enrichedOptions.filter(
@@ -289,19 +221,17 @@ const EntitySelectorCore: React.FC<EntitySelectorProps> = props => {
               );
               if (validEnriched.length === 0) return;
 
-              const enrichedByDomain = new Map(
-                validEnriched.map(option => [option.domain, option] as const),
+              const enrichedByValue = new Map(
+                validEnriched.map((option) => [option.value, option] as const),
               );
 
-              setResults(previous =>
-                previous.map(
-                  option => enrichedByDomain.get(option.domain) ?? option,
-                ),
+              setResults((previous) =>
+                previous.map((option) => enrichedByValue.get(option.value) ?? option),
               );
 
-              setKnownOptions(previous => {
+              setKnownOptions((previous) => {
                 const next = new Map(previous);
-                validEnriched.forEach(option => next.set(option.value, option));
+                validEnriched.forEach((option) => next.set(option.value, option));
                 return next;
               });
             })
@@ -310,12 +240,10 @@ const EntitySelectorCore: React.FC<EntitySelectorProps> = props => {
               setIsEnriching(false);
             });
         })
-        .catch(error => {
+        .catch((error) => {
           if (controller.signal.aborted) return;
           setResults([]);
-          setLoadError(
-            error instanceof Error ? error.message : "Search failed",
-          );
+          setLoadError(error instanceof Error ? error.message : "Search failed");
         })
         .finally(() => {
           if (controller.signal.aborted) return;
@@ -338,16 +266,14 @@ const EntitySelectorCore: React.FC<EntitySelectorProps> = props => {
       className={props.className}
       wrapperClassName={props.wrapperClassName}
       triggerClassName={
-        [props.triggerClassName, props.anchorClassName]
-          .filter(Boolean)
-          .join(" ") || undefined
+        [props.triggerClassName, props.anchorClassName].filter(Boolean).join(" ") || undefined
       }
       disabled={props.disabled}
       maxSelected={props.maxSelected}
       showCounter={props.showCounter}
       onSearchQueryChange={setQuery}
       filterFn={() => true}
-      renderOption={(option, _selected) => {
+      renderOption={(option) => {
         const entityDomain = (option as { domain?: string }).domain;
 
         return (
@@ -357,9 +283,7 @@ const EntitySelectorCore: React.FC<EntitySelectorProps> = props => {
               <div className="truncate text-xs opacity-60">{entityDomain}</div>
             ) : null}
             {isSearching && query.trim() ? (
-              <div className="truncate text-xs opacity-60">
-                Searching logo.dev...
-              </div>
+              <div className="truncate text-xs opacity-60">Searching…</div>
             ) : null}
           </div>
         );

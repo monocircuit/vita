@@ -9,6 +9,7 @@ import { Viewport } from "pixi-viewport";
 import { LABEL } from "../config";
 import { subscribeLabels, getLabelsSnapshot } from "../labelStore";
 import type { BranchLabelEntity } from "../helpers";
+import { useLogoImage } from "@/shared/logo";
 
 const PILL_START_OFFSET_PX = 12;
 
@@ -17,9 +18,10 @@ const PILL_START_OFFSET_PX = 12;
 function EntityLogo({ entity }: { entity: BranchLabelEntity }) {
   const [failed, setFailed] = useState(false);
 
-  const src = entity.domain
-    ? `/api/logo/image/${encodeURIComponent(entity.domain)}?size=48&format=webp&retina=true`
-    : (entity.avatar ?? null);
+  const { data: logo } = useLogoImage(entity.name);
+  const src = logo?.svg
+    ? `data:image/svg+xml;utf8,${encodeURIComponent(logo.svg)}`
+    : (logo?.imageUrl ?? entity.avatar ?? null);
 
   const initials = entity.name
     .split(/\s+/)

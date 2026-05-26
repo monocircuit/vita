@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "@monocircuit/monolithium/tailwind";
-@import "./app/tailwind.css";
+@import "./tailwind.css";
 
 :root {
   --font-geist-sans: 'Geist Sans', system-ui, -apple-system, sans-serif;

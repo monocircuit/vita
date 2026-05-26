@@ -15,6 +15,7 @@ import {
   useCreateEntity,
   useEntitiesReader,
 } from "@/shared/data/local";
+import { useLogoImage } from "@/shared/logo";
 
 // ─── Helpers (duplicated from ChronicleBox to keep the panel self-contained) ──
 
@@ -84,12 +85,14 @@ function readCategoryLabels(value: unknown) {
 
 function EntityIcon({ entity, size = 20 }: { entity: Entity; size?: number }) {
   const [hasImageFailed, setHasImageFailed] = useState(false);
-  const { avatar, companyName, domain } = getEntitySummary(entity);
+  const { avatar, companyName } = getEntitySummary(entity);
 
+  const { data: logo } = useLogoImage(companyName);
   const iconUrl = useMemo(() => {
-    if (domain) return `/api/logo/image/${encodeURIComponent(domain)}?size=48&format=webp&retina=true`;
+    if (logo?.svg) return `data:image/svg+xml;utf8,${encodeURIComponent(logo.svg)}`;
+    if (logo?.imageUrl) return logo.imageUrl;
     return avatar;
-  }, [avatar, domain]);
+  }, [avatar, logo]);
 
   const initials = companyName
     .split(/\s+/)
@@ -319,7 +322,7 @@ export default function ChronicleDetailPanel() {
           <div
             className="absolute w-3 h-3 pointer-events-none bg-fg/50"
             style={{
-              maskImage: `url(${arrowIcon.src})`,
+              maskImage: `url(${arrowIcon})`,
               maskSize: "contain",
               maskRepeat: "no-repeat",
               maskPosition: "center",
