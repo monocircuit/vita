@@ -1,5 +1,4 @@
 import { Button } from "@monocircuit/monolithium/components";
-import Image from "next/image";
 import Add from "@/assets/images/png/sharp_line/add.png";
 import { useEditorFeature } from "../EditorFeatureContext";
 
@@ -12,8 +11,8 @@ const NewChronicleTool = () => {
         className="h-full w-full min-h-0 max-h-full overflow-hidden"
         onClick={() => toggleFeature("chronicle-add")}
       >
-        <Image
-          src={Add}
+        <img
+          src={Add as unknown as string}
           alt="add"
           width={100}
           height={100}

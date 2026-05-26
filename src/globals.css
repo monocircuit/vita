@@ -1,6 +1,68 @@
 @import "tailwindcss";
+@import "@monocircuit/monolithium/tailwind";
+@import "./app/tailwind.css";
+
+:root {
+  --font-geist-sans: 'Geist Sans', system-ui, -apple-system, sans-serif;
+  --font-geist-mono: 'Geist Mono', ui-monospace, monospace;
+}
+
+html, body, #root {
+  margin: 0;
+  height: 100%;
+}
+
+html {
+  overflow: hidden;
+  scroll-behavior: smooth;
+}
+
+* {
+  scrollbar-width: none;
+}
+
+::selection {
+  color: var(--color-fg);
+  background: var(--color-accent);
+}
 
 body {
-  margin: 0;
-  font-family: 'Geist Sans', system-ui, -apple-system, sans-serif;
+  width: 100dvw;
+  height: 100dvh;
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-geist-sans);
+  overflow: hidden;
+}
+
+.nav-bracket-link {
+  position: relative;
+}
+.nav-bracket-link::before,
+.nav-bracket-link::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  color: var(--color-accent);
+  font-family: var(--font-geist-mono);
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  pointer-events: none;
+}
+.nav-bracket-link::before {
+  content: "[";
+  left: 6px;
+  transform: translate(4px, -50%);
+}
+.nav-bracket-link::after {
+  content: "]";
+  right: 6px;
+  transform: translate(-4px, -50%);
+}
+.nav-bracket-link:hover::before,
+.nav-bracket-link:hover::after {
+  opacity: 1;
+  transform: translate(0, -50%);
 }

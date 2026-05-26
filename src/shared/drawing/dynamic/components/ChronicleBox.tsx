@@ -1,6 +1,3 @@
-"use client";
-
-import Image from "next/image";
 import { useMemo, useState } from "react";
 import deleteIcon from "@/assets/images/png/sharp_line/delete.png";
 import { Chip, Dialog } from "@monocircuit/monolithium/components";
@@ -86,13 +83,12 @@ function EntityIcon({
       style={{ width: size, height: size }}
     >
       {iconUrl && !hasImageFailed ? (
-        <Image
+        <img
           src={iconUrl}
           alt={`${companyName} logo`}
           className="w-full h-full object-cover"
           width={size}
           height={size}
-          unoptimized
           onError={() => setHasImageFailed(true)}
         />
       ) : (
@@ -188,7 +184,7 @@ export default function ChronicleBox({
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none bg-error"
             style={{
-              maskImage: `url(${deleteIcon.src})`,
+              maskImage: `url(${deleteIcon})`,
               maskSize: "contain",
               maskRepeat: "no-repeat",
               maskPosition: "center",

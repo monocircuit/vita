@@ -4,7 +4,7 @@ import { getDb } from './db/client';
 import { registerIpcHandlers } from './ipc';
 
 const isDev = !app.isPackaged;
-const DEV_URL = 'http://localhost:3000';
+const DEV_URL = 'http://localhost:5173';
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -25,7 +25,7 @@ function createWindow(): void {
     window.loadURL(DEV_URL);
     window.webContents.openDevTools({ mode: 'detach' });
   } else {
-    window.loadFile(path.join(__dirname, '..', 'out', 'index.html'));
+    window.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
   }
 }
 

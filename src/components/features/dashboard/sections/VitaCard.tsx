@@ -1,6 +1,4 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { mono, sans, relativeTime } from "./utils";
 
 type Vita = {
@@ -59,10 +57,10 @@ const Stat = ({ value, label }: { value: string; label: string }) => (
 );
 
 const VitaCard = ({ vita, chronicleCount, entityCount }: Props) => {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const open = () => {
-    router.push(`/editor/${vita.id}`);
+    navigate({ to: "/editor/$vitaId", params: { vitaId: vita.id } });
   };
 
   const updated = vita.updatedAt ?? vita.createdAt;

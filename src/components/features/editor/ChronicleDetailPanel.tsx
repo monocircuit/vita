@@ -1,6 +1,3 @@
-"use client";
-
-import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Chip,
@@ -107,13 +104,12 @@ function EntityIcon({ entity, size = 20 }: { entity: Entity; size?: number }) {
       style={{ width: size, height: size }}
     >
       {iconUrl && !hasImageFailed ? (
-        <Image
+        <img
           src={iconUrl}
           alt={`${companyName} logo`}
           className="w-full h-full object-cover"
           width={size}
           height={size}
-          unoptimized
           onError={() => setHasImageFailed(true)}
         />
       ) : (

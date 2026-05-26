@@ -1,5 +1,3 @@
-"use client";
-
 import {
   RefObject,
   useEffect,
@@ -7,7 +5,6 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import Image from "next/image";
 import { Viewport } from "pixi-viewport";
 import { LABEL } from "../config";
 import { subscribeLabels, getLabelsSnapshot } from "../labelStore";
@@ -33,12 +30,11 @@ function EntityLogo({ entity }: { entity: BranchLabelEntity }) {
 
   if (src && !failed) {
     return (
-      <Image
+      <img
         src={src}
         alt=""
         width={16}
         height={16}
-        unoptimized
         className="shrink-0 object-cover"
         style={{ width: 16, height: 16, borderRadius: 3 }}
         onError={() => setFailed(true)}

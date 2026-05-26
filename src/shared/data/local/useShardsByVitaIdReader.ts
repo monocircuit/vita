@@ -1,11 +1,16 @@
-import { useQuery } from '@tanstack/react-query';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 
 export const shardsQueryKey = ['shards'] as const;
 
+export const shardsByVitaIdQueryOptions = (vitaId: number) =>
+  queryOptions({
+    queryKey: [...shardsQueryKey, 'byVitaId', vitaId] as const,
+    queryFn: () => window.api.shards.byVitaId(vitaId),
+  });
+
 export function useShardsByVitaIdReader(vitaId: number | null | undefined) {
   return useQuery({
-    queryKey: [...shardsQueryKey, 'byVitaId', vitaId],
-    queryFn: () => window.api.shards.byVitaId(vitaId!),
+    ...shardsByVitaIdQueryOptions(vitaId ?? 0),
     enabled: vitaId != null,
   });
 }

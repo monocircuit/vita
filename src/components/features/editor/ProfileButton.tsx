@@ -1,17 +1,15 @@
-"use client";
-
 import Profile from "@/components/common/Profile";
 import { Button } from "@monocircuit/monolithium/components";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 
 const ProfileButton = () => {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   return (
     <Button
       aria-label="Profile"
       className="h-full aspect-square border-solid border-border border-l-(length:--stroke) ml-auto overflow-hidden"
-      onClick={() => router.push("/dashboard")}
+      onClick={() => navigate({ to: "/dashboard" })}
     >
       <div className="size-full p-1">
         <Profile />

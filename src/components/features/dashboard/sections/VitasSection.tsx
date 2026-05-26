@@ -1,13 +1,11 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { useVitasReader, useChroniclesReader, useEntitiesReader } from "@/shared/data/local";
 import SectionHead from "./SectionHead";
 import VitaCard from "./VitaCard";
 import { mono, pad2 } from "./utils";
 
 const VitasSection = () => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { data: vitas } = useVitasReader();
   const { data: chronicles } = useChroniclesReader();
   const { data: entities } = useEntitiesReader();
@@ -43,7 +41,7 @@ const VitasSection = () => {
         ))}
 
         <button
-          onClick={() => router.push("/dashboard/vitas")}
+          onClick={() => navigate({ to: "/dashboard/vitas" })}
           className="flex flex-col items-center justify-center gap-3 transition-colors"
           style={{
             border: "1px dashed rgba(255,255,255,0.18)",

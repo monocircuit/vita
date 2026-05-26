@@ -1,7 +1,5 @@
-"use client";
-
 import { FunctionComponent, ReactNode } from "react";
-import { usePathname } from "next/navigation";
+import { useLocation } from "@tanstack/react-router";
 
 import Navbar from "@/components/layout/Navbar";
 
@@ -10,7 +8,7 @@ interface AppChromeProps {
 }
 
 const AppChrome: FunctionComponent<AppChromeProps> = ({ children }) => {
-  const pathname = usePathname();
+  const pathname = useLocation({ select: (l) => l.pathname });
   const hideNavbar = pathname?.startsWith("/editor");
 
   if (hideNavbar) {

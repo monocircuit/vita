@@ -1,5 +1,3 @@
-"use client";
-
 import { useChroniclesReader } from "@/shared/data/local";
 import SectionHead from "./SectionHead";
 import { mono, sans, formatDateStamp, pad2, toTimestamp } from "./utils";

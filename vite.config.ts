@@ -18,6 +18,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      'next/font/local': path.resolve(__dirname, './src/shared/stubs/next-font-local.ts'),
     },
   },
   server: {

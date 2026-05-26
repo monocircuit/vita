@@ -1,7 +1,5 @@
-"use client";
-
 import { PulsatingDot } from "@monocircuit/monolithium/components";
-import { usePathname, useRouter } from "next/navigation";
+import { useNavigate, useLocation } from "@tanstack/react-router";
 import { useVitasReader, useChroniclesReader } from "@/shared/data/local";
 import { pad2 } from "./sections/utils";
 
@@ -103,8 +101,8 @@ const GroupHead = ({ text }: { text: string }) => (
 );
 
 const DashboardSidebar = () => {
-  const router = useRouter();
-  const pathname = usePathname() ?? "";
+  const navigate = useNavigate();
+  const pathname = useLocation({ select: (l) => l.pathname }) ?? "";
 
   const effectiveActive: SectionId = pathname.startsWith("/dashboard/vitas")
     ? "vitas"
@@ -123,7 +121,7 @@ const DashboardSidebar = () => {
   ];
 
   const goTo = (s: SectionId) => {
-    router.push(ROUTE_BY_SECTION[s]);
+    navigate({ to: ROUTE_BY_SECTION[s] });
   };
 
   return (
@@ -148,7 +146,7 @@ const DashboardSidebar = () => {
 
       <div className="mt-auto" style={{ marginBottom: 16 }}>
         <GroupHead text="// Account" />
-        <SideItem left="▸" label="Settings" right="—" onClick={() => router.push("/dashboard/settings")} />
+        <SideItem left="▸" label="Settings" right="—" onClick={() => navigate({ to: "/dashboard/settings" })} />
       </div>
 
       <div
@@ -163,7 +161,7 @@ const DashboardSidebar = () => {
           textTransform: "uppercase",
         }}
       >
-        <span>v{process.env.NEXT_PUBLIC_APP_VERSION ?? "0.4.2"}</span>
+        <span>v{import.meta.env.VITE_APP_VERSION ?? "0.4.2"}</span>
         <span className="flex items-center gap-2">
           <PulsatingDot />
           Online

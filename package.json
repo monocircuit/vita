@@ -15,7 +15,7 @@
     "build:electron": "tsc --project electron/tsconfig.json",
     "start": "next start",
     "start:electron": "electron .",
-    "dev:electron": "concurrently -k -n NEXT,ELECTRON -c blue,green \"pnpm dev\" \"wait-on http://localhost:3000 && pnpm build:electron && pnpm start:electron\"",
+    "dev:electron": "concurrently -k -n VITE,ELECTRON -c blue,green \"pnpm vite:dev\" \"wait-on http://localhost:5173 && pnpm build:electron && pnpm start:electron\"",
     "dist:test": "pnpm build:electron && electron-builder --dir",
     "lint": "eslint .",
     "db:generate": "drizzle-kit generate",

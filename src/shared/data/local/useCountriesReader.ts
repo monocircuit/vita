@@ -1,9 +1,14 @@
-import { useQuery } from '@tanstack/react-query';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 
-export function useCountriesReader() {
-  return useQuery({
-    queryKey: ['countries'],
+export const countriesQueryKey = ['countries'] as const;
+
+export const countriesQueryOptions = () =>
+  queryOptions({
+    queryKey: countriesQueryKey,
     queryFn: () => window.api.countries.list(),
     staleTime: Infinity,
   });
+
+export function useCountriesReader() {
+  return useQuery(countriesQueryOptions());
 }

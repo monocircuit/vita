@@ -1,19 +1,19 @@
-"use client";
-
-import { useTheme as useNextTheme } from "next-themes";
+import { useThemeStore, type ThemeMode } from '@/shared/theme/store';
 
 export function useTheme() {
-  const { theme, setTheme, resolvedTheme } = useNextTheme();
+  const mode = useThemeStore((s) => s.mode);
+  const resolved = useThemeStore((s) => s.resolved);
+  const setMode = useThemeStore((s) => s.setMode);
 
   const toggleTheme = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    setMode(resolved === 'dark' ? 'light' : 'dark');
   };
 
   return {
-    theme: theme ?? "system",
-    resolvedTheme: resolvedTheme ?? "light",
-    setTheme,
+    theme: mode,
+    resolvedTheme: resolved,
+    setTheme: setMode as (mode: ThemeMode) => void,
     toggleTheme,
-    isDark: resolvedTheme === "dark",
+    isDark: resolved === 'dark',
   } as const;
 }

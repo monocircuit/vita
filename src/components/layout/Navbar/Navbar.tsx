@@ -1,11 +1,8 @@
-"use client";
 import { FunctionComponent } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useNavigate, useLocation } from "@tanstack/react-router";
 
 import { Button } from "@monocircuit/monolithium/components";
 import { LayoutDashboard, FileText } from "lucide-react";
-
-import MonocircuitLogo from "../../../../public/static/icons/monocircuit.svg";
 
 import ThemeToggle from "@/components/ThemeToggle";
 import { PulsatingDot } from "@monocircuit/monolithium/components";
@@ -17,8 +14,8 @@ const dashboardSectionFromPath = (pathname: string) => {
 };
 
 const Navbar: FunctionComponent = () => {
-  const router = useRouter();
-  const pathname = usePathname();
+  const navigate = useNavigate();
+  const pathname = useLocation({ select: (l) => l.pathname });
   const isDashboard = pathname?.startsWith("/dashboard") ?? false;
   const dashboardSection = dashboardSectionFromPath(pathname ?? "");
 
@@ -27,18 +24,18 @@ const Navbar: FunctionComponent = () => {
       <Button
         className="flex overflow-hidden h-full aspect-square [&_svg]:text-secondary"
         classNameDrop="!bg-[var(--primary-color)] opacity-30"
-        onClick={() => router.push("/dashboard")}
+        onClick={() => navigate({ to: "/dashboard" })}
         onlyClickAnimation
         vibrate
       >
-        <MonocircuitLogo />
+        <img src="/static/icons/monocircuit.svg" alt="" className="w-full h-full" />
       </Button>
       <div className="bg-secondary w-px" />
 
       <div className="flex items-center h-full">
         <button
           type="button"
-          onClick={() => router.push("/dashboard")}
+          onClick={() => navigate({ to: "/dashboard" })}
           className="nav-bracket-link relative flex items-center gap-2 px-5 h-full text-xs font-medium uppercase tracking-wider text-secondary"
         >
           <LayoutDashboard className="h-3.5 w-3.5" />
@@ -46,7 +43,7 @@ const Navbar: FunctionComponent = () => {
         </button>
         <button
           type="button"
-          onClick={() => router.push("/dashboard/vitas")}
+          onClick={() => navigate({ to: "/dashboard/vitas" })}
           className="nav-bracket-link relative flex items-center gap-2 px-5 h-full text-xs font-medium uppercase tracking-wider text-secondary"
         >
           <FileText className="h-3.5 w-3.5" />
@@ -83,7 +80,7 @@ const Navbar: FunctionComponent = () => {
           </div>
           <div className="bg-secondary w-px" />
           <button
-            onClick={() => router.push("/dashboard/vitas")}
+            onClick={() => navigate({ to: "/dashboard/vitas" })}
             className="flex items-center px-5 transition-colors"
             style={{
               fontFamily: "'Fira Code', monospace",
@@ -109,36 +106,6 @@ const Navbar: FunctionComponent = () => {
         <ThemeToggle />
       </div>
 
-      <style jsx>{`
-        :global(.nav-bracket-link)::before,
-        :global(.nav-bracket-link)::after {
-          content: "";
-          position: absolute;
-          top: 50%;
-          color: var(--color-accent);
-          font-family: "Fira Code", monospace;
-          font-size: 14px;
-          line-height: 1;
-          opacity: 0;
-          transition: opacity 0.18s ease, transform 0.18s ease;
-          pointer-events: none;
-        }
-        :global(.nav-bracket-link)::before {
-          content: "[";
-          left: 6px;
-          transform: translate(4px, -50%);
-        }
-        :global(.nav-bracket-link)::after {
-          content: "]";
-          right: 6px;
-          transform: translate(-4px, -50%);
-        }
-        :global(.nav-bracket-link):hover::before,
-        :global(.nav-bracket-link):hover::after {
-          opacity: 1;
-          transform: translate(0, -50%);
-        }
-      `}</style>
     </div>
   );
 };

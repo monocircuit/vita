@@ -1,5 +1,3 @@
-"use client";
-
 import { useChroniclesReader } from "@/shared/data/local";
 import { mono, sans, relativeTime, toTimestamp } from "./utils";
 
@@ -95,7 +93,7 @@ const HeroSection = () => {
           <MetaRow label="Last Edit" value={relativeTime(lastEdit)} />
           <MetaRow
             label="Version"
-            value={`v${process.env.NEXT_PUBLIC_APP_VERSION ?? "0.4.2"}`}
+            value={`v${import.meta.env.VITE_APP_VERSION ?? "0.4.2"}`}
           />
         </div>
       </div>

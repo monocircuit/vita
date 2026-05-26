@@ -1,9 +1,14 @@
-import { useQuery } from '@tanstack/react-query';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 
-export function useContinentsReader() {
-  return useQuery({
-    queryKey: ['continents'],
+export const continentsQueryKey = ['continents'] as const;
+
+export const continentsQueryOptions = () =>
+  queryOptions({
+    queryKey: continentsQueryKey,
     queryFn: () => window.api.continents.list(),
     staleTime: Infinity,
   });
+
+export function useContinentsReader() {
+  return useQuery(continentsQueryOptions());
 }

@@ -1,7 +1,5 @@
-"use client";
-
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams } from "@tanstack/react-router";
 import arrowIcon from "@/assets/images/png/sharp_line/Tailless-Line-Arrow-Right-1--Streamline-Sharp.png";
 import ChronicleCreateForm from "@/components/forms/domains/chronicle/create";
 import { useEditorFeature } from "./EditorFeatureContext";
@@ -9,9 +7,9 @@ import { useEditorFeature } from "./EditorFeatureContext";
 const EditorFeatureManager = () => {
   const { activeFeature, toggleFeature } = useEditorFeature();
 
-  const params = useParams();
+  const params = useParams({ strict: false });
   const vitaId = useMemo(() => {
-    const raw = params?.vitaId;
+    const raw = (params as { vitaId?: unknown })?.vitaId;
     const value = Array.isArray(raw) ? raw[0] : raw;
     const num = Number(value);
     return Number.isFinite(num) ? num : undefined;
@@ -92,7 +90,7 @@ const EditorFeatureManager = () => {
           <div
             className="absolute w-3 h-3 rotate-180 pointer-events-none bg-error"
             style={{
-              maskImage: `url(${arrowIcon.src})`,
+              maskImage: `url(${arrowIcon})`,
               maskSize: "contain",
               maskRepeat: "no-repeat",
               maskPosition: "center",

@@ -9,38 +9,150 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as EditorRouteImport } from './routes/editor'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EditorIndexRouteImport } from './routes/editor/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as EditorVitaIdRouteImport } from './routes/editor/$vitaId'
+import { Route as DashboardVitasRouteImport } from './routes/dashboard/vitas'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
+import { Route as DashboardChroniclesRouteImport } from './routes/dashboard/chronicles'
 
+const EditorRoute = EditorRouteImport.update({
+  id: '/editor',
+  path: '/editor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EditorIndexRoute = EditorIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => EditorRoute,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const EditorVitaIdRoute = EditorVitaIdRouteImport.update({
+  id: '/$vitaId',
+  path: '/$vitaId',
+  getParentRoute: () => EditorRoute,
+} as any)
+const DashboardVitasRoute = DashboardVitasRouteImport.update({
+  id: '/vitas',
+  path: '/vitas',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardChroniclesRoute = DashboardChroniclesRouteImport.update({
+  id: '/chronicles',
+  path: '/chronicles',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/editor': typeof EditorRouteWithChildren
+  '/dashboard/chronicles': typeof DashboardChroniclesRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/vitas': typeof DashboardVitasRoute
+  '/editor/$vitaId': typeof EditorVitaIdRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/editor/': typeof EditorIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard/chronicles': typeof DashboardChroniclesRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/vitas': typeof DashboardVitasRoute
+  '/editor/$vitaId': typeof EditorVitaIdRoute
+  '/dashboard': typeof DashboardIndexRoute
+  '/editor': typeof EditorIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/editor': typeof EditorRouteWithChildren
+  '/dashboard/chronicles': typeof DashboardChroniclesRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/vitas': typeof DashboardVitasRoute
+  '/editor/$vitaId': typeof EditorVitaIdRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/editor/': typeof EditorIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/editor'
+    | '/dashboard/chronicles'
+    | '/dashboard/settings'
+    | '/dashboard/vitas'
+    | '/editor/$vitaId'
+    | '/dashboard/'
+    | '/editor/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/dashboard/chronicles'
+    | '/dashboard/settings'
+    | '/dashboard/vitas'
+    | '/editor/$vitaId'
+    | '/dashboard'
+    | '/editor'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/editor'
+    | '/dashboard/chronicles'
+    | '/dashboard/settings'
+    | '/dashboard/vitas'
+    | '/editor/$vitaId'
+    | '/dashboard/'
+    | '/editor/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
+  EditorRoute: typeof EditorRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/editor': {
+      id: '/editor'
+      path: '/editor'
+      fullPath: '/editor'
+      preLoaderRoute: typeof EditorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +160,86 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/editor/': {
+      id: '/editor/'
+      path: '/'
+      fullPath: '/editor/'
+      preLoaderRoute: typeof EditorIndexRouteImport
+      parentRoute: typeof EditorRoute
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/editor/$vitaId': {
+      id: '/editor/$vitaId'
+      path: '/$vitaId'
+      fullPath: '/editor/$vitaId'
+      preLoaderRoute: typeof EditorVitaIdRouteImport
+      parentRoute: typeof EditorRoute
+    }
+    '/dashboard/vitas': {
+      id: '/dashboard/vitas'
+      path: '/vitas'
+      fullPath: '/dashboard/vitas'
+      preLoaderRoute: typeof DashboardVitasRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/chronicles': {
+      id: '/dashboard/chronicles'
+      path: '/chronicles'
+      fullPath: '/dashboard/chronicles'
+      preLoaderRoute: typeof DashboardChroniclesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
+interface DashboardRouteChildren {
+  DashboardChroniclesRoute: typeof DashboardChroniclesRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardVitasRoute: typeof DashboardVitasRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardChroniclesRoute: DashboardChroniclesRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardVitasRoute: DashboardVitasRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
+interface EditorRouteChildren {
+  EditorVitaIdRoute: typeof EditorVitaIdRoute
+  EditorIndexRoute: typeof EditorIndexRoute
+}
+
+const EditorRouteChildren: EditorRouteChildren = {
+  EditorVitaIdRoute: EditorVitaIdRoute,
+  EditorIndexRoute: EditorIndexRoute,
+}
+
+const EditorRouteWithChildren =
+  EditorRoute._addFileChildren(EditorRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRouteWithChildren,
+  EditorRoute: EditorRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
