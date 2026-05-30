@@ -41,6 +41,8 @@
     "classnames": "^2.5.1",
     "cookie": "^1.1.1",
     "drizzle-orm": "^0.45.2",
+    "electron-log": "^5.4.4",
+    "electron-updater": "^6.8.3",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.468.0",
     "pixi-viewport": "^6.0.3",
