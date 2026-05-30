@@ -29,9 +29,16 @@ linux:
 
 mac:
   target:
-    - dmg
+    - target: dmg
+      arch: [arm64]
   category: public.app-category.productivity
 
 win:
   target:
     - nsis
+
+publish:
+  provider: github
+  owner: monocircuit
+  repo: vita
+  releaseType: draft
