@@ -1,5 +1,5 @@
-import { contextBridge, ipcRenderer } from 'electron';
-import type { Api } from './ipc/contracts';
+import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
+import type { Api, UpdateStatus } from './ipc/contracts';
 
 const api: Api = {
   vitas: {
@@ -68,6 +68,18 @@ const api: Api = {
   },
   continents: {
     list: () => ipcRenderer.invoke('continents:list'),
+  },
+  updater: {
+    onStatus: (callback: (status: UpdateStatus) => void) => {
+      const handler = (_event: IpcRendererEvent, status: UpdateStatus) => callback(status);
+      ipcRenderer.on('updater:status', handler);
+      return () => {
+        ipcRenderer.removeListener('updater:status', handler);
+      };
+    },
+    checkNow: () => ipcRenderer.invoke('updater:check-now'),
+    quitAndInstall: () => ipcRenderer.invoke('updater:quit-and-install'),
+    openReleasesPage: () => ipcRenderer.invoke('updater:open-releases-page'),
   },
 };
 

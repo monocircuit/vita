@@ -5,6 +5,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { ZLayerProvider } from '@monocircuit/monolithium/contexts';
 import { MuiThemeAdapter } from '@/shared/theme/MuiThemeAdapter';
 import AppChrome from '@/components/layout/AppChrome';
+import { UpdateToast } from '@/features/updates/UpdateToast';
 
 export interface RootRouteContext {
   queryClient: QueryClient;
@@ -21,6 +22,7 @@ function RootLayout() {
         <AppChrome>
           <Outlet />
         </AppChrome>
+        <UpdateToast />
       </ZLayerProvider>
       {import.meta.env.DEV && (
         <>

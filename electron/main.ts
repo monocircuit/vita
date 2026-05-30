@@ -2,11 +2,12 @@ import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 import { getDb } from './db/client';
 import { registerIpcHandlers } from './ipc';
+import { initUpdater } from './updater';
 
 const isDev = !app.isPackaged;
 const DEV_URL = 'http://localhost:5173';
 
-function createWindow(): void {
+function createWindow(): BrowserWindow {
   const window = new BrowserWindow({
     width: 1400,
     height: 900,
@@ -27,6 +28,12 @@ function createWindow(): void {
   } else {
     window.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
   }
+
+  window.webContents.once('did-finish-load', () => {
+    initUpdater(window);
+  });
+
+  return window;
 }
 
 app.whenReady().then(() => {
