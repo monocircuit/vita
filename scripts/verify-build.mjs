@@ -1,7 +1,6 @@
-// /home/bnau/workspace/vita/scripts/verify-build.mjs
 import { existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { platform } from 'node:os';
+import { arch, platform } from 'node:os';
 
 const ROOT = process.cwd();
 const RELEASE = join(ROOT, 'release');
@@ -42,15 +41,22 @@ if (plat === 'linux') {
 }
 
 if (plat === 'darwin') {
-  assertExists('mac-arm64/Vita.app/Contents/MacOS/Vita');
-  assertExists('mac-arm64/Vita.app/Contents/Resources/app.asar');
-  assertSizeBetween('mac-arm64/Vita.app/Contents/Resources/app.asar', 50, 300);
+  // electron-builder output dir is `mac-arm64` for arm64, `mac` for x64.
+  const macDir = arch() === 'arm64' ? 'mac-arm64' : 'mac';
+  assertExists(`${macDir}/Vita.app/Contents/MacOS/Vita`);
+  assertExists(`${macDir}/Vita.app/Contents/Resources/app.asar`);
+  assertSizeBetween(`${macDir}/Vita.app/Contents/Resources/app.asar`, 50, 300);
 }
 
 if (plat === 'win32') {
   assertExists('win-unpacked/Vita.exe');
   assertExists('win-unpacked/resources/app.asar');
   assertSizeBetween('win-unpacked/resources/app.asar', 50, 300);
+}
+
+if (!['linux', 'darwin', 'win32'].includes(plat)) {
+  console.error(`FAIL: unsupported platform "${plat}"`);
+  process.exit(1);
 }
 
 if (errors.length > 0) {
