@@ -83,6 +83,7 @@ export interface Api {
   continents: {
     list: () => Promise<Continent[]>;
   };
+  updater: UpdaterApi;
 }
 
 export type UpdateStatus =
