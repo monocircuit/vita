@@ -36,8 +36,17 @@ export function useUpdater(): {
 
   return {
     status,
-    checkNow: () => window.api.updater.checkNow(),
-    quitAndInstall: () => window.api.updater.quitAndInstall(),
-    openReleasesPage: () => window.api.updater.openReleasesPage(),
+    checkNow: () =>
+      window.api?.updater
+        ? window.api.updater.checkNow()
+        : Promise.resolve(),
+    quitAndInstall: () =>
+      window.api?.updater
+        ? window.api.updater.quitAndInstall()
+        : Promise.resolve(),
+    openReleasesPage: () =>
+      window.api?.updater
+        ? window.api.updater.openReleasesPage()
+        : Promise.resolve(),
   };
 }

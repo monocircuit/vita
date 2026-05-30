@@ -7,9 +7,19 @@ const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
 const STARTUP_DELAY_MS = 30_000;
 const RELEASES_URL = 'https://github.com/monocircuit/vita/releases/latest';
 
+let currentWindow: BrowserWindow | null = null;
 let intervalHandle: NodeJS.Timeout | null = null;
+let oneTimeSetupDone = false;
 
-export function initUpdater(mainWindow: BrowserWindow): void {
+function emit(status: UpdateStatus): void {
+  if (!currentWindow || currentWindow.isDestroyed()) return;
+  currentWindow.webContents.send('updater:status', status);
+}
+
+function oneTimeSetup(): void {
+  if (oneTimeSetupDone) return;
+  oneTimeSetupDone = true;
+
   log.initialize();
   log.transports.file.level = 'info';
   autoUpdater.logger = log;
@@ -19,11 +29,6 @@ export function initUpdater(mainWindow: BrowserWindow): void {
     // Unsigned macOS: Gatekeeper blocks auto-install. Toast links user to releases.
     autoUpdater.autoInstallOnAppQuit = false;
   }
-
-  const emit = (status: UpdateStatus): void => {
-    if (mainWindow.isDestroyed()) return;
-    mainWindow.webContents.send('updater:status', status);
-  };
 
   autoUpdater.on('checking-for-update', () => emit({ state: 'checking' }));
   autoUpdater.on('update-available', (info) =>
@@ -60,11 +65,15 @@ export function initUpdater(mainWindow: BrowserWindow): void {
   intervalHandle = setInterval(() => {
     void autoUpdater.checkForUpdates();
   }, SIX_HOURS_MS);
+}
+
+export function initUpdater(mainWindow: BrowserWindow): void {
+  oneTimeSetup();
+  currentWindow = mainWindow;
 
   mainWindow.on('closed', () => {
-    if (intervalHandle) {
-      clearInterval(intervalHandle);
-      intervalHandle = null;
+    if (currentWindow === mainWindow) {
+      currentWindow = null;
     }
   });
 }
