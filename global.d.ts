@@ -1,6 +1,6 @@
 import { type PixiReactElementProps } from "@pixi/react";
 import { type Viewport } from "pixi-viewport";
-import type { Api } from "./electron/ipc/contracts";
+import type { Api, UpdaterApi } from "./electron/ipc/contracts";
 
 declare module "@pixi/react" {
   interface PixiElements {
