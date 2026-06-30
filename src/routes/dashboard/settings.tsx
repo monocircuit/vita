@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import PageHead from '@/components/features/dashboard/sections/PageHead';
-import { mono } from '@/components/features/dashboard/sections/utils';
+import BackupControls from '@/components/features/dashboard/sections/BackupControls';
 
 export const Route = createFileRoute('/dashboard/settings')({
   component: Settings,
@@ -12,19 +12,10 @@ function Settings() {
       <PageHead
         number="09"
         kicker="SECTION · SETTINGS"
-        title="Account settings."
-        subtitle="Manage your profile, preferences, and integrations."
+        title="Settings."
+        subtitle="Manage your local data and backups."
       />
-      <div
-        style={{
-          ...mono,
-          fontSize: 11,
-          color: '#606060',
-          padding: '32px max(32px,5%) 48px',
-        }}
-      >
-        Coming soon.
-      </div>
+      <BackupControls />
     </div>
   );
 }

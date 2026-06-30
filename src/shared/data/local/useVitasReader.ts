@@ -1,3 +1,4 @@
+import { dataApi } from '@/shared/data/db';
 import { queryOptions, useQuery } from '@tanstack/react-query';
 
 export const vitasQueryKey = ['vitas'] as const;
@@ -5,13 +6,13 @@ export const vitasQueryKey = ['vitas'] as const;
 export const vitasQueryOptions = () =>
   queryOptions({
     queryKey: vitasQueryKey,
-    queryFn: () => window.api.vitas.list(),
+    queryFn: () => dataApi.vitas.list(),
   });
 
 export const vitaByIdQueryOptions = (id: number) =>
   queryOptions({
     queryKey: [...vitasQueryKey, 'byId', id] as const,
-    queryFn: () => window.api.vitas.byId(id),
+    queryFn: () => dataApi.vitas.byId(id),
   });
 
 export function useVitasReader() {

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useState } from "react";
-import type { ChronicleView } from "../../../../electron/ipc/contracts";
-import type { Entity } from "../../../../electron/db/schema";
+import type { ChronicleView } from '@/shared/data/db';
+import type { Entity } from '@/shared/data/db';
 
 interface ChronicleDetail {
   chronicle: ChronicleView | undefined;

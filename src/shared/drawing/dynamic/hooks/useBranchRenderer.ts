@@ -1,7 +1,7 @@
 import { useEffect, RefObject, MutableRefObject } from "react";
 import { Viewport } from "pixi-viewport";
-import type { ChronicleView } from "../../../../../electron/ipc/contracts";
-import type { Entity } from "../../../../../electron/db/schema";
+import type { ChronicleView } from '@/shared/data/db';
+import type { Entity } from '@/shared/data/db';
 import { DrawingContext, ActivePopup } from "../helpers";
 import {
   clearBranchRegistry,

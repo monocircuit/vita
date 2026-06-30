@@ -28,7 +28,6 @@
     ]
   },
   "include": [
-    "database.d.ts",
     "**/*.ts",
     "**/*.tsx",
     "**/*.d.ts",

@@ -1,3 +1,4 @@
+import { dataApi } from '@/shared/data/db';
 import { queryOptions, useQuery } from '@tanstack/react-query';
 
 export const countriesQueryKey = ['countries'] as const;
@@ -5,7 +6,7 @@ export const countriesQueryKey = ['countries'] as const;
 export const countriesQueryOptions = () =>
   queryOptions({
     queryKey: countriesQueryKey,
-    queryFn: () => window.api.countries.list(),
+    queryFn: () => dataApi.countries.list(),
     staleTime: Infinity,
   });
 

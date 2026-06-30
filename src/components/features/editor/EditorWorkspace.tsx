@@ -10,8 +10,8 @@ import {
   useEntitiesReader,
   useReplaceShardsForVita,
 } from "@/shared/data/local";
-import type { ChronicleView } from "../../../../electron/ipc/contracts";
-import type { Entity } from "../../../../electron/db/schema";
+import type { ChronicleView } from '@/shared/data/db';
+import type { Entity } from '@/shared/data/db';
 import {
   useCallback,
   useEffect,

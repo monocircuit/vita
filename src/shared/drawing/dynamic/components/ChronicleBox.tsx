@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import deleteIcon from "@/assets/images/png/sharp_line/delete.png";
 import { Chip, Dialog } from "@monocircuit/monolithium/components";
 import { useChronicleDetail } from "@/components/features/editor/ChronicleDetailContext";
-import type { ChronicleView } from "../../../../../electron/ipc/contracts";
-import type { Entity } from "../../../../../electron/db/schema";
+import type { ChronicleView } from '@/shared/data/db';
+import type { Entity } from '@/shared/data/db';
 import { useLogoImage } from "@/shared/logo";
 
 interface ChronicleBoxProps {

@@ -1,7 +1,7 @@
 import { Viewport } from "pixi-viewport";
 import { ButterflyCell } from "@/shared/structures/Butterfly";
-import type { ChronicleView } from "../../../../electron/ipc/contracts";
-import type { Entity } from "../../../../electron/db/schema";
+import type { ChronicleView } from '@/shared/data/db';
+import type { Entity } from '@/shared/data/db';
 
 export type ChronicleCell = ButterflyCell<{
   id: string;

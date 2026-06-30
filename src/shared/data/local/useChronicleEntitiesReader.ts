@@ -1,3 +1,4 @@
+import { dataApi } from '@/shared/data/db';
 import { queryOptions, useQuery } from '@tanstack/react-query';
 
 export const chronicleEntitiesQueryKey = ['chronicleEntities'] as const;
@@ -5,7 +6,7 @@ export const chronicleEntitiesQueryKey = ['chronicleEntities'] as const;
 export const chronicleEntitiesQueryOptions = () =>
   queryOptions({
     queryKey: chronicleEntitiesQueryKey,
-    queryFn: () => window.api.chronicleEntities.list(),
+    queryFn: () => dataApi.chronicleEntities.list(),
   });
 
 export function useChronicleEntitiesReader() {

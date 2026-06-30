@@ -1,18 +1,39 @@
-import type {
-  Vita, NewVita,
-  Chronicle, NewChronicle,
-  Entity, NewEntity,
-  ChronicleEntity,
-  ChronicleRelation, NewChronicleRelation,
-  DynamicVita, NewDynamicVita,
-  DynamicVitaPath, NewDynamicVitaPath,
-  VitaShardDynamic, NewVitaShardDynamic,
-  Address, NewAddress,
-  Country, Continent,
-} from '../db/schema';
+// The data-access contract for the browser build.
+//
+// Ported from `electron/ipc/contracts.ts`. Identical shape, minus the
+// Electron-only `updater` namespace. `dataApi` (dataApi.ts) implements this
+// against Dexie/IndexedDB; the renderer hooks consume it exactly as they
+// consumed `window.api` before.
 
+import type {
+  Vita,
+  NewVita,
+  Chronicle,
+  NewChronicle,
+  Entity,
+  NewEntity,
+  ChronicleEntity,
+  ChronicleRelation,
+  NewChronicleRelation,
+  DynamicVita,
+  NewDynamicVita,
+  DynamicVitaPath,
+  NewDynamicVitaPath,
+  VitaShardDynamic,
+  NewVitaShardDynamic,
+  Address,
+  NewAddress,
+  Country,
+  Continent,
+} from './types';
+
+/** Chronicle as seen by the renderer: `knots` decoded from JSON string to numbers. */
 export type ChronicleView = Omit<Chronicle, 'knots'> & { knots: number[] };
-export type NewChronicleInput = Omit<NewChronicle, 'id' | 'createdAt' | 'updatedAt' | 'knots'> & {
+
+export type NewChronicleInput = Omit<
+  NewChronicle,
+  'id' | 'createdAt' | 'updatedAt' | 'knots'
+> & {
   knots?: number[];
 };
 export type ChroniclePatch = Partial<NewChronicleInput>;
@@ -83,21 +104,4 @@ export interface Api {
   continents: {
     list: () => Promise<Continent[]>;
   };
-  updater: UpdaterApi;
-}
-
-export type UpdateStatus =
-  | { state: 'idle' }
-  | { state: 'checking' }
-  | { state: 'available'; version: string }
-  | { state: 'not-available' }
-  | { state: 'downloading'; percent: number }
-  | { state: 'downloaded'; version: string }
-  | { state: 'error'; message: string };
-
-export interface UpdaterApi {
-  onStatus(callback: (status: UpdateStatus) => void): () => void;
-  checkNow(): Promise<void>;
-  quitAndInstall(): Promise<void>;
-  openReleasesPage(): Promise<void>;
 }

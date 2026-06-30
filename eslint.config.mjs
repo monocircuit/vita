@@ -6,9 +6,23 @@ import reactHooks from 'eslint-plugin-react-hooks';
 
 export default [
   {
-    ignores: ['node_modules', 'out', 'dist', '**/*.css', '**/*.scss', 'src/vendor/**', 'src/routeTree.gen.ts'],
+    ignores: ['node_modules', '.next', 'out', 'dist', 'dev-dist', '**/*.css', '**/*.scss', 'src/vendor/**', 'src/routeTree.gen.ts'],
   },
   js.configs.recommended,
+  {
+    // Node-based config + script files (not TypeScript source).
+    files: ['**/*.{js,cjs,mjs}'],
+    languageOptions: {
+      globals: {
+        module: 'readonly',
+        require: 'readonly',
+        process: 'readonly',
+        console: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+      },
+    },
+  },
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
@@ -30,6 +44,11 @@ export default [
       ...reactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      // TypeScript itself checks for undefined identifiers, and the core
+      // `no-undef` rule produces false positives for types and DOM globals in
+      // TS files — the typescript-eslint project recommends disabling it.
+      'no-undef': 'off',
+      'no-empty': ['error', { allowEmptyCatch: true }],
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
     },

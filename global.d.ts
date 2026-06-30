@@ -1,6 +1,5 @@
 import { type PixiReactElementProps } from "@pixi/react";
 import { type Viewport } from "pixi-viewport";
-import type { Api } from "./electron/ipc/contracts";
 
 declare module "@pixi/react" {
   interface PixiElements {
@@ -9,10 +8,6 @@ declare module "@pixi/react" {
 }
 
 declare global {
-  interface Window {
-    api: Api;
-  }
-
   type Merge<A, B> = {
     [K in keyof A | keyof B]: K extends keyof B
       ? B[K]

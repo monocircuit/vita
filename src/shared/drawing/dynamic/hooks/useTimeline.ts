@@ -1,7 +1,7 @@
 import { useEffect, RefObject, MutableRefObject } from "react";
 import { Application, Container } from "pixi.js";
 import { Viewport } from "pixi-viewport";
-import type { ChronicleView } from "../../../../../electron/ipc/contracts";
+import type { ChronicleView } from '@/shared/data/db';
 import { computeWorldScale, PIXELS_PER_YEAR } from "../worldScale";
 import { createTimeLine, TimeLineHandle, TimelineMode, MONTH_NAMES } from "../components/drawTimeLine";
 import { VIEWPORT, TIMELINE, BRANCH, isMobile } from "../config";

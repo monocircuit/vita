@@ -11,8 +11,8 @@ import { ChronicleCell, ActivePopup, BranchLabelEntity } from "./helpers";
 import type { DrawingContext } from "./helpers";
 import * as PIXI from "pixi.js";
 import { FederatedPointerEvent, Graphics } from "pixi.js";
-import type { ChronicleView } from "../../../../electron/ipc/contracts";
-import type { Entity } from "../../../../electron/db/schema";
+import type { ChronicleView } from '@/shared/data/db';
+import type { Entity } from '@/shared/data/db';
 import {
   getChainId,
   registerChainMember,

@@ -8,7 +8,7 @@ import {
 } from "@monocircuit/monolithium/components";
 import arrowIcon from "@/assets/images/png/sharp_line/Tailless-Line-Arrow-Right-1--Streamline-Sharp.png";
 import { useChronicleDetail } from "./ChronicleDetailContext";
-import type { Entity } from "../../../../electron/db/schema";
+import type { Entity } from '@/shared/data/db';
 import { EntitySelector } from "@/components/forms/selectors";
 import {
   useLinkChronicleEntities,

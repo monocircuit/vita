@@ -1,10 +1,11 @@
+import { dataApi } from '@/shared/data/db';
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { chroniclesQueryKey } from './useChroniclesReader';
 
 export const chroniclesByVitaIdQueryOptions = (vitaId: number) =>
   queryOptions({
     queryKey: [...chroniclesQueryKey, 'byVitaId', vitaId] as const,
-    queryFn: () => window.api.chronicles.byVitaId(vitaId),
+    queryFn: () => dataApi.chronicles.byVitaId(vitaId),
   });
 
 export function useChroniclesByVitaIdReader(vitaId: number | null | undefined) {

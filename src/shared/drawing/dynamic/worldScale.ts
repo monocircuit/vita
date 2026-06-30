@@ -1,4 +1,4 @@
-import type { ChronicleView } from "../../../../electron/ipc/contracts";
+import type { ChronicleView } from '@/shared/data/db';
 
 /**
  * Globale Weltskala: 1 Jahr = X Pixel in World-Space.

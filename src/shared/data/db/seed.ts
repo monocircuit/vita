@@ -1,6 +1,7 @@
-import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import { eq } from 'drizzle-orm';
-import * as schema from './schema';
+// Reference-data seed (continents + countries), ported 1:1 from
+// `electron/db/seed.ts`. Idempotent: guarded by a row in the `seedState` store.
+
+import type { VitaDatabase } from './dexie';
 
 const SEED_KEY = 'continents_and_countries_v1';
 
@@ -55,35 +56,30 @@ const COUNTRIES: ReadonlyArray<readonly [iso: string, name: string, continent: s
   ['ZA', 'South Africa', 'Africa'],
 ] as const;
 
-export function runSeed(db: BetterSQLite3Database<typeof schema>): void {
-  const existing = db
-    .select()
-    .from(schema.seedState)
-    .where(eq(schema.seedState.key, SEED_KEY))
-    .get();
-
+/**
+ * Seeds continents + countries on first run. Safe to call on every app start —
+ * it returns immediately once the seed marker is present.
+ */
+export async function ensureSeed(db: VitaDatabase): Promise<void> {
+  const existing = await db.seedState.get(SEED_KEY);
   if (existing) return;
 
-  db.transaction((tx) => {
-    const continentIdByName = new Map<string, number>();
+  await db.transaction('rw', db.continents, db.countries, db.seedState, async () => {
+    // Re-check inside the transaction to avoid a double-seed race.
+    if (await db.seedState.get(SEED_KEY)) return;
 
+    const continentIdByName = new Map<string, number>();
     for (const name of CONTINENTS) {
-      const row = tx
-        .insert(schema.continents)
-        .values({ continent: name })
-        .returning()
-        .get();
-      continentIdByName.set(name, row.id);
+      const id = await db.continents.add({ continent: name });
+      continentIdByName.set(name, id);
     }
 
     for (const [iso, name, continentName] of COUNTRIES) {
       const continentId = continentIdByName.get(continentName);
       if (continentId == null) continue;
-      tx.insert(schema.countries)
-        .values({ isoCode: iso, name, continent: continentId })
-        .run();
+      await db.countries.add({ isoCode: iso, name, continent: continentId });
     }
 
-    tx.insert(schema.seedState).values({ key: SEED_KEY }).run();
+    await db.seedState.add({ key: SEED_KEY, appliedAt: new Date() });
   });
 }
