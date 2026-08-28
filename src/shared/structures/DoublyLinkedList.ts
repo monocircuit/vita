@@ -426,23 +426,15 @@ export class DoublyLinkedList<T, Y = { index: number; value: T }>
    *
    * @returns An iterator yielding projected elements of type `Y`.
    */
-  [Symbol.iterator](): IterableIterator<Y> {
+  *[Symbol.iterator](): IterableIterator<Y> {
     let n = this.head;
     let i = 0;
 
-    const self = this;
-    return {
-      [Symbol.iterator]() {
-        return this;
-      },
-      next(): IteratorResult<Y> {
-        if (!n) return { done: true, value: undefined as any };
-        const out = self.project(n.value, i);
-        n = n.next;
-        i++;
-        return { done: false, value: out };
-      },
-    };
+    while (n) {
+      yield this.project(n.value, i);
+      n = n.next;
+      i++;
+    }
   }
 
   /**

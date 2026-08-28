@@ -186,9 +186,8 @@ export const subscribeBranch = (id: string, listener: BranchListener) => {
 };
 
 // Das macht die API in der Browser-Konsole verügbar
-// @ts-ignore
 if (typeof window !== "undefined") {
-  // @ts-ignore
+  // @ts-expect-error — debug-only handle, not part of the Window type
   window.__monoStyleApi = {
     setGlobalConfig,
     getGlobalConfig,

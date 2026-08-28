@@ -44,10 +44,18 @@ export default [
       ...reactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      // @pixi/react registers lowercase custom elements (pixiGraphics,
+      // viewport, …). eslint-plugin-react only knows DOM elements and flags
+      // their props as unknown, so exempt the pixi-specific ones.
+      'react/no-unknown-property': ['error', { ignore: ['draw', 'events'] }],
       // TypeScript itself checks for undefined identifiers, and the core
       // `no-undef` rule produces false positives for types and DOM globals in
       // TS files — the typescript-eslint project recommends disabling it.
       'no-undef': 'off',
+      // Same reasoning: TS declaration merging (e.g. a `const` and a `type` of
+      // the same name) is valid and checked by tsc, but trips core
+      // `no-redeclare`.
+      'no-redeclare': 'off',
       'no-empty': ['error', { allowEmptyCatch: true }],
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',

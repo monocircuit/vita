@@ -45,9 +45,9 @@ const branchRegistry = new Map<
 
 export const clearBranchRegistry = () => {
   for (const [key, entry] of branchRegistry) {
-    entry.unsubscribeBranch && entry.unsubscribeBranch();
-    entry.unsubscribeGlobal && entry.unsubscribeGlobal();
-    entry.unregisterChain && entry.unregisterChain();
+    entry.unsubscribeBranch?.();
+    entry.unsubscribeGlobal?.();
+    entry.unregisterChain?.();
 
     try {
       if (entry.gfx.parent) entry.gfx.parent.removeChild(entry.gfx);

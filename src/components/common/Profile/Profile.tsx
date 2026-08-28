@@ -1,8 +1,4 @@
-import React from "react";
-
-interface Props {}
-
-const Profile = (props: Props) => {
+const Profile = () => {
   return (
     <div
       id="profile"

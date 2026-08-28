@@ -91,7 +91,7 @@ class Tree {
    * These coordinates correspond to the this.start value.
    */
   get isLongerThanParent() {
-    if (!this.parent) return;
+    if (!this.parent) return undefined;
     return this.parent.endX < this.endX;
   }
 
@@ -142,7 +142,7 @@ class Tree {
 
     /** set parent branch */
     branch.setParentBranch(this);
-    orientation != null ? (branch.orientation = orientation!) : null;
+    if (orientation != null) branch.orientation = orientation;
 
     if (autoSetLayerWidth) {
       console.log("Layers automatically Set");
