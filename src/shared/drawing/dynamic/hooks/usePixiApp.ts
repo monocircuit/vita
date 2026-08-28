@@ -26,6 +26,7 @@ export function usePixiApp(
     if (appRef.current) return;
 
     let isMounted = true;
+    let isInitialized = false;
     const el = containerRef.current;
 
     const app = new Application();
@@ -40,8 +41,12 @@ export function usePixiApp(
         antialias: true,
       });
 
+      isInitialized = true;
+
       if (!isMounted) {
-        app.destroy();
+        // Unmounted while init() was still pending: the cleanup below could not
+        // destroy a half-initialized Application, so tear it down here.
+        app.destroy(true, true);
         return;
       }
 
@@ -150,7 +155,10 @@ export function usePixiApp(
       isMounted = false;
       (appRef.current as any)?._cleanup?.();
       if (appRef.current) {
-        appRef.current.destroy(true, true);
+        // pixi wires up its plugins inside app.init(); destroying before that
+        // resolves throws ("this._cancelResize is not a function"). In that
+        // case init() destroys the app itself once it settles.
+        if (isInitialized) appRef.current.destroy(true, true);
         appRef.current = null;
         viewportRef.current = null;
         uiContainerRef.current = null;
