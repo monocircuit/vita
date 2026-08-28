@@ -1,10 +1,12 @@
 /**
- * Scan only relevant Monolithium code folders.
- * Scanning the whole src tree pulls in large non-code assets and is expensive.
+ * Monolithium ships as a package in node_modules, which Tailwind's automatic
+ * source detection skips — without these the utility classes used *inside* the
+ * library are never generated and its components render unstyled.
+ * Scan only the relevant code folders; `assets`/`fonts` hold large binaries.
  */
-@source "../../../../packages/monolithium/src/components/";
-@source "../../../../packages/monolithium/src/hooks/";
-@source "../../../../packages/monolithium/src/contexts/";
+@source "../node_modules/@monocircuit/monolithium/.dist/components/";
+@source "../node_modules/@monocircuit/monolithium/.dist/hooks/";
+@source "../node_modules/@monocircuit/monolithium/.dist/contexts/";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
