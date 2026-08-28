@@ -81,7 +81,6 @@ function Vitas() {
                   initialValues={{
                     id: v.id,
                     name: v.name,
-                    scope: v.scope ?? '',
                     type: v.type,
                   }}
                   onSuccess={() => setEditTarget(null)}
@@ -97,7 +96,7 @@ function Vitas() {
                   setEditTarget(
                     editTarget?.id === v.id
                       ? null
-                      : { id: v.id, name: v.name, scope: v.scope ?? '', type: v.type },
+                      : { id: v.id, name: v.name, type: v.type },
                   );
                 }}
                 className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"

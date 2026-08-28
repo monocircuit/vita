@@ -84,7 +84,6 @@ export type Vita = {
   id: number;
   name: string;
   type: VitaType;
-  scope: Scope | null;
   createdAt: Date;
   updatedAt: Date | null;
 }
@@ -92,7 +91,6 @@ export type NewVita = {
   id?: number;
   name: string;
   type: VitaType;
-  scope?: Scope | null;
   createdAt?: Date;
   updatedAt?: Date | null;
 }

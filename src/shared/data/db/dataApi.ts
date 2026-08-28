@@ -31,7 +31,6 @@ export function createDataApi(db: VitaDatabase): Api {
       create: async (input) => {
         const id = await db.vitas.add({
           ...input,
-          scope: input.scope ?? null,
           createdAt: new Date(),
           updatedAt: null,
         });

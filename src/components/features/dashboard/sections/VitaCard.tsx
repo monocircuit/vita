@@ -4,7 +4,6 @@ import { mono, sans, relativeTime } from "./utils";
 type Vita = {
   id: number;
   name: string;
-  scope: string | null;
   type: string;
   updatedAt: string | Date | null;
   createdAt: string | Date;
@@ -14,27 +13,6 @@ type Props = {
   vita: Vita;
   chronicleCount: number;
   entityCount: number;
-};
-
-const ScopePill = ({ scope }: { scope: string | null }) => {
-  const s = (scope ?? "personal").toLowerCase();
-  const isPersonal = s === "personal";
-  return (
-    <span
-      style={{
-        ...mono,
-        fontSize: 9,
-        textTransform: "uppercase",
-        letterSpacing: "0.25em",
-        padding: "4px 8px",
-        border: "1px solid rgba(255,255,255,0.08)",
-        background: isPersonal ? "rgba(255,209,0,0.08)" : "transparent",
-        color: isPersonal ? "var(--color-accent)" : "#8a8a8a",
-      }}
-    >
-      {s}
-    </span>
-  );
 };
 
 const Stat = ({ value, label }: { value: string; label: string }) => (
@@ -77,8 +55,7 @@ const VitaCard = ({ vita, chronicleCount, entityCount }: Props) => {
       onMouseLeave={e => (e.currentTarget.style.background = "#121212")}
       onClick={open}
     >
-      <div className="flex items-center justify-between">
-        <ScopePill scope={vita.scope} />
+      <div className="flex items-center justify-end">
         <span style={{ ...mono, color: "#606060", fontSize: 16 }}>···</span>
       </div>
 
@@ -105,7 +82,7 @@ const VitaCard = ({ vita, chronicleCount, entityCount }: Props) => {
           marginTop: 6,
         }}
       >
-        {(vita.scope ?? "personal").toUpperCase()} · {vita.type.toUpperCase()}
+        {vita.type.toUpperCase()}
       </div>
 
       <div

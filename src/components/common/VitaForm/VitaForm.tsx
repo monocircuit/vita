@@ -13,7 +13,6 @@ const VITA_TYPES = ["DYNAMIC", "STATIC"] as const;
 
 const vitaFormSchema = z.object({
   name: z.string().min(1, "Name ist erforderlich"),
-  scope: z.string().min(1, "Scope ist erforderlich"),
   type: z.enum(VITA_TYPES),
 });
 
@@ -22,7 +21,6 @@ type VitaFormValues = z.infer<typeof vitaFormSchema>;
 export interface VitaFormInitialValues {
   id?: number;
   name?: string;
-  scope?: string | null;
   type?: (typeof VITA_TYPES)[number];
 }
 
@@ -48,7 +46,6 @@ const VitaForm = ({ initialValues, onSuccess }: Props) => {
     resolver: zodResolver(vitaFormSchema),
     defaultValues: {
       name: initialValues?.name ?? "",
-      scope: initialValues?.scope ?? "",
       type: initialValues?.type ?? "DYNAMIC",
     },
   });
@@ -63,7 +60,6 @@ const VitaForm = ({ initialValues, onSuccess }: Props) => {
           id: initialValues!.id!,
           patch: {
             name: values.name.trim(),
-            scope: values.scope as never,
             type: values.type,
           },
         });
@@ -72,7 +68,6 @@ const VitaForm = ({ initialValues, onSuccess }: Props) => {
       } else {
         const newVita = await createVita.mutateAsync({
           name: values.name.trim(),
-          scope: values.scope as never,
           type: values.type,
         });
         setSubmitSuccess("Vita created successfully.");
@@ -105,13 +100,6 @@ const VitaForm = ({ initialValues, onSuccess }: Props) => {
         className="h-[40px] ml-[5px] mr-[5px]"
         register={register("name", { required: true })}
         error={errors.name?.message}
-      />
-      <Input
-        name="scope"
-        placeholder="Scope"
-        className="h-[40px] ml-[5px] mr-[5px]"
-        register={register("scope", { required: true })}
-        error={errors.scope?.message}
       />
       <select
         {...register("type", { required: true })}

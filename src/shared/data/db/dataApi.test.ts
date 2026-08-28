@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { VitaDatabase } from './dexie';
+import Dexie from 'dexie';
+import { V1_STORES, VitaDatabase } from './dexie';
 import { createDataApi } from './dataApi';
 import { ensureSeed } from './seed';
 import type { Api } from './contract';
@@ -25,7 +26,30 @@ describe('vitas', () => {
     expect(v.name).toBe('My Vita');
     expect(v.createdAt).toBeInstanceOf(Date);
     expect(v.updatedAt).toBeNull();
-    expect(v.scope).toBeNull();
+    expect('scope' in v).toBe(false);
+  });
+
+  it('upgrade drops the legacy scope property from existing vitas', async () => {
+    const name = `legacy-${Date.now()}-${counter++}`;
+
+    const legacy = new Dexie(name);
+    legacy.version(1).stores(V1_STORES);
+    await legacy.open();
+    await legacy.table('vitas').add({
+      name: 'Alt',
+      type: 'DYNAMIC',
+      scope: 'private',
+      createdAt: new Date(),
+      updatedAt: null,
+    });
+    legacy.close();
+
+    const upgraded = new VitaDatabase(name);
+    await upgraded.open();
+    const [vita] = await upgraded.vitas.toArray();
+    expect(vita.name).toBe('Alt');
+    expect('scope' in vita).toBe(false);
+    await upgraded.delete();
   });
 
   it('list + byId round-trip', async () => {

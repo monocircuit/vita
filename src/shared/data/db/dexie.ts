@@ -49,22 +49,35 @@ export class VitaDatabase extends Dexie {
 
   constructor(name = 'vita') {
     super(name);
-    this.version(1).stores({
-      continents: '++id, continent',
-      countries: '++id, &isoCode, continent',
-      addresses: '++id, country',
-      vitas: '++id',
-      chronicles: '++id',
-      entities: '++id, address',
-      chronicleEntities: '[chronicleId+entityId], chronicleId, entityId',
-      chronicleRelations: '[chronicleId+ancestor], chronicleId, ancestor',
-      dynamicVitas: '++id',
-      dynamicVitaPaths: '[dynamicVitaId+chronicleId], dynamicVitaId, chronicleId',
-      vitasShardsDynamic: '++id, &[vitaId+chronicleId], vitaId, chronicleId',
-      seedState: 'key',
-    });
+    this.version(1).stores(V1_STORES);
+    // v2: vitas lost their `scope` column — the data is local-only, so a
+    // visibility scope has no meaning. Strip it from rows written under v1.
+    this.version(2).upgrade((tx) =>
+      tx
+        .table('vitas')
+        .toCollection()
+        .modify((vita: { scope?: unknown }) => {
+          delete vita.scope;
+        }),
+    );
   }
 }
+
+/** Store definitions as of schema version 1. */
+export const V1_STORES = {
+  continents: '++id, continent',
+  countries: '++id, &isoCode, continent',
+  addresses: '++id, country',
+  vitas: '++id',
+  chronicles: '++id',
+  entities: '++id, address',
+  chronicleEntities: '[chronicleId+entityId], chronicleId, entityId',
+  chronicleRelations: '[chronicleId+ancestor], chronicleId, ancestor',
+  dynamicVitas: '++id',
+  dynamicVitaPaths: '[dynamicVitaId+chronicleId], dynamicVitaId, chronicleId',
+  vitasShardsDynamic: '++id, &[vitaId+chronicleId], vitaId, chronicleId',
+  seedState: 'key',
+} as const;
 
 /** Ordered list of every store name — used by backup export/import. */
 export const STORE_NAMES = [

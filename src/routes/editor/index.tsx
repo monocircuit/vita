@@ -34,7 +34,6 @@ function EditorIndex() {
       try {
         const newVita = await createVita.mutateAsync({
           name: 'Untitled',
-          scope: 'private',
           type: 'DYNAMIC',
         });
         if (!newVita?.id) {
